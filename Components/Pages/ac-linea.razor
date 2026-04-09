@@ -1,0 +1,245 @@
+@page "/ac-linea"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject IJSRuntime JS
+@using System.Text.Json
+
+<PageTitle>AC - Línea (Área de Conocimiento por Línea)</PageTitle>
+
+<div class="container mt-4">
+    <h3>Área de Conocimiento por Línea de Investigación</h3>
+    <p class="text-muted">Gestiona qué áreas de conocimiento están asociadas a cada línea de investigación.</p>
+
+    // Alerta
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @* ── Botón nuevo ── *@
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="MostrarFormulario">Nueva Relación</button>
+    }
+
+    // FORMULARIO (solo insertar, no hay editar en tablas relación)
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">Nueva Relación AC - Línea</div>
+            <div class="card-body">
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Línea de Investigación <span class="text-danger">*</span></label>
+                        <select class="form-select" @bind="campoLinea">
+                            <option value="0">-- Seleccione una línea --</option>
+                            @foreach (var l in lineas)
+                            {
+                                <option value="@V(l, "id")">@V(l, "nombre")</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Área de Conocimiento <span class="text-danger">*</span></label>
+                        <select class="form-select" @bind="campoArea">
+                            <option value="0">-- Seleccione un área --</option>
+                            @foreach (var a in areas)
+                            {
+                                <option value="@V(a, "id")">[@V(a, "id")] @V(a, "gran_area") › @V(a, "area") › @V(a, "disciplina")</option>
+                            }
+                        </select>
+                    </div>
+
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRelacion">Guardar</button>
+                <button class="btn btn-secondary" @onclick="() => mostrarFormulario = false">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    // TABLA
+    
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else if (registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Línea</th>
+                    <th>Gran Área</th>
+                    <th>Área</th>
+                    <th>Disciplina</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@V(reg, "nombre_linea")</td>
+                        <td>@V(reg, "gran_area")</td>
+                        <td>@V(reg, "nombre_area")</td>
+                        <td>@V(reg, "disciplina")</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm"
+                                    @onclick="() => EliminarRelacion(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-warning">No se encontraron relaciones activas.</div>
+    }
+</div>
+
+@code {
+    private bool   cargando         = true;
+    private bool   mostrarFormulario = false;
+    private string mensaje          = string.Empty;
+    private bool   exito            = false;
+
+    private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> lineas    = new();
+    private List<Dictionary<string, object?>> areas     = new();
+
+    private int campoLinea = 0;
+    private int campoArea  = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRegistros();
+        // Cargar datos para los selects usando ApiService (tablas simples)
+        lineas = await Api.ListarAsync("linea_investigacion");
+        areas  = await Api.ListarAsync("area_conocimiento");
+    }
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = new();
+
+        var (ok, resultados, _) = await Sp.EjecutarSpAsync("SP_LISTAR_AC_LINEA");
+        if (ok && resultados.Count > 0)
+        {
+            var jsonStr = resultados[0].Values.FirstOrDefault()?.ToString();
+            if (!string.IsNullOrEmpty(jsonStr))
+                registros = ParsearJsonArray(jsonStr);
+        }
+
+        cargando = false;
+    }
+
+    private async Task MostrarFormulario()
+    {
+        campoLinea       = 0;
+        campoArea        = 0;
+        mensaje          = string.Empty;
+        mostrarFormulario = true;
+    }
+
+    // INSERTAR relación
+
+    private async Task GuardarRelacion()
+    {
+        if (campoLinea <= 0) { exito = false; mensaje = "Debe seleccionar una línea."; return; }
+        if (campoArea  <= 0) { exito = false; mensaje = "Debe seleccionar un área.";   return; }
+
+        var parametros = new Dictionary<string, object?>
+        {
+            ["p_linea_investigacion"] = campoLinea,
+            ["p_area_conocimiento"]   = campoArea
+        };
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_AC_LINEA", parametros);
+        exito   = ok;
+        mensaje = ok ? "Relación creada correctamente." : $"Error: {msg}";
+
+        if (ok)
+        {
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    // ELIMINAR (borrado lógico por clave compuesta)
+
+    private async Task EliminarRelacion(Dictionary<string, object?> reg)
+    {
+        int    lineaId = int.TryParse(V(reg, "linea_investigacion"), out int l) ? l : 0;
+        int    areaId  = int.TryParse(V(reg, "area_conocimiento"),  out int a) ? a : 0;
+        string linea   = V(reg, "nombre_linea");
+        string area    = V(reg, "nombre_area");
+
+        var confirmar = await JS.InvokeAsync<bool>("confirm",
+            $"¿Eliminar la relación entre '{linea}' y '{area}'?");
+        if (!confirmar) return;
+
+        var parametros = new Dictionary<string, object?>
+        {
+            ["p_linea_investigacion"] = lineaId,
+            ["p_area_conocimiento"]   = areaId
+        };
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_AC_LINEA", parametros);
+        exito   = ok;
+        mensaje = ok ? "Relación eliminada (borrado lógico)." : $"Error: {msg}";
+
+        if (ok)
+            await CargarRegistros();
+    }
+
+    private string V(Dictionary<string, object?> dic, string clave)
+    {
+        if (dic.TryGetValue(clave, out var val) && val != null)
+            return val.ToString() ?? "";
+        return "";
+    }
+
+    private List<Dictionary<string, object?>> ParsearJsonArray(string json)
+    {
+        var lista = new List<Dictionary<string, object?>>();
+        try
+        {
+            var doc = JsonDocument.Parse(json);
+            foreach (var elem in doc.RootElement.EnumerateArray())
+                lista.Add(ParsearJsonObject(elem));
+        }
+        catch { }
+        return lista;
+    }
+
+    private Dictionary<string, object?> ParsearJsonObject(JsonElement elem)
+    {
+        var dic = new Dictionary<string, object?>();
+        foreach (var prop in elem.EnumerateObject())
+        {
+            dic[prop.Name] = prop.Value.ValueKind switch
+            {
+                JsonValueKind.String => prop.Value.GetString(),
+                JsonValueKind.Number => prop.Value.TryGetInt32(out int i) ? i : prop.Value.GetDouble(),
+                JsonValueKind.True   => true,
+                JsonValueKind.False  => false,
+                JsonValueKind.Null   => null,
+                _                   => prop.Value.GetRawText()
+            };
+        }
+        return dic;
+    }
+}

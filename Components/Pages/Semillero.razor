@@ -1,0 +1,325 @@
+@page "/semillero"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject IJSRuntime JS
+@using System.Text.Json
+
+<PageTitle>Semilleros</PageTitle>
+
+<div class="container mt-4">
+    <h3>Semilleros</h3>
+
+    @* ── Alerta ── *@
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    // VISTA: LISTAR
+
+    @if (vista == "listar")
+    {
+        <button class="btn btn-primary mb-3" @onclick="MostrarFormularioNuevo">Nuevo Semillero</button>
+
+        @if (cargando)
+        {
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        }
+        else if (registros.Any())
+        {
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Fecha Fundación</th>
+                        <th>Grupo de Investigación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reg in registros)
+                    {
+                        <tr>
+                            <td>@V(reg, "id")</td>
+                            <td>@V(reg, "nombre")</td>
+                            <td>@V(reg, "fecha_fundacion")</td>
+                            <td>@V(reg, "nombre_grupo")</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-1"
+                                        @onclick="() => EditarRegistro(reg)">Editar</button>
+                                <button class="btn btn-danger btn-sm"
+                                        @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-warning">No se encontraron semilleros activos.</div>
+        }
+    }
+
+    // VISTA: FORMULARIO (CREAR / EDITAR)
+
+    @if (vista == "formulario")
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                @(editando ? $"Editar Semillero #{campoId}" : "Nuevo Semillero")
+            </div>
+            <div class="card-body">
+                <div class="row">
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">ID <span class="text-danger">*</span></label>
+                        <input class="form-control" type="number" @bind="campoId" disabled="@editando" />
+                    </div>
+
+                    <div class="col-md-9 mb-3">
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input class="form-control" @bind="campoNombre" maxlength="60" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fecha Fundación <span class="text-danger">*</span></label>
+                        <input class="form-control" type="date" @bind="campoFechaFundacion" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Grupo de Investigación <span class="text-danger">*</span></label>
+                        @if (grupos.Any())
+                        {
+                            <select class="form-select" @bind="campoGrupoInvestigacion">
+                                <option value="0">-- Seleccione un grupo --</option>
+                                @foreach (var g in grupos)
+                                {
+                                    <option value="@V(g, "id")">@V(g, "nombre")</option>
+                                }
+                            </select>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning py-1">
+                                No hay grupos activos. Crea un grupo primero.
+                            </div>
+                        }
+                    </div>
+
+                </div>
+
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string vista = "listar";
+    private bool cargando = true;
+    private string mensaje = string.Empty;
+    private bool exito = false;
+    private bool editando = false;
+
+    private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> grupos    = new();
+
+    // ── Campos del formulario ──
+    private int      campoId                 = 0;
+    private string   campoNombre             = string.Empty;
+    private DateTime campoFechaFundacion     = DateTime.Today;
+    private int      campoGrupoInvestigacion = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRegistros();
+        await CargarGrupos();
+    }
+
+    // CARGAR semilleros activos
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = new();
+
+        var (ok, resultados, _) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
+
+        if (ok && resultados.Count > 0)
+        {
+            var jsonStr = resultados[0].Values.FirstOrDefault()?.ToString();
+            if (!string.IsNullOrEmpty(jsonStr))
+                registros = ParsearJsonArray(jsonStr);
+        }
+
+        cargando = false;
+    }
+
+    // Carga grupos activos para el select del formulario
+
+    private async Task CargarGrupos()
+    {
+        var (ok, resultados, _) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_INVESTIGACION");
+        if (ok && resultados.Count > 0)
+        {
+            var jsonStr = resultados[0].Values.FirstOrDefault()?.ToString();
+            if (!string.IsNullOrEmpty(jsonStr))
+                grupos = ParsearJsonArray(jsonStr);
+        }
+    }
+
+    // MOSTRAR FORMULARIO NUEVO
+
+    private async Task MostrarFormularioNuevo()
+    {
+        editando              = false;
+        campoId               = 0;
+        campoNombre           = string.Empty;
+        campoFechaFundacion   = DateTime.Today;
+        campoGrupoInvestigacion = 0;
+        mensaje               = string.Empty;
+
+        await CargarGrupos(); // Refrescar grupos antes de mostrar
+        vista = "formulario";
+    }
+
+    // EDITAR
+
+    private async Task EditarRegistro(Dictionary<string, object?> reg)
+    {
+        editando              = true;
+        campoId               = int.TryParse(V(reg, "id"),                   out int id)   ? id   : 0;
+        campoNombre           = V(reg, "nombre");
+        campoGrupoInvestigacion = int.TryParse(V(reg, "grupo_investigacion"), out int gid) ? gid  : 0;
+
+        if (DateTime.TryParse(V(reg, "fecha_fundacion"), out var fecha))
+            campoFechaFundacion = fecha;
+
+        mensaje = string.Empty;
+        await CargarGrupos();
+        vista = "formulario";
+    }
+
+    // GUARDAR
+
+    private async Task GuardarRegistro()
+    {
+        if (campoId <= 0 && !editando)
+        {
+            exito = false; mensaje = "El ID debe ser un número mayor a 0."; return;
+        }
+        if (string.IsNullOrWhiteSpace(campoNombre))
+        {
+            exito = false; mensaje = "El nombre es obligatorio."; return;
+        }
+        if (campoGrupoInvestigacion <= 0)
+        {
+            exito = false; mensaje = "Debe seleccionar un grupo de investigación."; return;
+        }
+
+        var parametros = new Dictionary<string, object?>
+        {
+            ["p_id"]                  = campoId,
+            ["p_nombre"]              = campoNombre,
+            ["p_fecha_fundacion"]     = campoFechaFundacion.ToString("yyyy-MM-dd"),
+            ["p_grupo_investigacion"] = campoGrupoInvestigacion
+        };
+
+        string spNombre = editando ? "SP_ACTUALIZAR_SEMILLERO" : "SP_INGRESAR_SEMILLERO";
+        string accion   = editando ? "actualizar" : "crear";
+
+        var confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de {accion} el semillero?");
+        if (!confirmar) return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(spNombre, parametros);
+        exito   = ok;
+        mensaje = ok
+            ? (editando ? "Semillero actualizado correctamente." : "Semillero creado correctamente.")
+            : $"Error: {msg}";
+
+        if (ok)
+        {
+            await CargarRegistros();
+            vista = "listar";
+        }
+    }
+
+    // ELIMINAR (borrado lógico)
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        int    id     = int.TryParse(V(reg, "id"), out int i) ? i : 0;
+        string nombre = V(reg, "nombre");
+
+        var confirmar = await JS.InvokeAsync<bool>("confirm",
+            $"¿Está seguro de eliminar el semillero '{nombre}'?");
+        if (!confirmar) return;
+
+        var parametros = new Dictionary<string, object?> { ["p_id"] = id };
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_SEMILLERO", parametros);
+
+        exito   = ok;
+        mensaje = ok ? "Semillero eliminado (borrado lógico)." : $"Error: {msg}";
+
+        if (ok)
+            await CargarRegistros();
+    }
+
+    private void Cancelar()
+    {
+        mensaje = string.Empty;
+        vista = "listar";
+    }
+
+    // Helpers JSON 
+    // Funciones auxiliares para procesar respuestas JSON provenientes de la API 
+    // en estructuras manejables (diccionarios y listas) 
+    
+    private string V(Dictionary<string, object?> dic, string clave)
+    {
+        if (dic.TryGetValue(clave, out var val) && val != null)
+            return val.ToString() ?? "";
+        return "";
+    }
+
+    private List<Dictionary<string, object?>> ParsearJsonArray(string json)
+    {
+        var lista = new List<Dictionary<string, object?>>();
+        try
+        {
+            var doc = JsonDocument.Parse(json);
+            foreach (var elem in doc.RootElement.EnumerateArray())
+                lista.Add(ParsearJsonObject(elem));
+        }
+        catch { }
+        return lista;
+    }
+
+    private Dictionary<string, object?> ParsearJsonObject(JsonElement elem)
+    {
+        var dic = new Dictionary<string, object?>();
+        foreach (var prop in elem.EnumerateObject())
+        {
+            dic[prop.Name] = prop.Value.ValueKind switch
+            {
+                JsonValueKind.String => prop.Value.GetString(),
+                JsonValueKind.Number => prop.Value.TryGetInt32(out int i) ? i : prop.Value.GetDouble(),
+                JsonValueKind.True   => true,
+                JsonValueKind.False  => false,
+                JsonValueKind.Null   => null,
+                _                   => prop.Value.GetRawText()
+            };
+        }
+        return dic;
+    }
+}

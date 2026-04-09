@@ -1,0 +1,369 @@
+@page "/grupo-investigacion"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject IJSRuntime JS
+@using System.Text.Json
+
+<PageTitle>Grupos de Investigación</PageTitle>
+
+<div class="container mt-4">
+    <h3>Grupos de Investigación</h3>
+
+    // Alerta 
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    // VISTA: LISTAR 
+
+    @if (vista == "listar")
+    {
+        <button class="btn btn-primary mb-3" @onclick="MostrarFormularioNuevo">Nuevo Grupo</button>
+
+        @if (cargando)
+        {
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        }
+        else if (registros.Any())
+        {
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Convocatoria</th>
+                        <th>Fecha Fundación</th>
+                        <th>Universidad</th>
+                        <th>Ámbito</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reg in registros)
+                    {
+                        <tr>
+                            <td>@V(reg, "id")</td>
+                            <td>@V(reg, "nombre")</td>
+                            <td>@V(reg, "categoria")</td>
+                            <td>@V(reg, "convocatoria")</td>
+                            <td>@V(reg, "fecha_fundacion")</td>
+                            <td>@V(reg, "nombre_universidad")</td>
+                            <td>@V(reg, "ambito")</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-1"
+                                        @onclick="() => EditarRegistro(reg)">Editar</button>
+                                <button class="btn btn-danger btn-sm"
+                                        @onclick="() => EliminarRegistro(reg)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-warning">No se encontraron grupos de investigación activos.</div>
+        }
+    }
+
+    // VISTA: FORMULARIO (CREAR / EDITAR)
+    @if (vista == "formulario")
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                @(editando ? $"Editar Grupo #{campoId}" : "Nuevo Grupo de Investigación")
+            </div>
+            <div class="card-body">
+                <div class="row">
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ID <span class="text-danger">*</span></label>
+                        <input class="form-control" type="number" @bind="campoId" disabled="@editando" />
+                    </div>
+
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input class="form-control" @bind="campoNombre" maxlength="60" />
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">URL GrupLAC</label>
+                        <input class="form-control" @bind="campoUrlGruplac" maxlength="128"
+                               placeholder="https://scienti.minciencias.gov.co/gruplac/..." />
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Categoría</label>
+                        <select class="form-select" @bind="campoCategoria">
+                            <option value="">-- Sin categoría --</option>
+                            <option value="A1">A1</option>
+                            <option value="A">A</option>
+                            <option value="A2">A2</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Convocatoria</label>
+                        <input class="form-control" @bind="campoConvocatoria" maxlength="10"
+                               placeholder="2024" />
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Fundación <span class="text-danger">*</span></label>
+                        <input class="form-control" type="date" @bind="campoFechaFundacion" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Universidad</label>
+                        <select class="form-select" @bind="campoUniversidad">
+                            <option value="0">-- Sin universidad --</option>
+                            @foreach (var u in universidades)
+                            {
+                                <option value="@V(u, "id")">@V(u, "nombre")</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">¿Interno?</label>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" @bind="campoInterno" />
+                            <label class="form-check-label">Sí, es interno</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Ámbito <span class="text-danger">*</span></label>
+                        <select class="form-select" @bind="campoAmbito">
+                            <option value="Nacional">Nacional</option>
+                            <option value="Internacional">Internacional</option>
+                            <option value="Regional">Regional</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string vista = "listar";
+    private bool cargando = true;
+    private string mensaje = string.Empty;
+    private bool exito = false;
+    private bool editando = false;
+
+    private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> universidades = new();
+
+    // ── Campos del formulario ──
+    private int    campoId             = 0;
+    private string campoNombre         = string.Empty;
+    private string campoUrlGruplac     = string.Empty;
+    private string campoCategoria      = string.Empty;
+    private string campoConvocatoria   = string.Empty;
+    private DateTime campoFechaFundacion = DateTime.Today;
+    private int    campoUniversidad    = 0;
+    private bool   campoInterno        = true;
+    private string campoAmbito         = "Nacional";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRegistros();
+        universidades = await Api.ListarAsync("universidad");
+    }
+
+    // llama SP_LISTAR_GRUPOS_INVESTIGACION)
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = new();
+
+        var (ok, resultados, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_INVESTIGACION");
+
+        if (ok && resultados.Count > 0)
+        {
+            // La primera fila contiene el JSON string en su único campo
+            var jsonStr = resultados[0].Values.FirstOrDefault()?.ToString();
+            if (!string.IsNullOrEmpty(jsonStr))
+                registros = ParsearJsonArray(jsonStr);
+        }
+
+        cargando = false;
+    }
+
+    // MOSTRAR FORMULARIO NUEVO
+
+    private void MostrarFormularioNuevo()
+    {
+        editando = false;
+        campoId             = 0;
+        campoNombre         = string.Empty;
+        campoUrlGruplac     = string.Empty;
+        campoCategoria      = string.Empty;
+        campoConvocatoria   = string.Empty;
+        campoFechaFundacion = DateTime.Today;
+        campoUniversidad    = 0;
+        campoInterno        = true;
+        campoAmbito         = "Nacional";
+        mensaje = string.Empty;
+        vista = "formulario";
+    }
+
+    // ACTUALIZAR
+
+    private void EditarRegistro(Dictionary<string, object?> reg)
+    {
+        editando = true;
+        campoId           = int.TryParse(V(reg, "id"),           out int id)  ? id  : 0;
+        campoNombre       = V(reg, "nombre");
+        campoUrlGruplac   = V(reg, "url_gruplac");
+        campoCategoria    = V(reg, "categoria");
+        campoConvocatoria = V(reg, "convocatoria");
+        campoUniversidad  = int.TryParse(V(reg, "universidad"),  out int univ) ? univ : 0;
+        campoInterno      = V(reg, "interno") == "True" || V(reg, "interno") == "1";
+        campoAmbito       = V(reg, "ambito");
+
+        if (DateTime.TryParse(V(reg, "fecha_fundacion"), out var fecha))
+            campoFechaFundacion = fecha;
+
+        mensaje = string.Empty;
+        vista = "formulario";
+    }
+
+    //  GUARDAR (insertar o actualizar)
+
+    private async Task GuardarRegistro()
+    {
+        // Validaciones básicas en el front
+        if (campoId <= 0 && !editando)
+        {
+            exito = false; mensaje = "El ID debe ser un número mayor a 0."; return;
+        }
+        if (string.IsNullOrWhiteSpace(campoNombre))
+        {
+            exito = false; mensaje = "El nombre es obligatorio."; return;
+        }
+
+        // Parámetros comunes (los mismos para insertar y actualizar)
+        var parametros = new Dictionary<string, object?>
+        {
+            ["p_id"]              = campoId,
+            ["p_nombre"]          = campoNombre,
+            ["p_url_gruplac"]     = string.IsNullOrWhiteSpace(campoUrlGruplac) ? null : campoUrlGruplac,
+            ["p_categoria"]       = string.IsNullOrWhiteSpace(campoCategoria)  ? null : campoCategoria,
+            ["p_convocatoria"]    = string.IsNullOrWhiteSpace(campoConvocatoria) ? null : campoConvocatoria,
+            ["p_fecha_fundacion"] = campoFechaFundacion.ToString("yyyy-MM-dd"),
+            ["p_universidad"]     = campoUniversidad == 0 ? null : (object?)campoUniversidad,
+            ["p_interno"]         = campoInterno,
+            ["p_ambito"]          = campoAmbito
+        };
+
+        string spNombre = editando
+            ? "SP_ACTUALIZAR_GRUPO_INVESTIGACION"
+            : "SP_INGRESAR_GRUPO_INVESTIGACION";
+
+        string accion = editando ? "actualizar" : "crear";
+        var confirmar = await JS.InvokeAsync<bool>("confirm", $"¿Está seguro de {accion} el grupo?");
+        if (!confirmar) return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(spNombre, parametros);
+        exito = ok;
+        mensaje = ok
+            ? (editando ? "Grupo actualizado correctamente." : "Grupo creado correctamente.")
+            : $"Error: {msg}";
+
+        if (ok)
+        {
+            await CargarRegistros();
+            vista = "listar";
+        }
+    }
+
+    // ELIMINAR (borrado lógico)
+    // También inactiva semilleros del grupo (lógica en el SP)
+    
+    private async Task EliminarRegistro(Dictionary<string, object?> reg)
+    {
+        int id = int.TryParse(V(reg, "id"), out int i) ? i : 0;
+        string nombre = V(reg, "nombre");
+
+        var confirmar = await JS.InvokeAsync<bool>("confirm",
+            $"¿Está seguro de eliminar el grupo '{nombre}'? Sus semilleros también quedarán inactivos.");
+        if (!confirmar) return;
+
+        var parametros = new Dictionary<string, object?> { ["p_id"] = id };
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_GRUPO_INVESTIGACION", parametros);
+
+        exito = ok;
+        mensaje = ok ? "Grupo eliminado (borrado lógico)." : $"Error: {msg}";
+
+        if (ok)
+            await CargarRegistros();
+    }
+
+    private void Cancelar()
+    {
+        mensaje = string.Empty;
+        vista = "listar";
+    }
+
+    // Helpers JSON 
+    // Funciones auxiliares para procesar respuestas JSON provenientes de la API 
+    // en estructuras manejables (diccionarios y listas) 
+    
+    private string V(Dictionary<string, object?> dic, string clave)
+    {
+        if (dic.TryGetValue(clave, out var val) && val != null)
+            return val.ToString() ?? "";
+        return "";
+    }
+
+    private List<Dictionary<string, object?>> ParsearJsonArray(string json)
+    {
+        var lista = new List<Dictionary<string, object?>>();
+        try
+        {
+            var doc = JsonDocument.Parse(json);
+            foreach (var elem in doc.RootElement.EnumerateArray())
+                lista.Add(ParsearJsonObject(elem));
+        }
+        catch { }
+        return lista;
+    }
+
+    private Dictionary<string, object?> ParsearJsonObject(JsonElement elem)
+    {
+        var dic = new Dictionary<string, object?>();
+        foreach (var prop in elem.EnumerateObject())
+        {
+            dic[prop.Name] = prop.Value.ValueKind switch
+            {
+                JsonValueKind.String => prop.Value.GetString(),
+                JsonValueKind.Number => prop.Value.TryGetInt32(out int i) ? i : prop.Value.GetDouble(),
+                JsonValueKind.True   => true,
+                JsonValueKind.False  => false,
+                JsonValueKind.Null   => null,
+                _                   => prop.Value.GetRawText()
+            };
+        }
+        return dic;
+    }
+}

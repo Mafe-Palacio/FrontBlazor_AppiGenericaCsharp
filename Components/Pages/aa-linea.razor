@@ -1,0 +1,240 @@
+@page "/aa-linea"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject IJSRuntime JS
+@using System.Text.Json
+
+<PageTitle>AA - Línea (Área de Aplicación por Línea)</PageTitle>
+
+<div class="container mt-4">
+    <h3>Área de Aplicación por Línea de Investigación</h3>
+    <p class="text-muted">Gestiona qué áreas de aplicación están asociadas a cada línea de investigación.</p>
+
+    // Alerta
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @* ── Botón nuevo ── *@
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick="MostrarFormulario">Nueva Relación</button>
+    }
+
+    // FORMULARIO (solo insertar)
+
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">Nueva Relación AA - Línea</div>
+            <div class="card-body">
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Área de Aplicación <span class="text-danger">*</span></label>
+                        <select class="form-select" @bind="campoAreaAplicacion">
+                            <option value="0">-- Seleccione un área --</option>
+                            @foreach (var a in areasAplicacion)
+                            {
+                                <option value="@V(a, "id")">@V(a, "nombre")</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Línea de Investigación <span class="text-danger">*</span></label>
+                        <select class="form-select" @bind="campoLinea">
+                            <option value="0">-- Seleccione una línea --</option>
+                            @foreach (var l in lineas)
+                            {
+                                <option value="@V(l, "id")">@V(l, "nombre")</option>
+                            }
+                        </select>
+                    </div>
+
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRelacion">Guardar</button>
+                <button class="btn btn-secondary" @onclick="() => mostrarFormulario = false">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    // TABLA
+
+    @if (cargando)
+    {
+        <div class="d-flex justify-content-center my-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else if (registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Área de Aplicación</th>
+                    <th>Línea de Investigación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reg in registros)
+                {
+                    <tr>
+                        <td>@V(reg, "nombre_area_aplicacion")</td>
+                        <td>@V(reg, "nombre_linea")</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm"
+                                    @onclick="() => EliminarRelacion(reg)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-warning">No se encontraron relaciones activas.</div>
+    }
+</div>
+
+@code {
+    private bool   cargando         = true;
+    private bool   mostrarFormulario = false;
+    private string mensaje          = string.Empty;
+    private bool   exito            = false;
+
+    private List<Dictionary<string, object?>> registros      = new();
+    private List<Dictionary<string, object?>> areasAplicacion = new();
+    private List<Dictionary<string, object?>> lineas          = new();
+
+    private int campoAreaAplicacion = 0;
+    private int campoLinea          = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRegistros();
+        areasAplicacion = await Api.ListarAsync("area_aplicacion");
+        lineas          = await Api.ListarAsync("linea_investigacion");
+    }
+
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        registros = new();
+
+        var (ok, resultados, _) = await Sp.EjecutarSpAsync("SP_LISTAR_AA_LINEA");
+        if (ok && resultados.Count > 0)
+        {
+            var jsonStr = resultados[0].Values.FirstOrDefault()?.ToString();
+            if (!string.IsNullOrEmpty(jsonStr))
+                registros = ParsearJsonArray(jsonStr);
+        }
+
+        cargando = false;
+    }
+
+    private void MostrarFormulario()
+    {
+        campoAreaAplicacion = 0;
+        campoLinea          = 0;
+        mensaje             = string.Empty;
+        mostrarFormulario   = true;
+    }
+
+    // INSERTAR relación
+
+    private async Task GuardarRelacion()
+    {
+        if (campoAreaAplicacion <= 0) { exito = false; mensaje = "Debe seleccionar un área de aplicación."; return; }
+        if (campoLinea          <= 0) { exito = false; mensaje = "Debe seleccionar una línea.";            return; }
+
+        var parametros = new Dictionary<string, object?>
+        {
+            ["p_area_aplicacion"]     = campoAreaAplicacion,
+            ["p_linea_investigacion"] = campoLinea
+        };
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_AA_LINEA", parametros);
+        exito   = ok;
+        mensaje = ok ? "Relación creada correctamente." : $"Error: {msg}";
+
+        if (ok)
+        {
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    // ELIMINAR (borrado lógico por clave compuesta)
+
+    private async Task EliminarRelacion(Dictionary<string, object?> reg)
+    {
+        int    areaId  = int.TryParse(V(reg, "area_aplicacion"),     out int a) ? a : 0;
+        int    lineaId = int.TryParse(V(reg, "linea_investigacion"), out int l) ? l : 0;
+        string area    = V(reg, "nombre_area_aplicacion");
+        string linea   = V(reg, "nombre_linea");
+
+        var confirmar = await JS.InvokeAsync<bool>("confirm",
+            $"¿Eliminar la relación entre '{area}' y '{linea}'?");
+        if (!confirmar) return;
+
+        var parametros = new Dictionary<string, object?>
+        {
+            ["p_area_aplicacion"]     = areaId,
+            ["p_linea_investigacion"] = lineaId
+        };
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_AA_LINEA", parametros);
+        exito   = ok;
+        mensaje = ok ? "Relación eliminada (borrado lógico)." : $"Error: {msg}";
+
+        if (ok)
+            await CargarRegistros();
+    }
+
+    private string V(Dictionary<string, object?> dic, string clave)
+    {
+        if (dic.TryGetValue(clave, out var val) && val != null)
+            return val.ToString() ?? "";
+        return "";
+    }
+
+    private List<Dictionary<string, object?>> ParsearJsonArray(string json)
+    {
+        var lista = new List<Dictionary<string, object?>>();
+        try
+        {
+            var doc = JsonDocument.Parse(json);
+            foreach (var elem in doc.RootElement.EnumerateArray())
+                lista.Add(ParsearJsonObject(elem));
+        }
+        catch { }
+        return lista;
+    }
+
+    private Dictionary<string, object?> ParsearJsonObject(JsonElement elem)
+    {
+        var dic = new Dictionary<string, object?>();
+        foreach (var prop in elem.EnumerateObject())
+        {
+            dic[prop.Name] = prop.Value.ValueKind switch
+            {
+                JsonValueKind.String => prop.Value.GetString(),
+                JsonValueKind.Number => prop.Value.TryGetInt32(out int i) ? i : prop.Value.GetDouble(),
+                JsonValueKind.True   => true,
+                JsonValueKind.False  => false,
+                JsonValueKind.Null   => null,
+                _                   => prop.Value.GetRawText()
+            };
+        }
+        return dic;
+    }
+}
