@@ -19,10 +19,10 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
             _http = http;
         }
 
-        // ──────────────────────────────────────────────
+        // --------------------------------------------------
         // EJECUTAR SP: POST /api/procedimientos/ejecutarsp
         // Envia nombreSP + parametros y devuelve resultados
-        // ──────────────────────────────────────────────
+        // --------------------------------------------------
         public async Task<(bool exito, List<Dictionary<string, object?>> resultados, string mensaje)>
             EjecutarSpAsync(string nombreSP, Dictionary<string, object?>? parametros = null)
         {
@@ -37,8 +37,29 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
                 }
 
                 var respuesta = await _http.PostAsJsonAsync("/api/procedimientos/ejecutarsp", payload);
-                var contenido = await respuesta.Content.ReadFromJsonAsync<JsonElement>(_jsonOptions);
+                
+                // Leer como string primero para evitar crash si viene vacio
+                var texto = await respuesta.Content.ReadAsStringAsync();
 
+                if (string.IsNullOrWhiteSpace(texto))
+                {
+                    if (respuesta.IsSuccessStatusCode)
+                        return (true, new(), "Operacion completada.");
+                    else
+                        return (false, new(), $"Error HTTP {(int)respuesta.StatusCode}.");
+                }
+
+                // Parsear el JSON
+                JsonElement contenido;
+                try
+                {
+                    contenido = JsonSerializer.Deserialize<JsonElement>(texto, _jsonOptions);
+                }
+                catch
+                {
+                    return (false, new(), $"Respuesta inesperada: {texto}");
+                }
+                // Intentar leer el mensaje
                 string mensaje = contenido.TryGetProperty("mensaje", out JsonElement msg)
                     ? msg.GetString() ?? ""
                     : contenido.TryGetProperty("Mensaje", out JsonElement msg2)
@@ -51,57 +72,50 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
                     string detalle = contenido.TryGetProperty("detalle", out JsonElement det)
                         ? det.GetString() ?? mensaje
                         : mensaje;
+
+                    if (string.IsNullOrEmpty(detalle))
+                        detalle = "Error del servidor.";
+
                     return (false, new(), detalle);
                 }
 
-                // Extraer resultados
+                // Extraer la lista de resultados
                 var resultados = new List<Dictionary<string, object?>>();
 
-                // La API devuelve { Resultados: [...], Total: N, Mensaje: "..." }
-                JsonElement datosArray;
-                if (contenido.TryGetProperty("resultados", out datosArray) ||
-                    contenido.TryGetProperty("Resultados", out datosArray))
+                // La API puede devolver "resultados" o "Resultados"
+                if (contenido.TryGetProperty("resultados", out var arr) ||
+                    contenido.TryGetProperty("Resultados", out arr))
                 {
-                    if (datosArray.ValueKind == JsonValueKind.Array)
+                    if (arr.ValueKind == JsonValueKind.Array)
                     {
-                        resultados = ConvertirDatos(datosArray);
+                        foreach (var fila in arr.EnumerateArray())
+                        {
+                            var dic = new Dictionary<string, object?>();
+                            foreach (var prop in fila.EnumerateObject())
+                            {
+                                dic[prop.Name] = prop.Value.ValueKind switch
+                                {
+                                    JsonValueKind.String => prop.Value.GetString(),
+                                    JsonValueKind.Number => prop.Value.TryGetInt32(out int i)
+                                        ? i
+                                        : prop.Value.GetDouble(),
+                                    JsonValueKind.True  => true,
+                                    JsonValueKind.False => false,
+                                    JsonValueKind.Null  => null,
+                                    _ => prop.Value.GetRawText()
+                                };
+                            }
+                            resultados.Add(dic);
+                        }
                     }
                 }
 
                 return (true, resultados, mensaje);
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                return (false, new(), $"Error de conexion: {ex.Message}");
+                return (false, new(), $"Error: {ex.Message}");
             }
-        }
-
-        // Convierte JsonElement array a lista de diccionarios
-        private List<Dictionary<string, object?>> ConvertirDatos(JsonElement datos)
-        {
-            var lista = new List<Dictionary<string, object?>>();
-
-            foreach (var fila in datos.EnumerateArray())
-            {
-                var diccionario = new Dictionary<string, object?>();
-
-                foreach (var propiedad in fila.EnumerateObject())
-                {
-                    diccionario[propiedad.Name] = propiedad.Value.ValueKind switch
-                    {
-                        JsonValueKind.String => propiedad.Value.GetString(),
-                        JsonValueKind.Number => propiedad.Value.TryGetInt32(out int i) ? i : propiedad.Value.GetDouble(),
-                        JsonValueKind.True => true,
-                        JsonValueKind.False => false,
-                        JsonValueKind.Null => null,
-                        _ => propiedad.Value.GetRawText()
-                    };
-                }
-
-                lista.Add(diccionario);
-            }
-
-            return lista;
         }
     }
 }

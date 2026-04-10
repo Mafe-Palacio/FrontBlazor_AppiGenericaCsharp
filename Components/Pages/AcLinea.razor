@@ -1,0 +1,175 @@
+@page "/ac-linea"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject IJSRuntime JS
+
+<PageTitle>AC - Línea</PageTitle>
+
+<div class="container mt-4">
+    <h3>Área de Conocimiento por Línea de Investigación</h3>
+
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @if (!mostrarFormulario)
+    {
+        <button class="btn btn-primary mb-3" @onclick='() => { mostrarFormulario = true; mensaje = ""; }'>
+            Nueva Relación
+        </button>
+    }
+
+    @* -- FORMULARIO -- *@
+    @if (mostrarFormulario)
+    {
+        <div class="card mb-3">
+            <div class="card-header">Nueva Relación AC - Línea</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Línea de Investigación</label>
+                        <select class="form-select" @bind="campoLinea">
+                            <option value="0">-- Seleccione --</option>
+                            @foreach (var l in lineas)
+                            {
+                                <option value="@l["id"]">@l["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Área de Conocimiento</label>
+                        <select class="form-select" @bind="campoArea">
+                            <option value="0">-- Seleccione --</option>
+                            @foreach (var a in areas)
+                            {
+                                <option value="@a["id"]">[@a["id"]] @a["disciplina"]</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRelacion">Guardar</button>
+                <button class="btn btn-secondary" @onclick="() => mostrarFormulario = false">Cancelar</button>
+            </div>
+        </div>
+    }
+
+    @* -- TABLA -- *@
+    @if (cargando)
+    {
+        <p>Cargando...</p>
+    }
+    else if (registros.Any())
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Línea de investigación</th>
+                    <th>Área de conocimiento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in registros)
+                {
+                    <tr>
+                        <td>@r["nombre_linea"]</td>
+                        <td>@r["disciplina"]</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRelacion(r)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-warning">No hay relaciones activas.</div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> lineas    = new();
+    private List<Dictionary<string, object?>> areas     = new();
+    private bool   cargando          = true;
+    private bool   mostrarFormulario = false;
+    private string mensaje           = string.Empty;
+    private bool   exito             = false;
+
+    private int campoLinea = 0;
+    private int campoArea  = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRegistros();
+        await CargarLineaInvestigacion();
+        await CargarAreasConocimiento();
+    }
+
+    private async Task CargarLineaInvestigacion()
+    {
+        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_LINEA_INVESTIGACION");
+        lineas = ok ? datos : new();
+    }
+
+    private async Task CargarAreasConocimiento()
+    {
+        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_AREA_CONOCIMIENTO");
+        areas = ok ? datos : new();
+    }
+    private async Task CargarRegistros()
+    {
+        cargando = true;
+        var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_AC_LINEA");
+        registros = ok ? datos : new();
+        if (!ok) { exito = false; mensaje = msg; }
+        cargando = false;
+    }
+
+    private async Task GuardarRelacion()
+    {
+        if (campoLinea <= 0) { mensaje = "Seleccione una línea.";       exito = false; return; }
+        if (campoArea  <= 0) { mensaje = "Seleccione un área.";         exito = false; return; }
+
+        var parametros = new Dictionary<string, object?>
+        {
+            ["p_linea_investigacion"] = campoLinea,
+            ["p_area_conocimiento"]   = campoArea
+        };
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_AC_LINEA", parametros);
+        exito   = ok;
+        mensaje = ok ? "Relación creada." : $"Error: {msg}";
+        if (ok)
+        {
+            mostrarFormulario = false;
+            campoLinea = 0; campoArea = 0;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRelacion(Dictionary<string, object?> r)
+    {
+        int lineaId = Convert.ToInt32(r["linea_investigacion"]);
+        int areaId  = Convert.ToInt32(r["area_conocimiento"]);
+        string nombre = $"{r["nombre_linea"]} - {r["nombre_area"]}";
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la relación '{nombre}'?"))
+            return;
+
+        var parametros = new Dictionary<string, object?>
+        {
+            ["p_linea_investigacion"] = lineaId,
+            ["p_area_conocimiento"]   = areaId
+        };
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_AC_LINEA", parametros);
+        exito   = ok;
+        mensaje = ok ? "Relación eliminada." : $"Error: {msg}";
+        if (ok) await CargarRegistros();
+    }
+}
