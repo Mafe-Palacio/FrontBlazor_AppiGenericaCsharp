@@ -1,6 +1,6 @@
 @page "/linea-investigacion"  
 @rendermode InteractiveServer
-@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService2 Api
 
 <PageTitle>Linea de Investigación</PageTitle>
 
@@ -22,12 +22,17 @@
         <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Linea de Investigación</button>
     }
 
-    @* ───────── LIMITE DE REGISTROS ───────── *@
-    <div class="d-flex align-items-center mb-3">
-        <label class="form-label me-2 mb-0">Limite:</label>
-        <input class="form-control me-2" type="number" style="width:100px" @bind="limite" />
+    @* ───────── BUSQUEDA Y LIMITE ───────── *@
+    <div class="d-flex align-items-center mb-3 gap-2">
+        <label class="form-label me-2 mb-0">Buscar por ID:</label>
+        <input class="form-control" type="text" style="width:150px" @bind="buscarId" placeholder="Dejar vacío para ver todo" />
+        <button class="btn btn-primary" @onclick="BuscarRegistros">Buscar</button>
+        
+        <label class="form-label me-2 mb-0 ms-4">Limite:</label>
+        <input class="form-control" type="number" style="width:100px" @bind="limite" />
         <button class="btn btn-outline-secondary" @onclick="CargarRegistros">Cargar</button>
     </div>
+
 
     @* ───────── FORMULARIO ───────── *@
     @if (mostrarFormulario)
@@ -38,10 +43,16 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">id</label>
-                        <input class="form-control" @bind="campoId" disabled="@editando" />
-                    </div>
+
+                    @* Solo mostrar el ID cuando se está editando *@
+                    @if (editando)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">id</label>
+                            <input class="form-control" @bind="campoId" disabled />
+                        </div>
+                    }
+
                     <div class="col-md-6 mb-3">
                         <label class="form-label">nombre</label>
                         <input class="form-control" @bind="campoNombre" />
@@ -76,6 +87,7 @@
                     <th>Id</th>
                     <th>Nombre</th>
                     <th>Descripcion</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -116,6 +128,7 @@
     private string campoNombre = string.Empty;
     private string campoDescripcion = string.Empty;
     private int? limite = null;
+    private string buscarId = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,7 +138,28 @@
     private async Task CargarRegistros()
     {
         cargando = true;
+        buscarId = string.Empty;
         registros = await Api.ListarAsync("linea_investigacion", limite);
+        Console.WriteLine($"Registros cargados: {registros.Count}"); // ← agrega esto
+        cargando = false;
+        StateHasChanged();
+    }
+
+    private async Task BuscarRegistros()
+    {
+        cargando = true;
+        
+        if (string.IsNullOrWhiteSpace(buscarId))
+        {
+            // Si el campo está vacío, cargar todos
+            registros = await Api.ListarAsync("linea_investigacion", limite);
+        }
+        else
+        {
+            // Buscar por ID específico
+            registros = await Api.ObtenerPorClaveAsync("linea_investigacion", "id", buscarId);
+        }
+        
         cargando = false;
     }
 
@@ -153,14 +187,13 @@
     {
         var datos = new Dictionary<string, object?>
         {
-            ["id"] = campoId,
             ["nombre"] = campoNombre,
-            ["descripcion"] = campoDescripcion
+            ["descripcion"] = campoDescripcion,
+            ["estado"]      = 0
         };
 
         if (editando)
         {
-            datos.Remove("id");
             var resultado = await Api.ActualizarAsync("linea_investigacion", "id", campoId, datos);
             exito = resultado.exito;
             mensaje = resultado.mensaje;

@@ -21,6 +21,8 @@ builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.ApiService>()
 // Sin esto, @inject SpService Sp en las páginas lanza error al arrancar
 builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.SpService>();
 
+builder.Services.AddScoped<FrontBlazor_AppiGenericaCsharp.Services.ApiService2>();
+
 var app = builder.Build();
 
 // Configurar el pipeline HTTP.
