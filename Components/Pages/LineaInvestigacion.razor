@@ -1,6 +1,8 @@
 @page "/linea-investigacion"  
 @rendermode InteractiveServer
-@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService2 Api
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject IJSRuntime JS
 
 <PageTitle>Linea de Investigación</PageTitle>
 
@@ -16,43 +18,47 @@
         </div>
     }
 
-    @* ───────── BOTON NUEVO ───────── *@
-    @if (!mostrarFormulario)
-    {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Linea de Investigación</button>
+    @* -- LISTAR -- *@
+    @if (!mostrarFormulario){
+        <button class="btn btn-primary mb-3" @onclick= "NuevoRegistro">Nueva Linea</button>
+
+        @if (cargando){
+            <p>Cargando...</p>
+        }else if (registros.Any()){
+            <table class= "table table-striped tabla-hover">
+                <thead class= "table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripcion</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in registros){
+                        <tr>
+                            <td>@r["id"]</td>
+                            <td>@r["nombre"]</td>
+                            <td>@r["descripcion"]</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(r)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }else{
+        <div class= "alert alert-warning">No hay lineas de investigación activos.</div>
     }
 
-    @* ───────── BUSQUEDA Y LIMITE ───────── *@
-    <div class="d-flex align-items-center mb-3 gap-2">
-        <label class="form-label me-2 mb-0">Buscar por ID:</label>
-        <input class="form-control" type="text" style="width:150px" @bind="buscarId" placeholder="Dejar vacío para ver todo" />
-        <button class="btn btn-primary" @onclick="BuscarRegistros">Buscar</button>
-        
-        <label class="form-label me-2 mb-0 ms-4">Limite:</label>
-        <input class="form-control" type="number" style="width:100px" @bind="limite" />
-        <button class="btn btn-outline-secondary" @onclick="CargarRegistros">Cargar</button>
-    </div>
-
-
     @* ───────── FORMULARIO ───────── *@
-    @if (mostrarFormulario)
-    {
+    @if (mostrarFormulario){
         <div class="card mb-3">
-            <div class="card-header">
-                @(editando ? "Editar Linea de Investigación" : "Nueva Linea de Investigación")
-            </div>
+            <div class="card-header">@(editando ? "Editar Linea de Investigación" : "Nueva Linea de Investigación")</div>
             <div class="card-body">
                 <div class="row">
-
-                    @* Solo mostrar el ID cuando se está editando *@
-                    @if (editando)
-                    {
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">id</label>
-                            <input class="form-control" @bind="campoId" disabled />
-                        </div>
-                    }
-
                     <div class="col-md-6 mb-3">
                         <label class="form-label">nombre</label>
                         <input class="form-control" @bind="campoNombre" />
@@ -68,53 +74,6 @@
         </div>
     }
 
-    @* ───────── SPINNER ───────── *@
-    @if (cargando)
-    {
-        <div class="d-flex justify-content-center my-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-        </div>
-    }
-
-    @* ───────── TABLA ───────── *@
-    @if (!cargando && registros.Any())
-    {
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>Id</th>
-                    <th>Nombre</th>
-                    <th>Descripcion</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var reg in registros)
-                {
-                    <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
-                        <td>@reg["descripcion"]</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm me-1"
-                                    @onclick="() => EditarRegistro(reg)">Editar</button>
-                            <button class="btn btn-danger btn-sm"
-                                    @onclick="() => EliminarRegistro(reg)">Eliminar</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    @if (!cargando && !registros.Any())
-    {
-        <div class="alert alert-warning">No se encontraron registros en la tabla linea de investigacion.</div>
-    }
-</div>
-
 @code {
     private List<Dictionary<string, object?>> registros = new();
     private bool cargando = true;
@@ -123,11 +82,10 @@
     private string mensaje = string.Empty;
     private bool exito = false;
 
-    // Campos del formulario
-    private string campoId = string.Empty;
-    private string campoNombre = string.Empty;
-    private string campoDescripcion = string.Empty;
-    private int? limite = null;
+    private string campoId = 0;
+    private string campoNombre = "";
+    private string campoDescripcion = "";
+
     private string buscarId = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -139,10 +97,55 @@
     {
         cargando = true;
         buscarId = string.Empty;
-        registros = await Api.ListarAsync("linea_investigacion", limite);
-        Console.WriteLine($"Registros cargados: {registros.Count}"); // ← agrega esto
+        
+        var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_LINEAS_INVESTIGACION");
+        registros = ok ? datos : new();
+        if (!ok) {exito = false; mensaje = msg; }
         cargando = false;
-        StateHasChanged();
+    }
+
+    private void NuevoRegistro()
+    {
+        editando = false;
+        campoNombre = "";
+        campoDescripcion = "";
+        mensaje = "";
+        mostrarFormulario = true;
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> r)
+    {
+        editando = true;
+        campoNombre = r["nombre"]?.ToString() ?? "";
+        campoDescripcion = r["descripcion"]?.ToString() ?? "";
+        mensaje = "";
+        mostrarFormulario = true;
+    }
+
+    private async Task GuardarRegistro()
+    {
+        if (string.IsNullOrWhiteSpace(campoNombre)){
+            mensaje = "El nombre es obligatorio."
+            exito = false;
+            return;
+        }else if (string.IsNullOrWhiteSpace(campoDescripcion)){
+            mensaje = "La descripción es obligatoria."
+            exito = false;
+            return;
+        }
+
+        var parametros = new Dictionary<string, object?>{
+            ["p_nombre"] = campoNombre,
+            ["p_descripcion"] = campoDescripcion
+        };
+
+        string sp = editando ? "SP_ACTUALIZAR_LINEA_INVESTIGACION" : "SP_INGRESAR_LINEA_INVESTIGACION";
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(sp, parametros);
+        exito   = ok;
+        mensaje = ok
+            ? (editando ? "Linea actualizada." : "Linea creada.")
+            : $"Error: {msg}";
+        if (ok) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task BuscarRegistros()
@@ -163,58 +166,13 @@
         cargando = false;
     }
 
-    private void NuevoRegistro()
+    
+
+    
+
+    private async Task EliminarRegistro(Dictionary<string, object?> r)
     {
-        editando = false;
-        campoId = string.Empty;
-        campoNombre = string.Empty;
-        campoDescripcion = string.Empty;
-        mostrarFormulario = true;
-        mensaje = string.Empty;
-    }
-
-    private void EditarRegistro(Dictionary<string, object?> reg)
-    {
-        editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
-        campoNombre = reg["nombre"]?.ToString() ?? "";
-        campoDescripcion = reg["descripcion"]?.ToString() ?? "";
-        mostrarFormulario = true;
-        mensaje = string.Empty;
-    }
-
-    private async Task GuardarRegistro()
-    {
-        var datos = new Dictionary<string, object?>
-        {
-            ["nombre"] = campoNombre,
-            ["descripcion"] = campoDescripcion,
-            ["estado"]      = 0
-        };
-
-        if (editando)
-        {
-            var resultado = await Api.ActualizarAsync("linea_investigacion", "id", campoId, datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
-        else
-        {
-            var resultado = await Api.CrearAsync("linea_investigacion", datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
-
-        if (exito)
-        {
-            mostrarFormulario = false;
-            await CargarRegistros();
-        }
-    }
-
-    private async Task EliminarRegistro(Dictionary<string, object?> reg)
-    {
-        string id = reg["id"]?.ToString() ?? "";
+        string id = r["id"]?.ToString() ?? "";
         var resultado = await Api.EliminarAsync("linea_investigacion", "id", id);
         exito = resultado.exito;
         mensaje = resultado.mensaje;
