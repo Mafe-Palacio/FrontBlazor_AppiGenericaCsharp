@@ -22,6 +22,19 @@
     @if (!mostrarFormulario){
         <button class="btn btn-primary mb-3" @onclick= "NuevoRegistro">Nueva Linea</button>
 
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <input class="form-control" type="number" placeholder="Buscar por ID" @bind="buscarId" />
+            </div>
+            <div class="col-md-5">
+                <input class="form-control" placeholder="Buscar por nombre" @bind="buscarNombre" />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
+            </div>
+        </div>
+
         @if (cargando){
             <p>Cargando...</p>
         }else if (registros.Any()){
@@ -86,15 +99,15 @@
     private string campoNombre = "";
     private string campoDescripcion = "";
 
-    private string buscarId = string.Empty;
+    private int? buscarId = null;
+    private string buscarNombre = "";
+    private string buscarDescripcion = "";
 
-    protected override async Task OnInitializedAsync()
-    {
+    protected override async Task OnInitializedAsync(){
         await CargarRegistros();
     }
 
-    private async Task CargarRegistros()
-    {
+    private async Task CargarRegistros(){
         cargando = true;
         buscarId = string.Empty;
         
@@ -104,8 +117,7 @@
         cargando = false;
     }
 
-    private void NuevoRegistro()
-    {
+    private void NuevoRegistro(){
         editando = false;
         campoNombre = "";
         campoDescripcion = "";
@@ -113,8 +125,7 @@
         mostrarFormulario = true;
     }
 
-    private void EditarRegistro(Dictionary<string, object?> r)
-    {
+    private void EditarRegistro(Dictionary<string, object?> r){
         editando = true;
         campoNombre = r["nombre"]?.ToString() ?? "";
         campoDescripcion = r["descripcion"]?.ToString() ?? "";
@@ -122,8 +133,7 @@
         mostrarFormulario = true;
     }
 
-    private async Task GuardarRegistro()
-    {
+    private async Task GuardarRegistro(){
         if (string.IsNullOrWhiteSpace(campoNombre)){
             mensaje = "El nombre es obligatorio."
             exito = false;
@@ -148,42 +158,69 @@
         if (ok) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
-    private async Task BuscarRegistros()
-    {
-        cargando = true;
+    private async Task EliminarRegistro(Dictionary<string, object?> r){
+        int id = Convert.ToInt32(r["id"]);
+        String nombre = r["nombre"]?.ToString() ?? "";
+
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la linea de investigación '{nombre}'?"))
+            return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_LINEA_INVESTIGACION", new() { ["p_id"] = id });
         
-        if (string.IsNullOrWhiteSpace(buscarId))
-        {
-            // Si el campo está vacío, cargar todos
-            registros = await Api.ListarAsync("linea_investigacion", limite);
-        }
-        else
-        {
-            // Buscar por ID específico
-            registros = await Api.ObtenerPorClaveAsync("linea_investigacion", "id", buscarId);
-        }
-        
-        cargando = false;
-    }
-
-    
-
-    
-
-    private async Task EliminarRegistro(Dictionary<string, object?> r)
-    {
-        string id = r["id"]?.ToString() ?? "";
-        var resultado = await Api.EliminarAsync("linea_investigacion", "id", id);
-        exito = resultado.exito;
-        mensaje = resultado.mensaje;
-
-        if (exito)
+        exito = ok;    
+        mensaje = ok ? "Linea eliminada." : $"Error: {msg}";
+        if (ok)
             await CargarRegistros();
     }
 
-    private void Cancelar()
-    {
+    private void Cancelar(){
         mostrarFormulario = false;
-        mensaje = string.Empty;
+        mensaje = "";
+    }
+
+    private async Task Buscar(){
+        if (string.IsNullOrWhiteSpace(buscarNombre) && buscarId == null && string.IsNullOrWhiteSpace(buscarDescripcion)){
+            mensaje = "Ingrese un ID o nombre o descripción para buscar.";
+            exito = false;
+            return;
+        }
+
+        try{
+            cargando = true;
+
+            var parametros = new Dictionary<string, object?>{
+                ["p_id"] = buscarId,
+                ["p_nombre"] = buscarNombre,
+                ["p_descripcion"] = buscarDescripcion
+            };
+
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_LINEA_INVESTIGACION_POR_ID_NOMBRE_DESCRIPCION", parametros);
+            
+            registros = ok ? datos : new();
+            
+            if (!ok) {
+                exito = false;
+                mensaje = msg;
+            } else if (registros.Count == 0) {
+                exito = true;
+                mensaje = "No se encontraron registros que coincidan con la búsqueda.";
+            } else {
+                exito = true;
+                mensaje = $"Se encontraron {registros.Count} registro(s) que coinciden con la búsqueda.";
+            }
+        }catch (Exception ex){
+            exito = false;
+            mensaje = $"Error al buscar: {ex.Message}";
+        }finally{
+            cargando = false;
+        }
+    }
+
+    private async Task LimpiarBusqueda(){
+        buscarId = null;
+        buscarNombre = "";
+        buscarDescripcion = "";
+        mensaje = "";
+         await CargarRegistros();
     }
 }
