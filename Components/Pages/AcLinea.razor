@@ -114,13 +114,13 @@
 
     private async Task CargarLineaInvestigacion()
     {
-        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_LINEA_INVESTIGACION");
+        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_LINEAS_INVESTIGACION");
         lineas = ok ? datos : new();
     }
 
     private async Task CargarAreasConocimiento()
     {
-        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_AREA_CONOCIMIENTO");
+        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_AREAS_CONOCIMIENTO");
         areas = ok ? datos : new();
     }
     private async Task CargarRegistros()
