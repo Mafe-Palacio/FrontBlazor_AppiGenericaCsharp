@@ -222,7 +222,11 @@
     }
 
     private async Task GuardarRegistro(){
-        if (string.IsNullOrWhiteSpace(campoNombre)){
+        if (campoId == null || campoId <= 0){
+            mensaje = "El campo ID es obligatorio y debe ser un número positivo.";
+            exito = false;
+            return;
+        } else if (string.IsNullOrWhiteSpace(campoNombre)){
             mensaje = "El nombre es obligatorio.";
             exito = false;
             return;
@@ -258,7 +262,10 @@
         mensaje = ok
             ? (editando ? "Grupo actualizado." : "Grupo creado.")
             : $"Error: {msg}";
-        if (ok) { mostrarFormulario = false; await CargarRegistros(); }
+        if (ok){
+            mostrarFormulario = false;
+            await CargarRegistros(); 
+        }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> r){
