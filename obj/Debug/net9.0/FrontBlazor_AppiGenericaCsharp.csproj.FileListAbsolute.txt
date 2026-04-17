@@ -224,8 +224,6 @@ C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\ob
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\1lefltbne1-h1s4sie4z3.gz
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\ng84dsuo62-4d85u1mtcx.gz
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\fni16yzeom-0j3bgjxly4.gz
-C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\38zrahbi1u-cwjxuhhx0t.gz
-C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\n5gztkbl53-cwjxuhhx0t.gz
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\staticwebassets.build.json
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\staticwebassets.build.json.cache
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\staticwebassets.development.json
@@ -235,3 +233,5 @@ C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\ob
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\FrontBlazor_AppiGenericaCsharp.pdb
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\FrontBlazor_AppiGenericaCsharp.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\ref\FrontBlazor_AppiGenericaCsharp.dll
+C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\38zrahbi1u-tmucxrat3d.gz
+C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\n5gztkbl53-tmucxrat3d.gz
