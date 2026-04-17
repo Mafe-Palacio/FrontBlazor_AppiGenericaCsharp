@@ -1,323 +1,271 @@
 @page "/participa-grupo"
 @rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject IJSRuntime JS
 
-<PageTitle>Participación en Grupos</PageTitle>
+<PageTitle>Participa en Grupo</PageTitle>
 
 <div class="container mt-4">
-    <h3>Participación en Grupos de Investigación</h3>
+    <h3>Participación de Docentes en Grupos de Investigación</h3>
 
     @* ───────── ALERTA ───────── *@
-    @if (!string.IsNullOrEmpty(mensaje))
-    {
+    @if (!string.IsNullOrEmpty(mensaje)){
         <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
             @mensaje
             <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
         </div>
     }
 
-    @* ───────── BOTON NUEVO ───────── *@
-    @if (!mostrarFormulario)
-    {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">+ Nueva Participación</button>
+    @* -- LISTAR -- *@
+    @if (!mostrarFormulario){
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Participación</button>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input class="form-control" type="number" placeholder="Buscar por Cédula Docente" @bind="buscarCedula" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" type="number" placeholder="Buscar por ID Grupo Investigación" @bind="buscarIdGrupo" />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
+            </div>
+        </div>
+
+        @if (cargando){
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }else if (registros.Any()){
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:100px">Cédula Docente</th>
+                        <th>Nombre Docente</th>
+                        <th style="width:100px">ID Grupo</th>
+                        <th>Nombre Grupo</th>
+                        <th style="width:100px">Rol</th>
+                        <th style="width:110px">Fecha Inicio</th>
+                        <th style="width:110px">Fecha Fin</th>
+                        <th style="width:90px" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in registros){
+                        <tr>
+                            <td class="text-center">@r["docente_cedula"]</td>
+                            <td>@r["nombre_docente"]</td>
+                            <td class="text-center">@r["grupo_investigacion_id"]</td>
+                            <td>@r["nombre_grupo"]</td>
+                            <td>@r["rol"]</td>
+                            <td>@r["fecha_inicio"]</td>
+                            <td>@(r["fecha_fin"] ?? "-")</td>
+                            <td class="text-center">
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }else{
+            <div class="alert alert-warning">No se encontraron registros en la tabla participa_grupo.</div>
+        }
     }
 
-    @* ───────── LIMITE DE REGISTROS ───────── *@
-    <div class="d-flex align-items-center mb-3">
-        <label class="form-label me-2 mb-0">Limite:</label>
-        <input class="form-control me-2" type="number" style="width:100px" @bind="limite" />
-        <button class="btn btn-outline-secondary" @onclick="CargarRegistros">Cargar</button>
-    </div>
-
     @* ───────── FORMULARIO ───────── *@
-    @if (mostrarFormulario)
-    {
+    @if (mostrarFormulario){
         <div class="card mb-3">
-            <div class="card-header">
-                @(editando ? "Editar Participación" : "Nueva Participación")
-            </div>
+            <div class="card-header">Nueva Participación en Grupo</div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="form-label">Docente *</label>
-                        <select class="form-control" @bind="campoCedulaDocente" disabled="@editando">
-                            <option value="">-- Seleccione un docente --</option>
-                            @foreach (var docente in docentesDisponibles)
-                            {
-                                <option value="@docente["cedula"]">@($"{docente["nombres"]} {docente["apellidos"]}")</option>
+                        <select class="form-select" @bind="campoCedula">
+                            <option value="0" disabled>Seleccione un docente</option>
+                            @foreach (var d in docentes){
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"] (@d["cedula"])</option>
                             }
                         </select>
-                        @if (!string.IsNullOrEmpty(campoCedulaDocente))
-                        {
-                            <small class="text-muted d-block mt-1">Cédula: @campoCedulaDocente</small>
-                        }
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="form-label">Grupo de Investigación *</label>
-                        <select class="form-control" @bind="campoGrupoId" disabled="@editando">
-                            <option value="">-- Seleccione un grupo --</option>
-                            @foreach (var grupo in gruposDisponibles)
-                            {
-                                <option value="@grupo["id"]">@grupo["nombre"]</option>
+                        <select class="form-select" @bind="campoIdGrupo">
+                            <option value="0" disabled>Seleccione un grupo</option>
+                            @foreach (var g in grupos){
+                                <option value="@g["id"]">@g["nombre"] (@g["id"])</option>
                             }
                         </select>
-                        @if (!string.IsNullOrEmpty(campoGrupoId))
-                        {
-                            <small class="text-muted d-block mt-1">ID: @campoGrupoId</small>
-                        }
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Rol en el Grupo</label>
-                        <input class="form-control" type="text" @bind="campoRol" placeholder="Ej: Investigador Principal, Co-investigador" />
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Rol *</label>
+                        <input class="form-control" @bind="campoRol" maxlength="15" placeholder="Ej: Director, Miembro..." />
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Fecha de Inicio</label>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Inicio *</label>
                         <input class="form-control" type="date" @bind="campoFechaInicio" />
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Fecha de Fin</label>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Fin</label>
                         <input class="form-control" type="date" @bind="campoFechaFin" />
                     </div>
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro" disabled="@validacionIncompleta">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                <small class="text-muted d-block mt-2">* Campos obligatorios</small>
             </div>
         </div>
-    }
-
-    @* ───────── SPINNER ───────── *@
-    @if (cargando)
-    {
-        <div class="d-flex justify-content-center my-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-        </div>
-    }
-
-    @* ───────── TABLA ───────── *@
-    @if (!cargando && registros.Any())
-    {
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>Docente</th>
-                    <th>Grupo</th>
-                    <th>Rol</th>
-                    <th>Inicio</th>
-                    <th>Fin</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var reg in registros)
-                {
-                    <tr>
-                        <td>@ObtenerNombreDocente(reg["docente_cedula"]?.ToString() ?? "")</td>
-                        <td>@ObtenerNombreGrupo(reg["grupo_investigacion_id"]?.ToString() ?? "")</td>
-                        <td>@reg["rol"]</td>
-                        <td>@(FormatearFecha(reg["fecha_inicio"]?.ToString()))</td>
-                        <td>@(FormatearFecha(reg["fecha_fin"]?.ToString()))</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm me-1"
-                                    @onclick="() => EditarRegistro(reg)">Editar</button>
-                            <button class="btn btn-danger btn-sm"
-                                    @onclick="() => EliminarRegistro(reg)">Eliminar</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    @if (!cargando && !registros.Any())
-    {
-        <div class="alert alert-warning">No se encontraron registros en la tabla participa_grupo.</div>
     }
 </div>
 
-
-
-
 @code {
     private List<Dictionary<string, object?>> registros = new();
-    private List<Dictionary<string, object?>> docentesDisponibles = new();
-    private List<Dictionary<string, object?>> gruposDisponibles = new();
-    private bool cargando = true;
-    private bool mostrarFormulario = false;
-    private bool editando = false;
+    private List<Dictionary<string, object?>> docentes  = new();
+    private List<Dictionary<string, object?>> grupos    = new();
+    private bool   cargando = true;
+    private bool   mostrarFormulario = false;
     private string mensaje = string.Empty;
-    private bool exito = false;
+    private bool   exito = false;
 
-    // Campos del formulario
-    private string campoCedulaDocente = string.Empty;
-    private string campoGrupoId = string.Empty;
-    private string campoRol = string.Empty;
-    private DateTime? campoFechaInicio = null;
-    private DateTime? campoFechaFin = null;
-    private int? limite = null;
+    private int      campoCedula      = 0;
+    private int      campoIdGrupo     = 0;
+    private string   campoRol         = "";
+    private DateTime campoFechaInicio = DateTime.Today;
+    private DateTime? campoFechaFin   = null;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarDocentesDisponibles();
-        await CargarGruposDisponibles();
-        StateHasChanged(); 
+    private int? buscarCedula  = null;
+    private int? buscarIdGrupo = null;
+
+    private bool validacionIncompleta =>
+        campoCedula == 0 || campoIdGrupo == 0 || string.IsNullOrWhiteSpace(campoRol);
+
+    protected override async Task OnInitializedAsync(){
+        await CargarSelectores();
         await CargarRegistros();
     }
 
-    private async Task CargarDocentesDisponibles()
-    {
-        try
-        {
-            docentesDisponibles = await Api.ListarAsync("docente", null);
-            Console.WriteLine($"Docentes cargados: {docentesDisponibles.Count}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error COMPLETO docentes: {ex}");
-            mensaje = $"Error docentes: {ex.Message}";
-            exito = false;
-        }
+    private async Task CargarSelectores(){
+        var (okD, datosD, _) = await Sp.EjecutarSpAsync("SP_LISTAR_DOCENTES");
+        docentes = okD ? datosD : new();
+
+        var (okG, datosG, _) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_INVESTIGACION");
+        grupos = okG ? datosG : new();
     }
 
-    private async Task CargarGruposDisponibles()
-    {
-        try
-        {
-            gruposDisponibles = await Api.ListarAsync("grupo_investigacion", null);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error al cargar grupos: {ex.Message}");
-            mensaje = "Error al cargar los grupos de investigación.";
-            exito = false;
-        }
-    }
-
-    private string ObtenerNombreDocente(string cedula)
-    {
-        if (string.IsNullOrEmpty(cedula))
-            return "N/A";
-        
-        var docente = docentesDisponibles.FirstOrDefault(d => d["cedula"]?.ToString() == cedula);
-        if (docente != null)
-        {
-            string nombres = docente["nombres"]?.ToString() ?? "";
-            string apellidos = docente["apellidos"]?.ToString() ?? "";
-            return $"{nombres} {apellidos}".Trim();
-        }
-        return cedula;
-    }
-
-    private string ObtenerNombreGrupo(string grupoId)
-    {
-        if (string.IsNullOrEmpty(grupoId))
-            return "N/A";
-        
-        var grupo = gruposDisponibles.FirstOrDefault(g => g["id"]?.ToString() == grupoId);
-        return grupo?["nombre"]?.ToString() ?? grupoId;
-    }
-
-    private string FormatearFecha(string? fecha)
-    {
-        if (string.IsNullOrEmpty(fecha))
-            return "--";
-        
-        if (DateTime.TryParse(fecha, out var fechaParsed))
-        {
-            return fechaParsed.ToString("dd/MM/yyyy");
-        }
-        return fecha;
-    }
-
-    private async Task CargarRegistros()
-    {
+    private async Task CargarRegistros(){
         cargando = true;
-        registros = await Api.ListarAsync("participa_grupo", limite);
+        var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_PARTICIPA_GRUPO");
+        registros = ok ? datos : new();
+        if (!ok){
+            exito = false;
+            mensaje = msg;
+        }else if (registros.Count == 0){
+            mensaje = "No hay participaciones registradas.";
+            exito = true;
+        }
         cargando = false;
     }
 
-    private void NuevoRegistro()
-    {
-        editando = false;
-        campoCedulaDocente = string.Empty;
-        campoGrupoId = string.Empty;
-        campoRol = string.Empty;
-        campoFechaInicio = null;
-        campoFechaFin = null;
+    private void NuevoRegistro(){
+        campoCedula      = 0;
+        campoIdGrupo     = 0;
+        campoRol         = "";
+        campoFechaInicio = DateTime.Today;
+        campoFechaFin    = null;
         mostrarFormulario = true;
-        mensaje = string.Empty;
+        mensaje = "";
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
-    {
-        editando = true;
-        campoCedulaDocente = reg["docente_cedula"]?.ToString() ?? "";
-        campoGrupoId = reg["grupo_investigacion_id"]?.ToString() ?? "";
-        campoRol = reg["rol"]?.ToString() ?? "";
-        
-        // Convertir fechas string a DateTime?
-        string fechaInicio = reg["fecha_inicio"]?.ToString() ?? "";
-        campoFechaInicio = string.IsNullOrEmpty(fechaInicio) ? null : DateTime.Parse(fechaInicio);
-        
-        string fechaFin = reg["fecha_fin"]?.ToString() ?? "";
-        campoFechaFin = string.IsNullOrEmpty(fechaFin) ? null : DateTime.Parse(fechaFin);
-        
-        mostrarFormulario = true;
-        mensaje = string.Empty;
-    }
+    private async Task GuardarRegistro(){
+        if (validacionIncompleta){
+            exito = false;
+            mensaje = "Por favor, complete todos los campos obligatorios.";
+            return;
+        }
 
-    private async Task GuardarRegistro()
-    {
-        var datos = new Dictionary<string, object?>
-        {
-            ["docente_cedula"] = campoCedulaDocente,
-            ["grupo_investigacion_id"] = campoGrupoId,
-            ["rol"] = campoRol,
-            ["fecha_inicio"] = campoFechaInicio?.ToString("yyyy-MM-dd"),
-            ["fecha_fin"] = campoFechaFin?.ToString("yyyy-MM-dd")
+        var datos = new Dictionary<string, object?>{
+            ["p_docente_cedula"]         = campoCedula,
+            ["p_grupo_investigacion_id"] = campoIdGrupo,
+            ["p_rol"]                    = campoRol,
+            ["p_fecha_inicio"]           = campoFechaInicio.ToString("yyyy-MM-dd"),
+            ["p_fecha_fin"]              = campoFechaFin.HasValue ? campoFechaFin.Value.ToString("yyyy-MM-dd") : null
         };
 
-        if (editando)
-        {
-            datos.Remove("docente_cedula");
-            var resultado = await Api.ActualizarAsync("participa_grupo", "docente_cedula", campoCedulaDocente, datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
-        else
-        {
-            var resultado = await Api.CrearAsync("participa_grupo", datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_PARTICIPA_GRUPO", datos);
+        exito   = ok;
+        mensaje = ok ? "Participación registrada correctamente." : $"Error al guardar: {msg}";
 
-        if (exito)
-        {
+        if (ok){
             mostrarFormulario = false;
             await CargarRegistros();
         }
     }
 
-    private async Task EliminarRegistro(Dictionary<string, object?> reg)
-    {
-        string cedulaDocente = reg["docente_cedula"]?.ToString() ?? "";
-        var resultado = await Api.EliminarAsync("participa_grupo", "docente_cedula", cedulaDocente);
-        exito = resultado.exito;
-        mensaje = resultado.mensaje;
+    private async Task EliminarRegistro(Dictionary<string, object?> r){
+        int cedula  = Convert.ToInt32(r["docente_cedula"]);
+        int idGrupo = Convert.ToInt32(r["grupo_investigacion_id"]);
 
-        if (exito)
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Confirma que desea eliminar la participación de '{r["nombre_docente"]}' en el grupo '{r["nombre_grupo"]}'?"))
+            return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_PARTICIPA_GRUPO", new(){
+            ["p_docente_cedula"]         = cedula,
+            ["p_grupo_investigacion_id"] = idGrupo
+        });
+
+        exito   = ok;
+        mensaje = ok ? "Participación eliminada correctamente." : $"Error al eliminar: {msg}";
+
+        if (ok)
             await CargarRegistros();
     }
 
-    private void Cancelar()
-    {
+    private void Cancelar(){
         mostrarFormulario = false;
-        mensaje = string.Empty;
+        mensaje = "";
     }
 
-    
-    
+    private async Task Buscar(){
+        if (buscarCedula == null && buscarIdGrupo == null){
+            mensaje = "Ingrese la cédula del docente o el ID del grupo para buscar.";
+            exito = false;
+            return;
+        }
 
+        try{
+            cargando = true;
+            var parametros = new Dictionary<string, object?>{
+                ["p_docente_cedula"]         = buscarCedula,
+                ["p_grupo_investigacion_id"] = buscarIdGrupo
+            };
 
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_PARTICIPA_GRUPO_POR_ID_GRUPO", parametros);
+
+            registros = ok ? datos : new();
+
+            if (!ok){
+                exito = false;
+                mensaje = msg;
+            }else if (registros.Count == 0){
+                mensaje = "No se encontraron coincidencias.";
+                exito = true;
+            }else{
+                mensaje = $"Se encontraron {registros.Count} coincidencias.";
+                exito = true;
+            }
+        }catch (Exception ex){
+            exito = false;
+            mensaje = $"Error al buscar: {ex.Message}";
+        }finally{
+            cargando = false;
+        }
+    }
+
+    private async Task LimpiarBusqueda(){
+        buscarCedula  = null;
+        buscarIdGrupo = null;
+        mensaje = "";
+        await CargarRegistros();
+    }
 }
