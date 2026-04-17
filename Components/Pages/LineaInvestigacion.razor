@@ -4,10 +4,13 @@
 @inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
 @inject IJSRuntime JS
 
+
 <PageTitle>Linea de Investigación</PageTitle>
+
 
 <div class="container mt-4">
     <h3>Linea de Investigación</h3>
+
 
     @* ───────── ALERTA ───────── *@
     @if (!string.IsNullOrEmpty(mensaje))
@@ -18,9 +21,11 @@
         </div>
     }
 
+
     @* -- LISTAR -- *@
     @if (!mostrarFormulario){
         <button class="btn btn-primary mb-3" @onclick= "NuevoRegistro">Nueva Linea</button>
+
 
         <div class="row mb-3">
             <div class="col-md-3">
@@ -35,8 +40,11 @@
             </div>
         </div>
 
+
         @if (cargando){
-            <p>Cargando...</p>
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
         }else if (registros.Any()){
             <table class= "table table-striped tabla-hover">
                 <thead class= "table-dark">
@@ -61,10 +69,11 @@
                     }
                 </tbody>
             </table>
-        }
-    }else{
+        }else{
         <div class= "alert alert-warning">No hay lineas de investigación activos.</div>
+        }
     }
+
 
     @* ───────── FORMULARIO ───────── *@
     @if (mostrarFormulario){
@@ -86,6 +95,7 @@
             </div>
         </div>
     }
+</div>
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
@@ -95,27 +105,53 @@
     private string mensaje = string.Empty;
     private bool exito = false;
 
-    private string campoId = 0;
+    private int campoId = 0;
     private string campoNombre = "";
     private string campoDescripcion = "";
+
 
     private int? buscarId = null;
     private string buscarNombre = "";
     private string buscarDescripcion = "";
 
+
+    private bool ValidarFormulario(){
+        if (string.IsNullOrWhiteSpace(campoNombre)){
+            mensaje = "El nombre es obligatorio.";
+            return false;
+        }
+       
+        if (string.IsNullOrWhiteSpace(campoDescripcion)){
+            mensaje = "La descripción es obligatoria.";
+            return false;
+        }
+
+
+        return true;
+    }
+
+
     protected override async Task OnInitializedAsync(){
         await CargarRegistros();
     }
 
+
     private async Task CargarRegistros(){
         cargando = true;
-        buscarId = string.Empty;
-        
+        buscarId = null;
+       
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_LINEAS_INVESTIGACION");
         registros = ok ? datos : new();
-        if (!ok) {exito = false; mensaje = msg; }
+        if (!ok){
+            exito = false;
+            mensaje = msg;
+        }else if (registros.Count == 0){
+            mensaje = "No hay lineas de investigación registradas.";
+            exito = true;
+        }
         cargando = false;
     }
+
 
     private void NuevoRegistro(){
         editando = false;
@@ -125,29 +161,31 @@
         mostrarFormulario = true;
     }
 
+
     private void EditarRegistro(Dictionary<string, object?> r){
         editando = true;
+        campoId = Convert.ToInt32(r["id"]);
         campoNombre = r["nombre"]?.ToString() ?? "";
         campoDescripcion = r["descripcion"]?.ToString() ?? "";
         mensaje = "";
         mostrarFormulario = true;
     }
 
+
     private async Task GuardarRegistro(){
-        if (string.IsNullOrWhiteSpace(campoNombre)){
-            mensaje = "El nombre es obligatorio."
-            exito = false;
-            return;
-        }else if (string.IsNullOrWhiteSpace(campoDescripcion)){
-            mensaje = "La descripción es obligatoria."
+        if (!ValidarFormulario()){
             exito = false;
             return;
         }
+
 
         var parametros = new Dictionary<string, object?>{
             ["p_nombre"] = campoNombre,
             ["p_descripcion"] = campoDescripcion
         };
+
+        if (editando)
+            parametros["p_id"] = campoId;
 
         string sp = editando ? "SP_ACTUALIZAR_LINEA_INVESTIGACION" : "SP_INGRESAR_LINEA_INVESTIGACION";
         var (ok, _, msg) = await Sp.EjecutarSpAsync(sp, parametros);
@@ -158,25 +196,30 @@
         if (ok) { mostrarFormulario = false; await CargarRegistros(); }
     }
 
+
     private async Task EliminarRegistro(Dictionary<string, object?> r){
         int id = Convert.ToInt32(r["id"]);
         String nombre = r["nombre"]?.ToString() ?? "";
 
+
         if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la linea de investigación '{nombre}'?"))
             return;
 
+
         var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_LINEA_INVESTIGACION", new() { ["p_id"] = id });
-        
+       
         exito = ok;    
         mensaje = ok ? "Linea eliminada." : $"Error: {msg}";
         if (ok)
             await CargarRegistros();
     }
 
+
     private void Cancelar(){
         mostrarFormulario = false;
         mensaje = "";
     }
+
 
     private async Task Buscar(){
         if (string.IsNullOrWhiteSpace(buscarNombre) && buscarId == null && string.IsNullOrWhiteSpace(buscarDescripcion)){
@@ -190,14 +233,14 @@
 
             var parametros = new Dictionary<string, object?>{
                 ["p_id"] = buscarId,
-                ["p_nombre"] = buscarNombre,
-                ["p_descripcion"] = buscarDescripcion
+                ["p_nombre"] = string.IsNullOrWhiteSpace(buscarNombre) ? null : buscarNombre,
+                ["p_descripcion"] = string.IsNullOrWhiteSpace(buscarDescripcion) ? null : buscarDescripcion
             };
 
             var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_LINEA_INVESTIGACION_POR_ID_NOMBRE_DESCRIPCION", parametros);
-            
+           
             registros = ok ? datos : new();
-            
+           
             if (!ok) {
                 exito = false;
                 mensaje = msg;
@@ -216,6 +259,7 @@
         }
     }
 
+
     private async Task LimpiarBusqueda(){
         buscarId = null;
         buscarNombre = "";
@@ -224,3 +268,4 @@
          await CargarRegistros();
     }
 }
+

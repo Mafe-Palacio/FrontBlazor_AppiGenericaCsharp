@@ -35,7 +35,9 @@
         </div>
 
         @if (cargando){
-            <p>Cargando...</p>
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
         }
         else if (registros.Any()){
             <table class="table table-striped table-hover">
@@ -100,10 +102,11 @@
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Categoría</label>
                         <select class="form-select" @bind="campoCategoria">
-                            <option value="" disabled selected>Seleccione una categoría</option>
-                            @foreach (var c in categorias){
-                                <option value= "@c["categoria"]?.ToString()">@c["categoria"]</option>
-                            }
+                            <option>A1</option>
+                            <option>A</option>
+                            <option>A2</option>
+                            <option>B</option>
+                            <option>C</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
@@ -147,7 +150,6 @@
 @code {
     private List<Dictionary<string, object?>> registros     = new();
     private List<Dictionary<string, object?>> universidades = new();
-    private List<Dictionary<string, object?>> categorias = new();
     private bool   cargando          = true;
     private bool   mostrarFormulario = false;
     private bool   editando          = false;
@@ -167,15 +169,33 @@
     private int? buscarId = null;
     private string buscarNombre = "";
 
+    private bool ValidarFormulario(){
+        if (campoId <= 0){
+            mensaje = "El ID debe ser un número positivo.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(campoNombre)){
+            mensaje = "El nombre es obligatorio.";
+            return false;
+        }
+
+        if (campoFecha == default){
+            mensaje = "La fecha de fundación es obligatoria.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(campoAmbito)){
+            mensaje = "El ámbito es obligatorio.";
+            return false;
+        }
+
+        return true;
+    }
+
     protected override async Task OnInitializedAsync(){
         await CargarRegistros();
         await CargarUniversidades();
-        await CargarCategorias();    
-    }
-
-    private async Task CargarCategorias(){
-        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_CATEGORIA_GRUPO_INVESTIGACION");
-        categorias = ok ? datos : new();
     }
 
     private async Task CargarUniversidades(){
@@ -185,6 +205,8 @@
 
     private async Task CargarRegistros(){
         cargando = true;
+        mensaje = "";
+
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_INVESTIGACION");
         registros = ok ? datos : new();
         if (!ok) { exito = false; mensaje = msg; }
@@ -222,24 +244,7 @@
     }
 
     private async Task GuardarRegistro(){
-        if (campoId == null || campoId <= 0){
-            mensaje = "El campo ID es obligatorio y debe ser un número positivo.";
-            exito = false;
-            return;
-        } else if (string.IsNullOrWhiteSpace(campoNombre)){
-            mensaje = "El nombre es obligatorio.";
-            exito = false;
-            return;
-        }else if (string.IsNullOrWhiteSpace(campoFecha.ToString())){
-            mensaje = "La fecha de fundación es obligatoria.";
-            exito = false;
-            return;
-        }else if (string.IsNullOrWhiteSpace(campoInterno.ToString())){
-            mensaje = "El campo interno es obligatorio.";
-            exito = false;
-            return;
-        }else if (string.IsNullOrWhiteSpace(campoAmbito)){
-            mensaje = "El ámbito es obligatorio.";
+        if (!ValidarFormulario()){
             exito = false;
             return;
         }
