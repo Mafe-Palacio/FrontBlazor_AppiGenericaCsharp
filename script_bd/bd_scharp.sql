@@ -1,5 +1,9 @@
 -- SQL Server Script generado por conversión manual
+CREATE DATABASE bd_csharp;
+GO
 
+USE bd_csharp
+GO
 
 -- Tabla universidad
 CREATE TABLE universidad (
