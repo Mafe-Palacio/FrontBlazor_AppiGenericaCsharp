@@ -1,4 +1,5 @@
 @page "/aa-linea"
+@using System.Threading.Tasks
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
@@ -9,87 +10,97 @@
 <div class="container mt-4">
     <h3>Área de Aplicación por Línea de Investigación</h3>
 
-    @if (!string.IsNullOrEmpty(mensaje))
-    {
+    @* ───────── ALERTA ───────── *@
+    @if (!string.IsNullOrEmpty(mensaje)){
         <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
             @mensaje
             <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
         </div>
     }
 
-    @if (!mostrarFormulario)
-    {
-        <button class="btn btn-primary mb-3" @onclick='() => { mostrarFormulario = true; mensaje = ""; }'>
-            Nueva Relación
-        </button>
+    @* -- LISTAR -- *@
+    @if (!mostrarFormulario){
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input class="form-control" type="number" placeholder="Buscar por ID - Area Aplicación" @bind="buscarId_area" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" placeholder="Buscar por ID - Linea Investigación" @bind="buscarId_linea" />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
+            </div>
+        </div>
+
+        @if (cargando){
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }else if (registros.Any()){
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:100px"> ID - Área de aplicación</th>
+                        <th>Nombre - Área de aplicación</th>
+                        <th style="width:100px"> ID - Línea de investigación</th>
+                        <th>Nombre - Línea de investigación</th>
+                        <th style="width:130px" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in registros)
+                    {
+                        <tr>
+                            <td>@r["area_aplicacion"]</td>
+                            <td>@r["nombre_area_aplicacion"]</td>
+                            <td>@r["linea_investigacion"]</td>
+                            <td>@r["nombre_linea"]</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRelacion(r)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else{
+            <div class="alert alert-warning">No hay relaciones activas.</div>
+        }
     }
 
     @* -- FORMULARIO -- *@
-    @if (mostrarFormulario)
-    {
+    @if (mostrarFormulario){
         <div class="card mb-3">
             <div class="card-header">Nueva Relación AA - Línea</div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Área de Aplicación</label>
-                        <select class="form-select" @bind="campoArea">
-                            <option value="0">-- Seleccione --</option>
-                            @foreach (var a in areas)
-                            {
-                                <option value="@a["id"]">@a["nombre"]</option>
+                        <label class="form-label">Área de Aplicación *</label>
+                        <select class="form-select" @bind="campoIdArea">
+                            <option value="" disabled selected>Seleccione una área de aplicación</option>
+                            @foreach (var a in areas){
+                                <option value="@a["id"]">@a["nombre"] (@a["id"])</option>
                             }
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Línea de Investigación</label>
-                        <select class="form-select" @bind="campoLinea">
-                            <option value="0">-- Seleccione --</option>
-                            @foreach (var l in lineas)
-                            {
-                                <option value="@l["id"]">@l["nombre"]</option>
+                        <label class="form-label">Línea de Investigación *</label>
+                        <select class="form-select" @bind="campoIdLinea">
+                            <option value="" disabled selected>Seleccione una linea de investigación</option>
+                            @foreach (var l in lineas){
+                                <option value="@l["id"]">@l["nombre"] (@l["id"])</option>
                             }
                         </select>
                     </div>
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRelacion">Guardar</button>
-                <button class="btn btn-secondary" @onclick="() => mostrarFormulario = false">Cancelar</button>
+                <button class="btn btn-success me-2" @onclick="GuardarRelacion" disabled="@validacionIncompleta">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                <small class="text-muted d-block mt-2">* Campos obligatorios (clave primaria compuesta)</small>
             </div>
         </div>
-    }
-
-    @* -- TABLA -- *@
-    @if (cargando)
-    {
-        <p>Cargando...</p>
-    }
-    else if (registros.Any())
-    {
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>Área de Aplicación</th>
-                    <th>Línea de Investigación</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in registros)
-                {
-                    <tr>
-                        <td>@r["nombre_area_aplicacion"]</td>
-                        <td>@r["nombre_linea"]</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarRelacion(r)">Eliminar</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <div class="alert alert-warning">No hay relaciones activas.</div>
     }
 </div>
 
@@ -97,78 +108,140 @@
     private List<Dictionary<string, object?>> registros = new();
     private List<Dictionary<string, object?>> areas     = new();
     private List<Dictionary<string, object?>> lineas    = new();
-    private bool   cargando          = true;
+    private bool   cargando = true;
     private bool   mostrarFormulario = false;
-    private string mensaje           = string.Empty;
-    private bool   exito             = false;
+    private string mensaje = string.Empty;
+    private bool   exito = false;
 
-    private int campoArea  = 0;
-    private int campoLinea = 0;
+    private int campoIdArea  = 0;
+    private int campoIdLinea = 0;
 
-    protected override async Task OnInitializedAsync()
-    {
+    private int? buscarId_area  = null;
+    private int? buscarId_linea = null;
+
+    private bool validacionIncompleta => 
+        campoIdArea <= 0 || campoIdLinea <= 0;
+    protected override async Task OnInitializedAsync(){
         await CargarRegistros();
         await CargarAreaAplicacion();
         await CargarLineaInvestigacion();
     }
 
-    private async Task CargarAreaAplicacion()
-    {
+    private async Task CargarAreaAplicacion(){
         var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_AREAS_APLICACION");
         areas = ok ? datos : new();
     }
-    private async Task CargarLineaInvestigacion()
-    {
+    private async Task CargarLineaInvestigacion(){
         var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_LINEAS_INVESTIGACION");
         lineas = ok ? datos : new();
     }
-    private async Task CargarRegistros()
-    {
+    private async Task CargarRegistros(){
         cargando = true;
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_AA_LINEA");
         registros = ok ? datos : new();
-        if (!ok) { exito = false; mensaje = msg; }
+        if (!ok){ 
+            exito = false; 
+            mensaje = msg; 
+        }else if (registros.Count == 0){
+            mensaje = "No hay relaciones activas.";
+            exito = false;
+        }
         cargando = false;
     }
 
-    private async Task GuardarRelacion()
-    {
-        if (campoArea  <= 0) { mensaje = "Seleccione un área de aplicación."; exito = false; return; }
-        if (campoLinea <= 0) { mensaje = "Seleccione una línea.";            exito = false; return; }
+    private void NuevoRegistro(){
+        campoIdArea = 0;
+        campoIdLinea = 0;
+        mostrarFormulario = true;
+        mensaje = "";
+    }
 
-        var parametros = new Dictionary<string, object?>
-        {
-            ["p_area_aplicacion"]     = campoArea,
-            ["p_linea_investigacion"] = campoLinea
+    private async Task GuardarRelacion(){
+        if (validacionIncompleta){
+            exito = false;
+            mensaje = "Por favor, complete todos los campos obligatorios.";
+            return;
+        }
+
+        var parametros = new Dictionary<string, object?>{
+            ["p_area_aplicacion"]     = campoIdArea,
+            ["p_linea_investigacion"] = campoIdLinea
         };
 
         var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_AA_LINEA", parametros);
         exito   = ok;
-        mensaje = ok ? "Relación creada." : $"Error: {msg}";
-        if (ok)
-        {
+        mensaje = ok ? "Relación creada correctamente." : $"Error al guardar: {msg}";
+        if (ok){
             mostrarFormulario = false;
-            campoArea = 0; campoLinea = 0;
             await CargarRegistros();
         }
     }
 
-    private async Task EliminarRelacion(Dictionary<string, object?> r)
-    {
+    private async Task EliminarRelacion(Dictionary<string, object?> r){
         int areaId  = Convert.ToInt32(r["area_aplicacion"]);
         int lineaId = Convert.ToInt32(r["linea_investigacion"]);
-        string nombre = $"{r["nombre_area_aplicacion"]} - {r["nombre_linea"]}";
-        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la relación '{nombre}'?"))
+
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la relación entre el area de aplicación '{r["nombre_area_aplicacion"]}' y la linea de investigación '{r["nombre_linea"]}'?"))
             return;
 
-        var parametros = new Dictionary<string, object?>
-        {
+        var parametros = new Dictionary<string, object?>{
             ["p_area_aplicacion"]     = areaId,
             ["p_linea_investigacion"] = lineaId
         };
+
         var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_AA_LINEA", parametros);
         exito   = ok;
-        mensaje = ok ? "Relación eliminada." : $"Error: {msg}";
-        if (ok) await CargarRegistros();
+        mensaje = ok ? "Relación eliminada correctamente." : $"Error al eliminar: {msg}";
+        if (ok) 
+            await CargarRegistros();
+    }
+
+    private void Cancelar(){
+        mostrarFormulario = false; 
+        mensaje = ""; 
+    }
+
+    private async Task Buscar(){
+        if (buscarId_area == 0 && buscarId_linea == 0){
+            mensaje = "Ingrese el ID del área de aplicación o el ID de la línea de investigación para buscar.";
+            exito = false;
+            return;
+        }
+
+        try{
+            cargando = true;
+
+            var parametros = new Dictionary<string, object?>{
+                 ["p_area_aplicacion"]     = buscarId_area,
+                 ["p_linea_investigacion"] = buscarId_linea
+            };
+
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_AA_LINEA_AREA", parametros);
+
+            registros = ok ? datos : new();
+
+            if (!ok){ 
+                exito = false; 
+                mensaje = msg; 
+            }else if (registros.Count == 0){
+                mensaje = "No se encontraron coincidencias.";
+                exito = true;
+            }else{
+                mensaje = $"Se encontraron {registros.Count} coincidencias.";
+                exito = true;
+            }
+        }catch (Exception ex){
+            exito = false; 
+            mensaje = $"Error al buscar: {ex.Message}";
+        }finally{
+            cargando = false;
+        }
+    }
+
+    private async Task LimpiarBusqueda(){
+        buscarId_area = null;
+        buscarId_linea = null;
+        mensaje = ""; 
+        await CargarRegistros();
     }
 }
