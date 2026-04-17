@@ -1,111 +1,106 @@
 @page "/area-conocimiento"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject IJSRuntime JS
 
-<PageTitle>Areas de Conocimiento</PageTitle>
+<PageTitle>Áreas de Conocimiento</PageTitle>
 
 <div class="container mt-4">
-    <h3>Areas de Conocimiento</h3>
+    <h3>Áreas de Conocimiento</h3>
 
     @* ───────── ALERTA ───────── *@
-    @if (!string.IsNullOrEmpty(mensaje))
-    {
+    @if (!string.IsNullOrEmpty(mensaje)){
         <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
             @mensaje
             <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
         </div>
     }
 
-    @* ───────── BOTON NUEVO ───────── *@
-    @if (!mostrarFormulario)
-    {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Area de Conocimiento</button>
+    @* -- LISTAR -- *@
+    @if (!mostrarFormulario){
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Área de Conocimiento</button>
+
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <input class="form-control" type="number" placeholder="Buscar por ID" @bind="buscarId" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" placeholder="Buscar por área" @bind="buscarArea" />
+            </div>
+            <div class="col-md-3">
+                <input class="form-control" placeholder="Buscar por disciplina" @bind="buscarDisciplina" />
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
+            </div>
+        </div>
+
+        @if (cargando){
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }else if (registros.Any()){
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Gran Área</th>
+                        <th>Área</th>
+                        <th>Disciplina</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in registros){
+                        <tr>
+                            <td>@r["id"]</td>
+                            <td>@r["gran_area"]</td>
+                            <td>@r["area"]</td>
+                            <td>@r["disciplina"]</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(r)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }else{
+            <div class="alert alert-warning">No se encontraron registros en la tabla area_conocimiento.</div>
+        }
     }
 
-    @* ───────── LIMITE DE REGISTROS ───────── *@
-    <div class="d-flex align-items-center mb-3">
-        <label class="form-label me-2 mb-0">Limite:</label>
-        <input class="form-control me-2" type="number" style="width:100px" @bind="limite" />
-        <button class="btn btn-outline-secondary" @onclick="CargarRegistros">Cargar</button>
-    </div>
-
     @* ───────── FORMULARIO ───────── *@
-    @if (mostrarFormulario)
-    {
+    @if (mostrarFormulario){
         <div class="card mb-3">
             <div class="card-header">
-                @(editando ? "Editar Area de Conocimiento" : "Nueva Area de Conocimiento")
+                @(editando ? "Editar Área de Conocimiento" : "Nueva Área de Conocimiento")
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">id</label>
-                        <input class="form-control" @bind="campoId" disabled="@editando" />
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">ID</label>
+                        <input class="form-control" type="number" @bind="campoId" disabled="@editando" />
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">gran_area</label>
-                        <input class="form-control" @bind="campoGranArea" />
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Gran Área</label>
+                        <input class="form-control" @bind="campoGranArea" maxlength="60" />
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">area</label>
-                        <input class="form-control" @bind="campoArea" />
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Área</label>
+                        <input class="form-control" @bind="campoArea" maxlength="60" />
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">disciplina</label>
-                        <input class="form-control" @bind="campoDisciplina" />
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Disciplina</label>
+                        <input class="form-control" @bind="campoDisciplina" maxlength="60" />
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
         </div>
-    }
-
-    @* ───────── SPINNER ───────── *@
-    @if (cargando)
-    {
-        <div class="d-flex justify-content-center my-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-        </div>
-    }
-
-    @* ───────── TABLA ───────── *@
-    @if (!cargando && registros.Any())
-    {
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>Id</th>
-                    <th>gran_area</th>
-                    <th>area</th>
-                    <th>disciplina</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var reg in registros)
-                {
-                    <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["gran_area"]</td>
-                        <td>@reg["area"]</td>
-                        <td>@reg["disciplina"]</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm me-1"
-                                    @onclick="() => EditarRegistro(reg)">Editar</button>
-                            <button class="btn btn-danger btn-sm"
-                                    @onclick="() => EliminarRegistro(reg)">Eliminar</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    @if (!cargando && !registros.Any())
-    {
-        <div class="alert alert-warning">No se encontraron registros en la tabla .</div>
     }
 </div>
 
@@ -117,92 +112,163 @@
     private string mensaje = string.Empty;
     private bool exito = false;
 
-    // Campos del formulario
-    private string campoId = string.Empty;
-    private string campoGranArea = string.Empty;
-    private string campoArea = string.Empty;
-    private string campoDisciplina = string.Empty;
-    private int? limite = null;
+    private int campoId = 0;
+    private string campoGranArea = "";
+    private string campoArea = "";
+    private string campoDisciplina = "";
 
-    protected override async Task OnInitializedAsync()
-    {
+    private int? buscarId = null;
+    private string buscarArea = "";
+    private string buscarDisciplina = "";
+
+    private bool ValidarFormulario(){
+        if (campoId <= 0){
+            mensaje = "El campo ID es obligatorio y debe ser un número positivo.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(campoGranArea)){
+            mensaje = "El campo gran área es obligatorio.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(campoArea)){
+            mensaje = "El campo área es obligatorio.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(campoDisciplina)){
+            mensaje = "El campo disciplina es obligatorio.";
+            return false;
+        }
+        return true;
+    }
+
+    protected override async Task OnInitializedAsync(){
         await CargarRegistros();
     }
 
-    private async Task CargarRegistros()
-    {
+    private async Task CargarRegistros(){
         cargando = true;
-        registros = await Api.ListarAsync("area_conocimiento", limite);
+        buscarId = null;
+        var (ok, dato, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_AREAS_CONOCIMIENTO");
+        registros = ok ? dato : new();
+        if (!ok){
+            exito = false;
+            mensaje = msg;
+        }else if (registros.Count == 0){
+            mensaje = "No hay áreas de conocimiento registradas.";
+            exito = true;
+        }
         cargando = false;
     }
 
-    private void NuevoRegistro()
-    {
+    private void NuevoRegistro(){
         editando = false;
-        campoId = string.Empty;
-        campoGranArea = string.Empty;
-        campoArea = string.Empty;
-        campoDisciplina = string.Empty;
+        campoId = 0;
+        campoGranArea = "";
+        campoArea = "";
+        campoDisciplina = "";
         mostrarFormulario = true;
-        mensaje = string.Empty;
+        mensaje = "";
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
-    {
+    private void EditarRegistro(Dictionary<string, object?> reg){
         editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
+        campoId = Convert.ToInt32(reg["id"]);
         campoGranArea = reg["gran_area"]?.ToString() ?? "";
         campoArea = reg["area"]?.ToString() ?? "";
         campoDisciplina = reg["disciplina"]?.ToString() ?? "";
         mostrarFormulario = true;
-        mensaje = string.Empty;
+        mensaje = "";
     }
 
-    private async Task GuardarRegistro()
-    {
-        var datos = new Dictionary<string, object?>
-        {
-            ["id"] = campoId,
-            ["gran_area"] = campoGranArea,
-            ["area"] = campoArea,
-            ["disciplina"] = campoDisciplina
+    private async Task GuardarRegistro(){
+        if (!ValidarFormulario()){
+            exito = false;
+            return;
+        }
+
+        var datos = new Dictionary<string, object?>{
+            ["p_id"]         = campoId,
+            ["p_gran_area"]  = campoGranArea,
+            ["p_area"]       = campoArea,
+            ["p_disciplina"] = campoDisciplina
         };
 
-        if (editando)
-        {
-            datos.Remove("id");
-            var resultado = await Api.ActualizarAsync("area_conocimiento", "id", campoId, datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
-        else
-        {
-            var resultado = await Api.CrearAsync("area_conocimiento", datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
-
-        if (exito)
-        {
+        string sp = editando ? "SP_ACTUALIZAR_AREA_CONOCIMIENTO" : "SP_INGRESAR_AREA_CONOCIMIENTO";
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(sp, datos);
+        exito = ok;
+        mensaje = ok
+            ? (editando ? "Área actualizada exitosamente." : "Área creada exitosamente.")
+            : $"Error: {msg}";
+        if (ok){
+            await CargarRegistros();
             mostrarFormulario = false;
-            await CargarRegistros();
         }
     }
 
-    private async Task EliminarRegistro(Dictionary<string, object?> reg)
-    {
-        string id = reg["id"]?.ToString() ?? "";
-        var resultado = await Api.EliminarAsync("area_conocimiento", "id", id);
-        exito = resultado.exito;
-        mensaje = resultado.mensaje;
+    private async Task EliminarRegistro(Dictionary<string, object?> reg){
+        int id = Convert.ToInt32(reg["id"]);
+        string nombre = reg["area"]?.ToString() ?? "";
 
-        if (exito)
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Confirma que desea eliminar el área de conocimiento '{nombre}'?"))
+            return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_AREA_CONOCIMIENTO", new() { ["p_id"] = id });
+
+        exito = ok;
+        mensaje = ok ? "Área eliminada exitosamente." : $"Error: {msg}";
+
+        if (ok)
             await CargarRegistros();
     }
 
-    private void Cancelar()
-    {
+    private void Cancelar(){
         mostrarFormulario = false;
-        mensaje = string.Empty;
+        mensaje = "";
+    }
+
+    private async Task Buscar(){
+        if (buscarId == null && string.IsNullOrWhiteSpace(buscarArea) && string.IsNullOrWhiteSpace(buscarDisciplina)){
+            mensaje = "Ingrese un ID, área o disciplina para buscar.";
+            exito = false;
+            return;
+        }
+
+        try{
+            cargando = true;
+
+            var parametros = new Dictionary<string, object?>{
+                ["p_id"]          = buscarId,
+                ["p_area"]        = string.IsNullOrWhiteSpace(buscarArea)        ? null : buscarArea,
+                ["p_disciplina"]  = string.IsNullOrWhiteSpace(buscarDisciplina)  ? null : buscarDisciplina
+            };
+
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_AREA_CONOCIMIENTO_POR_ID_AREA_DISCIPLINA", parametros);
+
+            registros = ok ? datos : new();
+
+            if (!ok){
+                exito = false;
+                mensaje = $"Error: {msg}";
+            }else if (registros.Count == 0){
+                mensaje = "No se encontraron registros que coincidan con la búsqueda.";
+                exito = true;
+            }else{
+                mensaje = $"Se encontraron {registros.Count} coincidencias.";
+                exito = true;
+            }
+        }catch (Exception ex){
+            mensaje = $"Error al buscar: {ex.Message}";
+            exito = false;
+        }finally{
+            cargando = false;
+        }
+    }
+
+    private async Task LimpiarBusqueda(){
+        buscarId = null;
+        buscarArea = "";
+        buscarDisciplina = "";
+        mensaje = "";
+        await CargarRegistros();
     }
 }
