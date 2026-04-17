@@ -1,0 +1,249 @@
+@page "/ods-linea"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject IJSRuntime JS
+
+<PageTitle>ODS - Línea de Investigación</PageTitle>
+
+<div class="container mt-4">
+    <h3>ODS por Línea de Investigación</h3>
+
+    @* ───────── ALERTA ───────── *@
+    @if (!string.IsNullOrEmpty(mensaje)){
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @* -- LISTAR -- *@
+    @if (!mostrarFormulario){
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input class="form-control" type="number" placeholder="Buscar por ID - Línea Investigación" @bind="buscarId_linea" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" type="number" placeholder="Buscar por ID - ODS" @bind="buscarId_ods" />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
+            </div>
+        </div>
+
+        @if (cargando){
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }else if (registros.Any()){
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:110px">ID - Línea de Investigación</th>
+                        <th>Nombre - Línea de Investigación</th>
+                        <th style="width:80px">ID - ODS</th>
+                        <th>Nombre - ODS</th>
+                        <th>Categoría</th>
+                        <th style="width:130px" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in registros){
+                        <tr>
+                            <td class="text-center">@r["linea_investigacion"]</td>
+                            <td>@r["nombre_linea"]</td>
+                            <td class="text-center">@r["ods"]</td>
+                            <td>@r["nombre_ods"]</td>
+                            <td>@r["categoria"]</td>
+                            <td class="text-center">
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRelacion(r)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }else{
+            <div class="alert alert-warning">No se encontraron registros en la tabla ods_linea.</div>
+        }
+    }
+
+    @* ───────── FORMULARIO ───────── *@
+    @if (mostrarFormulario){
+        <div class="card mb-3">
+            <div class="card-header">Nueva Relación ODS - Línea</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Línea de Investigación *</label>
+                        <select class="form-select" @bind="campoIdLinea">
+                            <option value="0" disabled selected>Seleccione una línea de investigación</option>
+                            @foreach (var l in lineas){
+                                <option value="@l["id"]">@l["nombre"] (@l["id"])</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Objetivo de Desarrollo Sostenible *</label>
+                        <select class="form-select" @bind="campoIdOds">
+                            <option value="0" disabled selected>Seleccione un ODS</option>
+                            @foreach (var o in objetivos){
+                                <option value="@o["id"]">@o["nombre"] (@o["id"])</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRelacion" disabled="@validacionIncompleta">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                <small class="text-muted d-block mt-2">* Campos obligatorios (clave primaria compuesta)</small>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> lineas    = new();
+    private List<Dictionary<string, object?>> objetivos = new();
+    private bool   cargando = true;
+    private bool   mostrarFormulario = false;
+    private string mensaje = string.Empty;
+    private bool   exito = false;
+
+    private int campoIdLinea = 0;
+    private int campoIdOds   = 0;
+
+    private int? buscarId_linea = null;
+    private int? buscarId_ods   = null;
+
+    private bool validacionIncompleta =>
+        campoIdLinea <= 0 || campoIdOds <= 0;
+
+    protected override async Task OnInitializedAsync(){
+        await CargarRegistros();
+        await CargarLineasInvestigacion();
+        await CargarObjetivos();
+    }
+
+    private async Task CargarLineasInvestigacion(){
+        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_LINEAS_INVESTIGACION");
+        lineas = ok ? datos : new();
+    }
+
+    private async Task CargarObjetivos(){
+        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_ODS");
+        objetivos = ok ? datos : new();
+    }
+
+    private async Task CargarRegistros(){
+        cargando = true;
+        var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_ODS_LINEA");
+        registros = ok ? datos : new();
+        if (!ok){
+            exito = false;
+            mensaje = msg;
+        }else if (registros.Count == 0){
+            mensaje = "No hay relaciones activas.";
+            exito = false;
+        }
+        cargando = false;
+    }
+
+    private void NuevoRegistro(){
+        campoIdLinea = 0;
+        campoIdOds   = 0;
+        mostrarFormulario = true;
+        mensaje = "";
+    }
+
+    private async Task GuardarRelacion(){
+        if (validacionIncompleta){
+            exito = false;
+            mensaje = "Por favor, complete todos los campos obligatorios.";
+            return;
+        }
+
+        var parametros = new Dictionary<string, object?>{
+            ["p_linea_investigacion"] = campoIdLinea,
+            ["p_ods"]                 = campoIdOds
+        };
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_ODS_LINEA", parametros);
+        exito   = ok;
+        mensaje = ok ? "Relación creada correctamente." : $"Error al guardar: {msg}";
+        if (ok){
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRelacion(Dictionary<string, object?> r){
+        int idLinea = Convert.ToInt32(r["linea_investigacion"]);
+        int idOds   = Convert.ToInt32(r["ods"]);
+
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la relación entre la línea de investigación '{r["nombre_linea"]}' y el ODS '{r["nombre_ods"]}'?"))
+            return;
+
+        var parametros = new Dictionary<string, object?>{
+            ["p_linea_investigacion"] = idLinea,
+            ["p_ods"]                 = idOds
+        };
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_ODS_LINEA", parametros);
+        exito   = ok;
+        mensaje = ok ? "Relación eliminada correctamente." : $"Error al eliminar: {msg}";
+        if (ok)
+            await CargarRegistros();
+    }
+
+    private void Cancelar(){
+        mostrarFormulario = false;
+        mensaje = "";
+    }
+
+    private async Task Buscar(){
+        if (buscarId_linea == 0 && buscarId_ods == 0){
+            mensaje = "Ingrese el ID de la línea de investigación o el ID del ODS para buscar.";
+            exito = false;
+            return;
+        }
+
+        try{
+            cargando = true;
+
+            var parametros = new Dictionary<string, object?>{
+                ["p_linea_investigacion"] = buscarId_linea,
+                ["p_ods"]                 = buscarId_ods
+            };
+
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_ODS_LINEA_POR_ID_LINEA", parametros);
+
+            registros = ok ? datos : new();
+
+            if (!ok){
+                exito = false;
+                mensaje = msg;
+            }else if (registros.Count == 0){
+                mensaje = "No se encontraron coincidencias.";
+                exito = true;
+            }else{
+                mensaje = $"Se encontraron {registros.Count} coincidencias.";
+                exito = true;
+            }
+        }catch (Exception ex){
+            exito = false;
+            mensaje = $"Error al buscar: {ex.Message}";
+        }finally{
+            cargando = false;
+        }
+    }
+
+    private async Task LimpiarBusqueda(){
+        buscarId_linea = null;
+        buscarId_ods   = null;
+        mensaje = "";
+        await CargarRegistros();
+    }
+}
