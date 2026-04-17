@@ -1,0 +1,271 @@
+@page "/participa-semillero"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject IJSRuntime JS
+
+<PageTitle>Participa en Semillero</PageTitle>
+
+<div class="container mt-4">
+    <h3>Participación de Docentes en Semilleros</h3>
+
+    @* ───────── ALERTA ───────── *@
+    @if (!string.IsNullOrEmpty(mensaje)){
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+    @* -- LISTAR -- *@
+    @if (!mostrarFormulario){
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Participación</button>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input class="form-control" type="number" placeholder="Buscar por Cédula Docente" @bind="buscarCedula" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" type="number" placeholder="Buscar por ID Semillero" @bind="buscarIdSemillero" />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
+            </div>
+        </div>
+
+        @if (cargando){
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }else if (registros.Any()){
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:100px">Cédula Docente</th>
+                        <th>Nombre Docente</th>
+                        <th style="width:80px">ID Semillero</th>
+                        <th>Nombre Semillero</th>
+                        <th style="width:100px">Rol</th>
+                        <th style="width:110px">Fecha Inicio</th>
+                        <th style="width:110px">Fecha Fin</th>
+                        <th style="width:90px" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in registros){
+                        <tr>
+                            <td class="text-center">@r["docente"]</td>
+                            <td>@r["nombre_docente"]</td>
+                            <td class="text-center">@r["semillero"]</td>
+                            <td>@r["nombre_semillero"]</td>
+                            <td>@r["rol"]</td>
+                            <td>@r["fecha_inicio"]</td>
+                            <td>@(r["fecha_fin"] ?? "-")</td>
+                            <td class="text-center">
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }else{
+            <div class="alert alert-warning">No se encontraron registros en la tabla participa_semillero.</div>
+        }
+    }
+
+    @* ───────── FORMULARIO ───────── *@
+    @if (mostrarFormulario){
+        <div class="card mb-3">
+            <div class="card-header">Nueva Participación en Semillero</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Docente *</label>
+                        <select class="form-select" @bind="campoCedula">
+                            <option value="0" disabled>Seleccione un docente</option>
+                            @foreach (var d in docentes){
+                                <option value="@d["cedula"]">@d["nombres"] @d["apellidos"] (@d["cedula"])</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Semillero *</label>
+                        <select class="form-select" @bind="campoIdSemillero">
+                            <option value="0" disabled>Seleccione un semillero</option>
+                            @foreach (var s in semilleros){
+                                <option value="@s["id"]">@s["nombre"] (@s["id"])</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Rol *</label>
+                        <input class="form-control" @bind="campoRol" maxlength="15" placeholder="Ej: Tutor, Integrante..." />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Inicio *</label>
+                        <input class="form-control" type="date" @bind="campoFechaInicio" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha Fin</label>
+                        <input class="form-control" type="date" @bind="campoFechaFin" />
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro" disabled="@validacionIncompleta">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                <small class="text-muted d-block mt-2">* Campos obligatorios</small>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Dictionary<string, object?>> registros  = new();
+    private List<Dictionary<string, object?>> docentes   = new();
+    private List<Dictionary<string, object?>> semilleros = new();
+    private bool   cargando = true;
+    private bool   mostrarFormulario = false;
+    private string mensaje = string.Empty;
+    private bool   exito = false;
+
+    private int       campoCedula      = 0;
+    private int       campoIdSemillero = 0;
+    private string    campoRol         = "";
+    private DateTime  campoFechaInicio = DateTime.Today;
+    private DateTime? campoFechaFin    = null;
+
+    private int? buscarCedula      = null;
+    private int? buscarIdSemillero = null;
+
+    private bool validacionIncompleta =>
+        campoCedula == 0 || campoIdSemillero == 0 || string.IsNullOrWhiteSpace(campoRol);
+
+    protected override async Task OnInitializedAsync(){
+        await CargarSelectores();
+        await CargarRegistros();
+    }
+
+    private async Task CargarSelectores(){
+        var (okD, datosD, _) = await Sp.EjecutarSpAsync("SP_LISTAR_DOCENTES");
+        docentes = okD ? datosD : new();
+
+        var (okS, datosS, _) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
+        semilleros = okS ? datosS : new();
+    }
+
+    private async Task CargarRegistros(){
+        cargando = true;
+        var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_PARTICIPA_SEMILLERO");
+        registros = ok ? datos : new();
+        if (!ok){
+            exito = false;
+            mensaje = msg;
+        }else if (registros.Count == 0){
+            mensaje = "No hay participaciones registradas.";
+            exito = true;
+        }
+        cargando = false;
+    }
+
+    private void NuevoRegistro(){
+        campoCedula      = 0;
+        campoIdSemillero = 0;
+        campoRol         = "";
+        campoFechaInicio = DateTime.Today;
+        campoFechaFin    = null;
+        mostrarFormulario = true;
+        mensaje = "";
+    }
+
+    private async Task GuardarRegistro(){
+        if (validacionIncompleta){
+            exito = false;
+            mensaje = "Por favor, complete todos los campos obligatorios.";
+            return;
+        }
+
+        var datos = new Dictionary<string, object?>{
+            ["p_docente"]      = campoCedula,
+            ["p_semillero"]    = campoIdSemillero,
+            ["p_rol"]          = campoRol,
+            ["p_fecha_inicio"] = campoFechaInicio.ToString("yyyy-MM-dd"),
+            ["p_fecha_fin"]    = campoFechaFin.HasValue ? campoFechaFin.Value.ToString("yyyy-MM-dd") : null
+        };
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_PARTICIPA_SEMILLERO", datos);
+        exito   = ok;
+        mensaje = ok ? "Participación registrada correctamente." : $"Error al guardar: {msg}";
+
+        if (ok){
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> r){
+        int cedula      = Convert.ToInt32(r["docente"]);
+        int idSemillero = Convert.ToInt32(r["semillero"]);
+
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Confirma que desea eliminar la participación de '{r["nombre_docente"]}' en el semillero '{r["nombre_semillero"]}'?"))
+            return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_PARTICIPA_SEMILLERO", new(){
+            ["p_docente"]   = cedula,
+            ["p_semillero"] = idSemillero
+        });
+
+        exito   = ok;
+        mensaje = ok ? "Participación eliminada correctamente." : $"Error al eliminar: {msg}";
+
+        if (ok)
+            await CargarRegistros();
+    }
+
+    private void Cancelar(){
+        mostrarFormulario = false;
+        mensaje = "";
+    }
+
+    private async Task Buscar(){
+        if (buscarCedula == null && buscarIdSemillero == null){
+            mensaje = "Ingrese la cédula del docente o el ID del semillero para buscar.";
+            exito = false;
+            return;
+        }
+
+        try{
+            cargando = true;
+            var parametros = new Dictionary<string, object?>{
+                ["p_docente"]   = buscarCedula,
+                ["p_semillero"] = buscarIdSemillero
+            };
+
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_PARTICIPA_SEMILLERO_POR_ID_SEMILLERO", parametros);
+
+            registros = ok ? datos : new();
+
+            if (!ok){
+                exito = false;
+                mensaje = msg;
+            }else if (registros.Count == 0){
+                mensaje = "No se encontraron coincidencias.";
+                exito = true;
+            }else{
+                mensaje = $"Se encontraron {registros.Count} coincidencias.";
+                exito = true;
+            }
+        }catch (Exception ex){
+            exito = false;
+            mensaje = $"Error al buscar: {ex.Message}";
+        }finally{
+            cargando = false;
+        }
+    }
+
+    private async Task LimpiarBusqueda(){
+        buscarCedula      = null;
+        buscarIdSemillero = null;
+        mensaje = "";
+        await CargarRegistros();
+    }
+}
