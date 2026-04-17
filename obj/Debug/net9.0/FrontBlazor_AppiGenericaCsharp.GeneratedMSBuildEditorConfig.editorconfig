@@ -40,10 +40,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBcmVhQ29ub2NpbWllbnRvLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USUARIO/Desktop/Nueva carpeta - copia/FrontBlazor_AppiGenericaCsharp/Components/Pages/CrearGrupoCompleto.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDcmVhckdydXBvQ29tcGxldG8ucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/USUARIO/Desktop/Nueva carpeta - copia/FrontBlazor_AppiGenericaCsharp/Components/Pages/Error.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -64,8 +60,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xMaW5lYUludmVzdGlnYWNpb24ucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USUARIO/Desktop/Nueva carpeta - copia/FrontBlazor_AppiGenericaCsharp/Components/Pages/ObjetivoDS.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPYmpldGl2b0RTLnJhem9y
+[C:/Users/USUARIO/Desktop/Nueva carpeta - copia/FrontBlazor_AppiGenericaCsharp/Components/Pages/ODS.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xPRFMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/USUARIO/Desktop/Nueva carpeta - copia/FrontBlazor_AppiGenericaCsharp/Components/Pages/ParticipaGrupo.razor]
