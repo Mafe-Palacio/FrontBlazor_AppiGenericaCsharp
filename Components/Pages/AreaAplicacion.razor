@@ -1,0 +1,273 @@
+@page "/area-aplicacion"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject IJSRuntime JS
+
+
+<PageTitle>Areas de Aplicación</PageTitle>
+
+
+<div class="container mt-4">
+    <h3>Areas de Aplicación</h3>
+
+
+    @* ───────── ALERTA ───────── *@
+    @if (!string.IsNullOrEmpty(mensaje)){
+        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+            @mensaje
+            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+        </div>
+    }
+
+
+    @* -- LISTAR -- *@
+    @if (!mostrarFormulario){
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Area de Aplicación</button>
+
+
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <input class="form-control" type="number" placeholder="Buscar por ID" @bind="buscarId" />
+            </div>
+            <div class="col-md-5">
+                <input class="form-control" placeholder="Buscar por nombre" @bind="buscarNombre" />
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
+            </div>
+        </div>
+
+
+        @if (cargando){
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }else if (registros.Any()){
+            <table class="table table-striped tabla-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in registros){
+                        <tr>
+                            <td>@r["id"]</td>
+                            <td>@r["nombre"]</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(r)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }else{
+            <div class="alert alert-warning">No se encontraron registros en la tabla area_aplicacion.</div>
+        }
+    }
+
+
+    @* ───────── FORMULARIO ───────── *@
+    @if (mostrarFormulario){
+        <div class="card mb-3">
+            <div class="card-header">
+                @(editando ? "Editar Area de Aplicación" : "Nueva Area de Aplicación")
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">id</label>
+                        <input class="form-control" @bind="campoId" disabled="@editando" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">nombre</label>
+                        <input class="form-control" @bind="campoNombre" maxlength="60"/>
+                    </div>
+                </div>
+                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
+                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    private List<Dictionary<string, object?>> registros = new();
+    private bool cargando = true;
+    private bool mostrarFormulario = false;
+    private bool editando = false;
+    private string mensaje = string.Empty;
+    private bool exito = false;
+
+
+    private int campoId = 0;
+    private string campoNombre = "";
+
+
+    private int? buscarId = null;
+    private string buscarNombre = "";
+
+
+    private bool ValidarFormulario(){
+        if (campoId == 0 || campoId <= 0){
+            mensaje = "El campo ID es obligatorio y debe ser un número positivo.";
+            return false;
+        }
+       
+        if (string.IsNullOrWhiteSpace(campoNombre)){
+            mensaje = "El campo nombre es obligatorio.";
+            return false;
+        }
+
+
+        return true;
+    }
+
+
+    protected override async Task OnInitializedAsync(){
+        await CargarRegistros();
+    }
+
+
+    private async Task CargarRegistros(){
+        cargando = true;
+        var (ok, dato, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_AREAS_APLICACION");
+        registros = ok ? dato : new();
+        if (!ok){
+            exito = false;
+            mensaje = msg;
+        }else if (registros.Count == 0){
+            mensaje = "No hay areas de aplicación registradas.";
+            exito = true;
+        }
+        cargando = false;
+    }
+
+
+    private void NuevoRegistro(){
+        editando = false;
+        campoId = 0;
+        campoNombre = "";
+        mostrarFormulario = true;
+        mensaje = "";
+    }
+
+
+    private void EditarRegistro(Dictionary<string, object?> reg){
+        editando = true;
+        campoId = reg["id"]?.ToString() != null ? Convert.ToInt32(reg["id"]) : 0;
+        campoNombre = reg["nombre"]?.ToString() ?? "";
+        mostrarFormulario = true;
+        mensaje = "";
+    }
+
+
+    private async Task GuardarRegistro(){
+        if (!ValidarFormulario()){
+            exito = false;
+            return;
+        }
+       
+        var datos = new Dictionary<string, object?>{
+            ["p_id"] = campoId,
+            ["p_nombre"] = campoNombre
+        };
+
+
+        string sp = editando ? "SP_ACTUALIZAR_AREA_APLICACION" : "SP_INGRESAR_AREA_APLICACION";
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(sp, datos);
+        exito = ok;
+        mensaje = ok
+            ? (editando ? "Area actualizada exitosamente." : "Area creada exitosamente.")
+            : $"Error: {msg}";
+        if (ok){
+            await CargarRegistros();
+            mostrarFormulario = false;
+        }
+    }
+
+
+    private async Task EliminarRegistro(Dictionary<string, object?> reg){
+        int id = Convert.ToInt32(reg["id"]);
+        String nombre = reg["nombre"]?.ToString() ?? "";
+
+
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Confirma que desea eliminar el area de aplicación '{nombre}'?"))
+            return;
+
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_AREA_APLICACION", new() { ["p_id"] = id });
+       
+        exito = ok;
+        mensaje = ok ? "Area eliminada exitosamente." : $"Error: {msg}";
+
+
+        if (exito)
+            await CargarRegistros();
+    }
+
+
+    private void Cancelar(){
+        mostrarFormulario = false;
+        mensaje = "";
+    }
+
+
+    private async Task Buscar(){
+        if (buscarId == null && string.IsNullOrWhiteSpace(buscarNombre)){
+            mensaje = "Ingrese un ID o nombre para buscar.";
+            exito = false;
+            return;
+        }
+
+
+        try{
+            cargando = true;
+
+
+            var parametros = new Dictionary<string, object?>{
+                ["p_id"] = buscarId,
+                ["p_nombre"] = buscarNombre
+            };
+
+
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_AREA_APLICACION_POR_ID_NOMBRE", parametros);
+
+
+            registros = ok ? datos : new();
+
+
+            if (!ok){
+                exito = false;
+                mensaje = $"Error: {msg}";
+            }else if (registros.Count == 0){
+                mensaje = "No se encontraron registros que coincidan con la búsqueda.";
+                exito = true;
+            }else{
+                mensaje = $"Se encontraron {registros.Count} coincidencias.";
+                exito = true;
+            }
+        }catch (Exception ex){
+            mensaje = $"Error al buscar: {ex.Message}";
+            exito = false;
+        }finally{
+            cargando = false;
+        }
+    }
+
+
+    private async Task LimpiarBusqueda(){
+        buscarId = null;
+        buscarNombre = "";
+        mensaje = "";
+        await CargarRegistros();
+    }
+   
+}
+
