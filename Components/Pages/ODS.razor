@@ -1,6 +1,8 @@
 @page "/objetivo-desarrollo-sostenible"
 @rendermode InteractiveServer
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject IJSRuntime JS
 
 <PageTitle>Objetivos de Desarrollo Sostenible</PageTitle>
 
@@ -8,98 +10,91 @@
     <h3>Objetivos de Desarrollo Sostenible</h3>
 
     @* ───────── ALERTA ───────── *@
-    @if (!string.IsNullOrEmpty(mensaje))
-    {
+    @if (!string.IsNullOrEmpty(mensaje)){
         <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
             @mensaje
             <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
         </div>
     }
 
-    @* ───────── BOTON NUEVO ───────── *@
-    @if (!mostrarFormulario)
-    {
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Objetivo de Desarrollo Sostenible</button>
+    @* -- LISTAR -- *@
+    @if (!mostrarFormulario){
+        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo ODS</button>
+
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <input class="form-control" type="number" placeholder="Buscar por ID" @bind="buscarId" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" placeholder="Buscar por nombre" @bind="buscarNombre" />
+            </div>
+            <div class="col-md-3">
+                <input class="form-control" placeholder="Buscar por categoría" @bind="buscarCategoria" />
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
+            </div>
+        </div>
+
+        @if (cargando){
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }else if (registros.Any()){
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in registros){
+                        <tr>
+                            <td>@r["id"]</td>
+                            <td>@r["nombre"]</td>
+                            <td>@r["categoria"]</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(r)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }else{
+            <div class="alert alert-warning">No se encontraron registros en la tabla objetivo_desarrollo_sostenible.</div>
+        }
     }
 
-    @* ───────── LIMITE DE REGISTROS ───────── *@
-    <div class="d-flex align-items-center mb-3">
-        <label class="form-label me-2 mb-0">Limite:</label>
-        <input class="form-control me-2" type="number" style="width:100px" @bind="limite" />
-        <button class="btn btn-outline-secondary" @onclick="CargarRegistros">Cargar</button>
-    </div>
-
     @* ───────── FORMULARIO ───────── *@
-    @if (mostrarFormulario)
-    {
+    @if (mostrarFormulario){
         <div class="card mb-3">
             <div class="card-header">
-                @(editando ? "Editar Objetivo de Desarrollo Sostenible" : "Nueva Objetivo de Desarrollo Sostenible")
+                @(editando ? "Editar ODS" : "Nuevo ODS")
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">id</label>
-                        <input class="form-control" @bind="campoId" disabled="@editando" />
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">ID</label>
+                        <input class="form-control" type="number" @bind="campoId" disabled="@editando" />
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">nombre</label>
-                        <input class="form-control" @bind="campoNombre" />
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input class="form-control" @bind="campoNombre" maxlength="60" />
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">categoria</label>
-                        <input class="form-control" @bind="campoCategoria" />
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Categoría</label>
+                        <input class="form-control" @bind="campoCategoria" maxlength="45" />
                     </div>
                 </div>
                 <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
                 <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
             </div>
         </div>
-    }
-
-    @* ───────── SPINNER ───────── *@
-    @if (cargando)
-    {
-        <div class="d-flex justify-content-center my-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-        </div>
-    }
-
-    @* ───────── TABLA ───────── *@
-    @if (!cargando && registros.Any())
-    {
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>Id</th>
-                    <th>Nombre</th>
-                    <th>Categoria</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var reg in registros)
-                {
-                    <tr>
-                        <td>@reg["id"]</td>
-                        <td>@reg["nombre"]</td>
-                        <td>@reg["categoria"]</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm me-1"
-                                    @onclick="() => EditarRegistro(reg)">Editar</button>
-                            <button class="btn btn-danger btn-sm"
-                                    @onclick="() => EliminarRegistro(reg)">Eliminar</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-
-    @if (!cargando && !registros.Any())
-    {
-        <div class="alert alert-warning">No se encontraron registros en la tabla objetivo_desarrollo_sostenible.</div>
     }
 </div>
 
@@ -111,88 +106,155 @@
     private string mensaje = string.Empty;
     private bool exito = false;
 
-    // Campos del formulario
-    private string campoId = string.Empty;
-    private string campoNombre = string.Empty;
-    private string campoCategoria = string.Empty;
-    private int? limite = null;
+    private int campoId = 0;
+    private string campoNombre = "";
+    private string campoCategoria = "";
 
-    protected override async Task OnInitializedAsync()
-    {
+    private int? buscarId = null;
+    private string buscarNombre = "";
+    private string buscarCategoria = "";
+
+    private bool ValidarFormulario(){
+        if (campoId <= 0){
+            mensaje = "El campo ID es obligatorio y debe ser un número positivo.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(campoNombre)){
+            mensaje = "El campo nombre es obligatorio.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(campoCategoria)){
+            mensaje = "El campo categoría es obligatorio.";
+            return false;
+        }
+        return true;
+    }
+
+    protected override async Task OnInitializedAsync(){
         await CargarRegistros();
     }
 
-    private async Task CargarRegistros()
-    {
+    private async Task CargarRegistros(){
         cargando = true;
-        registros = await Api.ListarAsync("objetivo_desarrollo_sostenible", limite);
+        buscarId = null;
+        var (ok, dato, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_ODS");
+        registros = ok ? dato : new();
+        if (!ok){
+            exito = false;
+            mensaje = msg;
+        }else if (registros.Count == 0){
+            mensaje = "No hay ODS registrados.";
+            exito = true;
+        }
         cargando = false;
     }
 
-    private void NuevoRegistro()
-    {
+    private void NuevoRegistro(){
         editando = false;
-        campoId = string.Empty;
-        campoNombre = string.Empty;
-        campoCategoria = string.Empty;
+        campoId = 0;
+        campoNombre = "";
+        campoCategoria = "";
         mostrarFormulario = true;
-        mensaje = string.Empty;
+        mensaje = "";
     }
 
-    private void EditarRegistro(Dictionary<string, object?> reg)
-    {
+    private void EditarRegistro(Dictionary<string, object?> reg){
         editando = true;
-        campoId = reg["id"]?.ToString() ?? "";
+        campoId = Convert.ToInt32(reg["id"]);
         campoNombre = reg["nombre"]?.ToString() ?? "";
         campoCategoria = reg["categoria"]?.ToString() ?? "";
         mostrarFormulario = true;
-        mensaje = string.Empty;
+        mensaje = "";
     }
 
-    private async Task GuardarRegistro()
-    {
-        var datos = new Dictionary<string, object?>
-        {
-            ["id"] = campoId,
-            ["nombre"] = campoNombre,
-            ["categoria"] = campoCategoria
+    private async Task GuardarRegistro(){
+        if (!ValidarFormulario()){
+            exito = false;
+            return;
+        }
+
+        var datos = new Dictionary<string, object?>{
+            ["p_id"]        = campoId,
+            ["p_nombre"]    = campoNombre,
+            ["p_categoria"] = campoCategoria
         };
 
-        if (editando)
-        {
-            datos.Remove("id");
-            var resultado = await Api.ActualizarAsync("objetivo_desarrollo_sostenible", "id", campoId, datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
-        else
-        {
-            var resultado = await Api.CrearAsync("objetivo_desarrollo_sostenible", datos);
-            exito = resultado.exito;
-            mensaje = resultado.mensaje;
-        }
-
-        if (exito)
-        {
+        string sp = editando ? "SP_ACTUALIZAR_ODS" : "SP_INGRESAR_ODS";
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(sp, datos);
+        exito = ok;
+        mensaje = ok
+            ? (editando ? "ODS actualizado exitosamente." : "ODS creado exitosamente.")
+            : $"Error: {msg}";
+        if (ok){
+            await CargarRegistros();
             mostrarFormulario = false;
-            await CargarRegistros();
         }
     }
 
-    private async Task EliminarRegistro(Dictionary<string, object?> reg)
-    {
-        string id = reg["id"]?.ToString() ?? "";
-        var resultado = await Api.EliminarAsync("objetivo_desarrollo_sostenible", "id", id);
-        exito = resultado.exito;
-        mensaje = resultado.mensaje;
+    private async Task EliminarRegistro(Dictionary<string, object?> reg){
+        int id = Convert.ToInt32(reg["id"]);
+        string nombre = reg["nombre"]?.ToString() ?? "";
 
-        if (exito)
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Confirma que desea eliminar el ODS '{nombre}'?"))
+            return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_ODS", new() { ["p_id"] = id });
+
+        exito = ok;
+        mensaje = ok ? "ODS eliminado exitosamente." : $"Error: {msg}";
+
+        if (ok)
             await CargarRegistros();
     }
 
-    private void Cancelar()
-    {
+    private void Cancelar(){
         mostrarFormulario = false;
-        mensaje = string.Empty;
+        mensaje = "";
+    }
+
+    private async Task Buscar(){
+        if (buscarId == null && string.IsNullOrWhiteSpace(buscarNombre) && string.IsNullOrWhiteSpace(buscarCategoria)){
+            mensaje = "Ingrese un ID, nombre o categoría para buscar.";
+            exito = false;
+            return;
+        }
+
+        try{
+            cargando = true;
+
+            var parametros = new Dictionary<string, object?>{
+                ["p_id"]        = buscarId,
+                ["p_nombre"]    = string.IsNullOrWhiteSpace(buscarNombre)    ? null : buscarNombre,
+                ["p_categoria"] = string.IsNullOrWhiteSpace(buscarCategoria) ? null : buscarCategoria
+            };
+
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_ODS_POR_ID_NOMBRE_CATEGORIA", parametros);
+
+            registros = ok ? datos : new();
+
+            if (!ok){
+                exito = false;
+                mensaje = $"Error: {msg}";
+            }else if (registros.Count == 0){
+                mensaje = "No se encontraron registros que coincidan con la búsqueda.";
+                exito = true;
+            }else{
+                mensaje = $"Se encontraron {registros.Count} coincidencias.";
+                exito = true;
+            }
+        }catch (Exception ex){
+            mensaje = $"Error al buscar: {ex.Message}";
+            exito = false;
+        }finally{
+            cargando = false;
+        }
+    }
+
+    private async Task LimpiarBusqueda(){
+        buscarId = null;
+        buscarNombre = "";
+        buscarCategoria = "";
+        mensaje = "";
+        await CargarRegistros();
     }
 }
