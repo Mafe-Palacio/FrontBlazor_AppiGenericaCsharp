@@ -16,7 +16,47 @@
             </NavLink>
         </div>        
 
-        @* ── Mis tablas (Mafe) ── *@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="gestion-participantes">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> PRUEBA
+            </NavLink>
+        </div>
+
+
+        @* Tablas de Mafe
+            - Grupo de Investigación, Semillero, Ac linea, Aa linea *@
+
+        @* Tablas de 
+            - Línea de Investigación, Área de Aplicación, Participa Grupo, Grupo Línea *@
+
+        @* Tablas de 
+            - ODS, Línea de Conocimiento, Participa Semillero, Semillero Línea, ODS Línea *@
+
+
+        @* ── Tablas sin FK ── *@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="linea-investigacion">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Linea de Investigación
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="area-conocimiento">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Area de Conocimiento
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="area-aplicacion">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Area de Aplicación
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="objetivo-desarrollo-sostenible">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ODS
+            </NavLink>
+        </div>
+
+
+        @* ── Tablas con FK ── *@
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="grupo-investigacion">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Grupo de Investigación
@@ -27,6 +67,30 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Semillero
             </NavLink>
         </div>
+
+
+        @* ── Relación con Grupo de investigación ── *@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="participa-grupo">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa Grupo
+            </NavLink>
+        </div>
+
+
+        @* ── Relación con Semillero ── *@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="participa-semillero">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa Semillero
+            </NavLink>
+        </div>
+
+
+        @* ── Relaciones con Líneas de Investigación ── *@
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="grupo-linea">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Grupo - Línea
+            </NavLink>
+        </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="ac-linea">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AC - Línea
@@ -35,46 +99,6 @@
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="aa-linea">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> AA - Línea
-            </NavLink>
-        </div>
-
-        @* () tablas *@
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="linea-investigacion">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Linea de Investigación
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="area-aplicacion">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Area de Aplicación
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="participa-grupo">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Participa en Grupo
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="grupo-linea">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Grupo - Línea de Investigación
-            </NavLink>
-        </div>
-
-        @* () tablas *@
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="area-conocimiento">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Area de Conocimiento
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="objetivo-desarrollo-sostenible">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> ODS
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="participa-semillero">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Particia Semillero
             </NavLink>
         </div>
         <div class="nav-item px-3">
