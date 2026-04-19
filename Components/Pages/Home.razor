@@ -1,88 +1,191 @@
 @page "/"
 @inject FrontBlazor_AppiGenericaCsharp.Services.ApiService Api
 
-<PageTitle>CRUD Facturas</PageTitle>
+<PageTitle>Inicio — BD Investigación</PageTitle>
 
-<div class="container mt-4">
-    <h1>CRUD - Base de Datos Investigación</h1>
-    <p class="lead">
-        Frontend Blazor que consume la API generica
-        <strong>ApiGenericaCsharp</strong> para gestionar tablas
-        de una base de datos.
+<div class="container mt-4" style="max-width: 700px;">
+
+    <h2 style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">Base de Datos de Investigación</h2>
+    <p style="color: #64748b; font-size: 0.92rem; margin-bottom: 2rem;">
+        Frontend Blazor conectado a <strong>ApiGenericaCsharp</strong>.
+        Usa el menú lateral para navegar entre las tablas.
     </p>
 
-    <div class="alert alert-info">
-        <strong>Tablas disponibles:</strong> area_conocimiento, area_aplicacion, linea_investigacion, objetivo_desarrollo_sostenible.
-        <br />
-        Use el menu lateral para navegar a cada tabla.
+    @* ── Tablas sin FK ── *@
+    <div style="margin-bottom: 1.5rem;">
+        <p class="seccion-label">Tablas sin FK</p>
+        <ul class="tabla-lista">
+            <li>Línea de Investigación</li>
+            <li>Área de Conocimiento</li>
+            <li>Área de Aplicación</li>
+            <li>Objetivo de Desarrollo Sostenible (ODS)</li>
+        </ul>
     </div>
 
-    @* ───────── INFO DE CONEXION A LA BD (discreta) ───────── *@
-    @if (diagnostico != null)
-    {
-        <div class="card mt-4 border-secondary">
-            <div class="card-header bg-secondary bg-opacity-10 text-muted py-2">
-                <small><strong>Conexion activa</strong></small>
-            </div>
-            <div class="card-body py-2">
-                <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
-                    <tbody>
-                        @if (diagnostico.ContainsKey("proveedor"))
-                        {
-                            <tr>
-                                <td class="text-muted" style="width:160px">Proveedor</td>
-                                <td><strong>@diagnostico["proveedor"]</strong></td>
-                            </tr>
-                        }
-                        @if (diagnostico.ContainsKey("baseDatos"))
-                        {
-                            <tr>
-                                <td class="text-muted">Base de datos</td>
-                                <td><strong>@diagnostico["baseDatos"]</strong></td>
-                            </tr>
-                        }
-                        @if (diagnostico.ContainsKey("version"))
-                        {
-                            <tr>
-                                <td class="text-muted">Version</td>
-                                <td><small>@(diagnostico["version"].Length > 80 ? diagnostico["version"][..80] + "..." : diagnostico["version"])</small></td>
-                            </tr>
-                        }
-                        @if (diagnostico.ContainsKey("direccionIP"))
-                        {
-                            <tr>
-                                <td class="text-muted">Servidor</td>
-                                <td>
-                                    @diagnostico["direccionIP"]@if (diagnostico.ContainsKey("puerto")){<text>:@diagnostico["puerto"]</text>}
-                                </td>
-                            </tr>
-                        }
-                        @if (diagnostico.ContainsKey("usuarioConectado"))
-                        {
-                            <tr>
-                                <td class="text-muted">Usuario</td>
-                                <td>@diagnostico["usuarioConectado"]</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+    @* ── Tablas con FK ── *@
+    <div style="margin-bottom: 1.5rem;">
+        <p class="seccion-label">Tablas con FK</p>
+        <ul class="tabla-lista">
+            <li>Grupo de Investigación</li>
+            <li>Semillero</li>
+        </ul>
+    </div>
+
+    @* ── Relación con Grupo de investigación ── *@
+    <div style="margin-bottom: 2rem;">
+        <p class="seccion-label">Relación con Grupo de investigación</p>
+        <ul class="tabla-lista">
+            <li>Participa Grupo <br>
+                Docente ↔ Grupo de Investigación</li>
+        </ul>
+    </div>
+
+    @* ── Relación con Semillero ── *@
+    <div style="margin-bottom: 2rem;">
+        <p class="seccion-label">Relación con Semillero</p>
+        <ul class="tabla-lista">
+            <li>Participa Semillero <br>
+                Docente ↔ Semillero</li>
+        </ul>
+    </div>
+
+    @* ── Relaciones con Líneas de Investigación ── *@
+    <div style="margin-bottom: 2rem;">
+        <p class="seccion-label">Relaciones con líneas de investigación</p>
+        <ul class="tabla-lista">
+            <li>Grupo Línea<br>
+                Grupo ↔ Línea de Investigación</li>
+            <li>AC Línea<br>
+                Área de Conocimiento ↔ Línea de Investigación</li>
+            <li>AA Línea<br>
+                Área de Aplicación ↔ Línea de Investigación</li>
+            <li>Semillero Línea<br>
+                Semillero ↔ Línea de Investigación</li>
+            <li>ODS Línea<br>
+                ODS ↔ Línea de Investigación</li>
+        </ul>
+    </div>
+
+    @* ── Conexión ── *@
+    <br>
+    <p class="seccion-label">Conexión con Base de Datos</p>
+    @if (diagnostico != null){
+        <div class="db-info">
+            <table class="tabla-lista" style="font-size: 0.78rem;">
+                <tbody>
+                    <tr>
+                        <td style="width: 130px; vertical-align: middle; font-size: 0.85rem; font-weight: 700; padding-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="db-dot"></span> 
+                                <span>Conexión</span>
+                            </div>
+                        </td>
+                        <td style="padding-bottom: 10px;">
+                            <strong style="color: #22c55e; font-size: 0.85rem;">Activa</strong>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>Base de Datos</td>
+                        <td><strong style="color: #334155;">@diagnostico.GetValueOrDefault("baseDatos", "—")</strong></td>
+                    </tr>
+
+                    <tr>
+                        <td>Proveedor</td>
+                        <td>@diagnostico.GetValueOrDefault("proveedor", "—")</td>
+                    </tr>
+
+                    @if (diagnostico.ContainsKey("version")){
+                        <tr>
+                            <td>Versión</td>
+                            <td>@(diagnostico["version"].Length > 60 ? diagnostico["version"][..60] + "..." : diagnostico["version"])</td>
+                        </tr>
+                    }
+
+                    @if (diagnostico.ContainsKey("direccionIP")){
+                        <tr>
+                            <td>Servidor</td>
+                            <td>
+                                @diagnostico["direccionIP"]@(diagnostico.ContainsKey("puerto") ? ":" + diagnostico["puerto"] : "")
+                            </td>
+                        </tr>
+                    }
+
+                    @if (diagnostico.ContainsKey("usuarioConectado")){
+                        <tr>
+                            <td>Usuario</td>
+                            <td>@diagnostico["usuarioConectado"]</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-    }
-    else if (cargado)
-    {
-        <div class="mt-4">
-            <small class="text-muted">No se pudo obtener informacion de conexion de la API.</small>
+        <br><br>
+
+    }else if (cargado){
+        <div class="db-info">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="db-dot" style="background: #ef4444;"></span> 
+                <span>Conexión</span>
+            </div>
+            <strong style="color: #ef4444; font-size: 0.85rem;">No se pudo establecer conexión con la base de datos.</strong>
         </div>
+        <br><br>
     }
+
 </div>
+
+<style>
+    .seccion-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-bottom: 8px;
+    }
+    .tabla-lista {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .tabla-lista li {
+        font-size: 0.9rem;
+        color: #334155;
+        padding: 7px 12px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+    .db-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+    .db-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #22c55e;
+        flex-shrink: 0;
+    }
+</style>
+
+
+
+
 
 @code {
     private Dictionary<string, string>? diagnostico;
     private bool cargado;
 
-    protected override async Task OnInitializedAsync()
-    {
+    protected override async Task OnInitializedAsync(){
         diagnostico = await Api.ObtenerDiagnosticoAsync();
         cargado = true;
     }
