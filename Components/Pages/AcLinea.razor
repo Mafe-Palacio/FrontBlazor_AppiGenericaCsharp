@@ -6,102 +6,138 @@
 
 <PageTitle>AC - Línea</PageTitle>
 
-<div class="container mt-4">
-    <h3>Área de Conocimiento por Línea de Investigación</h3>
+<div class="crud-wrapper">
 
-    @* ───────── ALERTA ───────── *@
+    @* ───── HEADER ───── *@
+    <div class="crud-header">
+        <h2 class="crud-title">
+            <i class="bi bi-window-stack"></i>
+            Área de Conocimiento por Línea de Investigación
+        </h2>
+        @if (!mostrarFormulario){
+            <button class="btn-add" @onclick="NuevoRegistro">
+                <i class="bi bi-plus-lg"></i> Nueva Relación
+            </button>
+        }
+    </div>
+
+    @* ───── ALERTA ───── *@
     @if (!string.IsNullOrEmpty(mensaje)){
-        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+        var iconoAlert = exito ? "bi-check-circle" : "bi-exclamation-circle";
+        var claseAlert = exito ? "alert-ok" : "alert-err";
+        <div class="alert-custom @claseAlert">
+            <i class="bi @iconoAlert"></i>
             @mensaje
-            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+            <button class="alert-close" @onclick="() => mensaje = string.Empty">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
     }
 
-    @* -- LISTAR -- *@
+    @* ───── LISTA ───── *@
     @if (!mostrarFormulario){
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
-
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <input class="form-control" placeholder="Buscar por ID - Linea Investigación" @bind="buscarId_linea" />
+        <div class="search-bar">
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
+                <input type="number" class="search-input" placeholder="ID - Línea de Investigación" @bind="buscarId_linea" />
             </div>
-            <div class="col-md-4">
-                <input class="form-control" type="number" placeholder="Buscar por ID - Area Conocimiento" @bind="buscarId_area" />
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
+                <input type="number" class="search-input" placeholder="ID - Área de Conocimiento" @bind="buscarId_area" />
             </div>
-            <div class="col-md-4">
-                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
-                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
-            </div>
+            <button class="btn-search" @onclick="Buscar">Buscar</button>
+            <button class="btn-clear" @onclick="LimpiarBusqueda">
+                <i class="bi bi-x-circle"></i> Limpiar
+            </button>
         </div>
 
         @if (cargando){
-            <div class="d-flex justify-content-center my-4">
-                <div class="spinner-border text-primary"></div>
+            <div class="loading-wrap">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
             </div>
         }else if (registros.Any()){
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width:100px"> ID - Línea de investigación</th>
-                        <th>Nombre - Línea de investigación</th>
-                        <th style="width:100px"> ID - Área de conocimiento</th>
-                        <th>Nombre - Área de conocimiento</th>
-                        <th style="width:130px" class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in registros)
-                    {
+            <div class="table-wrap">
+                <table class="crud-table">
+                    <thead>
                         <tr>
-                            <td>@r["linea_investigacion"]</td>
-                            <td>@r["nombre_linea"]</td>
-                            <td>@r["area_conocimiento"]</td>
-                            <td>@r["nombre_area"]</td>
-                            <td>
-                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRelacion(r)">Eliminar</button>
-                            </td>
+                            <th class="col-id">ID Línea</th>
+                            <th>Nombre - Línea de Investigación</th>
+                            <th class="col-id">ID AC</th>
+                            <th>Nombre - Área de Conocimiento</th>
+                            <th class="col-actions">Acciones</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else{
-            <div class="alert alert-warning">No hay relaciones activas.</div>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in registros){
+                            <tr>
+                                <td class="col-id"><span class="id-badge">@r["linea_investigacion"]</span></td>
+                                <td class="td-nombre">@r["nombre_linea"]</td>
+                                <td class="col-id"><span class="id-badge">@r["area_conocimiento"]</span></td>
+                                <td class="td-desc">@r["nombre_area"]</td>
+                                <td class="col-actions">
+                                    <div class="action-group">
+                                        <button class="btn-action btn-delete" title="Eliminar" @onclick="() => EliminarRelacion(r)">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }else{
+            <div class="empty-state">
+                <i class="bi bi-inbox empty-icon"></i>
+                <p>No hay relaciones activas.</p>
+            </div>
         }
     }
 
-    @* ───────── FORMULARIO ───────── *@
+    @* ───── FORMULARIO ───── *@
     @if (mostrarFormulario){
-        <div class="card mb-3">
-            <div class="card-header">Nueva Relación AC - Línea</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi bi-plus-square"></i>
+                Nueva Relación AC — Línea
+            </div>
+            <div class="form-card-body">
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Línea de Investigación *</label>
-                        <select class="form-select" @bind="campoIdLinea">
-                            <option value="" disabled selected>Seleccione una linea de investigación</option>
+                        <select class="form-input" @bind="campoIdLinea">
+                            <option value="0" disabled>Seleccione una línea de investigación</option>
                             @foreach (var l in lineas){
                                 <option value="@l["id"]">@l["nombre"] (@l["id"])</option>
                             }
                         </select>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Área de Conocimiento *</label>
-                        <select class="form-select" @bind="campoIdArea">
-                            <option value="" disabled selected>Seleccione una área de conocimiento</option>
+                        <select class="form-input" @bind="campoIdArea">
+                            <option value="0" disabled>Seleccione un área de conocimiento</option>
                             @foreach (var a in areas){
                                 <option value="@a["id"]">@a["disciplina"] (@a["id"])</option>
                             }
                         </select>
                     </div>
-
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRelacion" disabled="@validacionIncompleta">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-                <small class="text-muted d-block mt-2">* Campos obligatorios (clave primaria compuesta)</small>
+                <small style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:1rem;">
+                    * Campos obligatorios (clave primaria compuesta)
+                </small>
+                <div class="form-actions">
+                    <button class="btn-save" @onclick="GuardarRelacion" disabled="@validacionIncompleta">
+                        <i class="bi bi-check-lg"></i> Guardar
+                    </button>
+                    <button class="btn-cancel" @onclick="Cancelar">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                </div>
             </div>
         </div>
     }
+
 </div>
 
 @code {
@@ -122,8 +158,7 @@
     private bool validacionIncompleta =>
         campoIdLinea == 0 || campoIdArea == 0;
 
-    protected override async Task OnInitializedAsync()
-    {
+    protected override async Task OnInitializedAsync(){
         await CargarRegistros();
         await CargarLineaInvestigacion();
         await CargarAreasConocimiento();
@@ -138,17 +173,13 @@
         var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_AREAS_CONOCIMIENTO");
         areas = ok ? datos : new();
     }
+
     private async Task CargarRegistros(){
         cargando = true;
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_AC_LINEA");
         registros = ok ? datos : new();
-        if (!ok){ 
-            exito = false; 
-            mensaje = msg; 
-        }else if (registros.Count == 0){
-            mensaje = "No hay relaciones registradas."; 
-            exito = true;
-        }
+        if (!ok){ exito = false; mensaje = msg; }
+        else if (registros.Count == 0){ mensaje = "No hay relaciones registradas."; exito = false; }
         cargando = false;
     }
 
@@ -160,11 +191,7 @@
     }
 
     private async Task GuardarRelacion(){
-        if (validacionIncompleta){
-            exito = false;
-            mensaje = "Por favor, complete todos los campos obligatorios.";
-            return;
-        }
+        if (validacionIncompleta){ exito = false; mensaje = "Por favor, complete todos los campos obligatorios."; return; }
 
         var parametros = new Dictionary<string, object?>{
             ["p_linea_investigacion"] = campoIdLinea,
@@ -174,18 +201,14 @@
         var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_AC_LINEA", parametros);
         exito   = ok;
         mensaje = ok ? "Relación creada correctamente." : $"Error al guardar: {msg}";
-        
-        if (ok){
-            mostrarFormulario = false;
-            await CargarRegistros();
-        }
+        if (ok){ mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRelacion(Dictionary<string, object?> r){
         int lineaId = Convert.ToInt32(r["linea_investigacion"]);
         int areaId  = Convert.ToInt32(r["area_conocimiento"]);
-        
-        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la relación entre la linea de investigación'{r["nombre_linea"]}' y el área de conocimiento '{r["nombre_area"]}'?"))
+
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar la relación entre la línea '{r["nombre_linea"]}' y el área '{r["nombre_area"]}'?"))
             return;
 
         var parametros = new Dictionary<string, object?>{
@@ -194,19 +217,12 @@
         };
 
         var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_AC_LINEA", parametros);
-        
         exito   = ok;
         mensaje = ok ? "Relación eliminada correctamente." : $"Error al eliminar: {msg}";
-        
-        if (ok) 
-            await CargarRegistros();
+        if (ok) await CargarRegistros();
     }
 
-    private void Cancelar()
-    {
-        mostrarFormulario = false;
-        mensaje = "";
-    }
+    private void Cancelar(){ mostrarFormulario = false; mensaje = ""; }
 
     private async Task Buscar(){
         if (buscarId_linea == 0 && buscarId_area == 0){
@@ -214,35 +230,19 @@
             exito = false;
             return;
         }
-
         try{
             cargando = true;
-
             var parametros = new Dictionary<string, object?>{
                 ["p_linea_investigacion"] = buscarId_linea == 0 ? null : buscarId_linea,
                 ["p_area_conocimiento"]   = buscarId_area == 0 ? null : buscarId_area
             };
-
             var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_AC_LINEA_AREA", parametros);
-            
             registros = ok ? datos : new();
-            
-            if (!ok){ 
-                exito = false; 
-                mensaje = msg; 
-            }else if (registros.Count == 0){
-                mensaje = "No se encontraron coincidencias.";
-                exito = true;
-            }else{
-                mensaje = $"Se encontraron {registros.Count} coincidencias.";
-                exito = true;
-            }
-        }catch (Exception ex){
-            exito = false; 
-            mensaje = $"Error al buscar: {ex.Message}";
-        }finally{
-            cargando = false;
-        }
+            if (!ok){ exito = false; mensaje = msg; }
+            else if (registros.Count == 0){ exito = false; mensaje = "No se encontraron coincidencias."; }
+            else { exito = true; mensaje = $"Se encontraron {registros.Count} coincidencias."; }
+        }catch (Exception ex){ exito = false; mensaje = $"Error al buscar: {ex.Message}"; }
+        finally{ cargando = false; }
     }
 
     private async Task LimpiarBusqueda(){
