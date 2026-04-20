@@ -238,7 +238,7 @@
 .id-badge {
     display: inline-block;
     background: var(--green-light);
-    color: var(--green-deeper);
+    color: #000000;
     border-radius: 6px;
     padding: 2px 8px;
     font-size: 0.78rem;
