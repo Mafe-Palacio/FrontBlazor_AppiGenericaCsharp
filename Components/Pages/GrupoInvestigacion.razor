@@ -6,102 +6,149 @@
 
 <PageTitle>Grupos de Investigación</PageTitle>
 
-<div class="container mt-4">
-    <h3>Grupos de Investigación</h3>
+<div class="crud-wrapper">
+
+    @* ───────── HEADER ───────── *@
+    <div class="crud-header">
+        <h2 class="crud-title">
+            <i class="bi bi-building"></i>
+            Grupos de Investigación
+        </h2>
+        @if (!mostrarFormulario)
+        {
+            <button class="btn-add" @onclick="NuevoRegistro">
+                <i class="bi bi-plus-lg"></i> Nuevo Grupo
+            </button>
+        }
+    </div>
 
     @* ───────── ALERTA ───────── *@
-    @if (!string.IsNullOrEmpty(mensaje)){
-        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert-custom @(exito ? "alert-ok" : "alert-err")">
+            <i class="bi @(exito ? "bi-check-circle" : "bi-exclamation-circle")"></i>
             @mensaje
-            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+            <button class="alert-close" @onclick="() => mensaje = string.Empty">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
     }
 
-    @* -- LISTAR -- *@
-    @if (!mostrarFormulario){
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Grupo</button>
-
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <input class="form-control" type="number" placeholder="Buscar por ID" @bind="buscarId" />
+    @* ───────── LISTA ───────── *@
+    @if (!mostrarFormulario)
+    {
+        <div class="search-bar">
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
+                <input type="number" class="search-input" placeholder="Buscar por ID" @bind="buscarId" />
             </div>
-            <div class="col-md-5">
-                <input class="form-control" placeholder="Buscar por nombre" @bind="buscarNombre" />
+            <div class="search-field search-field--wide">
+                <i class="bi bi-search search-icon"></i>
+                <input class="search-input" placeholder="Buscar por nombre" @bind="buscarNombre" />
             </div>
-            <div class="col-md-4">
-                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
-                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
-            </div>
+            <button class="btn-search" @onclick="Buscar">Buscar</button>
+            <button class="btn-clear" @onclick="LimpiarBusqueda">
+                <i class="bi bi-x-circle"></i> Limpiar
+            </button>
         </div>
 
-        @if (cargando){
-            <div class="d-flex justify-content-center my-4">
-                <div class="spinner-border text-primary"></div>
+        @if (cargando)
+        {
+            <div class="loading-wrap">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
             </div>
         }
-        else if (registros.Any()){
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Categoría</th>
-                        <th>Convocatoria</th>
-                        <th>Fundación</th>
-                        <th>Universidad</th>
-                        <th>Ámbito</th>
-                        <th>Interno</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in registros){
+        else if (registros.Any())
+        {
+            <div class="table-wrap">
+                <table class="crud-table">
+                    <thead>
                         <tr>
-                            <td>@r["id"]</td>
-                            <td>@r["nombre"]</td>
-                            <td>@r["categoria"]</td>
-                            <td>@r["convocatoria"]</td>
-                            <td>@r["fecha_fundacion"]</td>
-                            <td>@r["nombre_universidad"]</td>
-                            <td>@r["ambito"]</td>
-                            <td>
-                                @(Convert.ToBoolean(r["interno"]) ? "Sí" : "No")
-                            </td>
-                            <td>
-                                <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(r)">Editar</button>
-                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
-                            </td>
+                            <th class="col-id">ID</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Convocatoria</th>
+                            <th>Fundación</th>
+                            <th>Universidad</th>
+                            <th>Ámbito</th>
+                            <th>Interno</th>
+                            <th class="col-actions">Acciones</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in registros)
+                        {
+                            <tr>
+                                <td class="col-id">
+                                    <span class="id-badge">@r["id"]</span>
+                                </td>
+                                <td class="td-nombre">@r["nombre"]</td>
+                                <td class="td-desc">@r["categoria"]</td>
+                                <td class="td-desc">@r["convocatoria"]</td>
+                                <td class="td-desc">@r["fecha_fundacion"]</td>
+                                <td class="td-desc">@r["nombre_universidad"]</td>
+                                <td class="td-desc">@r["ambito"]</td>
+                                <td class="td-desc">
+                                    @(Convert.ToBoolean(r["interno"]) ? "Sí" : "No")
+                                </td>
+                                <td class="col-actions">
+                                    <div class="action-group">
+                                        <button class="btn-action btn-edit" title="Editar" @onclick="() => EditarRegistro(r)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn-action btn-delete" title="Eliminar" @onclick="() => EliminarRegistro(r)">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }
-        else{
-            <div class="alert alert-warning">No hay grupos de investigación activos.</div>
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-inbox empty-icon"></i>
+                <p>No hay grupos de investigación activos.</p>
+            </div>
         }
     }
 
-    @* -- FORMULARIO -- *@
-    @if (mostrarFormulario){
-        <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Grupo de Investigación" : "Nuevo Grupo de Investigación")</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 mb-3">
+    @* ───────── FORMULARIO ───────── *@
+    @if (mostrarFormulario)
+    {
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi @(editando ? "bi-pencil-square" : "bi-plus-square")"></i>
+                @(editando ? "Editar Grupo de Investigación" : "Nuevo Grupo de Investigación")
+            </div>
+            <div class="form-card-body">
+
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">ID</label>
-                        <input class="form-control" type="number" @bind="campoId" disabled="@editando" />
+                        <input class="form-input" type="number" @bind="campoId" disabled="@editando" />
                     </div>
-                    <div class="col-md-9 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Nombre</label>
-                        <input class="form-control" @bind="campoNombre" maxlength="60" />
+                        <input class="form-input" @bind="campoNombre" maxlength="60" placeholder="Nombre del grupo" />
                     </div>
-                    <div class="col-md-12 mb-3">
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr;">
+                    <div class="form-group">
                         <label class="form-label">URL GrupLAC</label>
-                        <input class="form-control" @bind="campoUrl" maxlength="128" />
+                        <input class="form-input" @bind="campoUrl" maxlength="128" placeholder="https://..." />
                     </div>
-                    <div class="col-md-4 mb-3">
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
                         <label class="form-label">Categoría</label>
-                        <select class="form-select" @bind="campoCategoria">
+                        <select class="form-input" @bind="campoCategoria">
                             <option>A1</option>
                             <option>A</option>
                             <option>A2</option>
@@ -109,42 +156,58 @@
                             <option>C</option>
                         </select>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Convocatoria</label>
-                        <input class="form-control" @bind="campoConvocatoria" maxlength="10" />
+                        <input class="form-input" @bind="campoConvocatoria" maxlength="10" placeholder="Ej: 2023" />
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Fecha Fundación</label>
-                        <input class="form-control" type="date" @bind="campoFecha" />
+                        <input class="form-input" type="date" @bind="campoFecha" />
                     </div>
-                    <div class="col-md-6 mb-3">
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
                         <label class="form-label">Universidad</label>
-                        <select class="form-select" @bind="campoUniversidad">
-                            @foreach (var u in universidades){
+                        <select class="form-input" @bind="campoUniversidad">
+                            @foreach (var u in universidades)
+                            {
                                 <option value="@u["id"]">@u["nombre"]</option>
                             }
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Ámbito</label>
-                        <select class="form-select" @bind="campoAmbito">
+                        <select class="form-input" @bind="campoAmbito">
                             <option>Nacional</option>
                             <option>Internacional</option>
                             <option>Regional</option>
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3 d-flex align-items-end">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" @bind="campoInterno" />
-                            <label class="form-check-label">¿Interno?</label>
+                    <div class="form-group" style="justify-content: flex-end; padding-bottom: 4px;">
+                        <label class="form-label">¿Interno?</label>
+                        <div style="display:flex; align-items:center; gap:8px; padding-top:6px;">
+                            <input type="checkbox" @bind="campoInterno"
+                                   style="width:18px;height:18px;accent-color:var(--green-dark);cursor:pointer;" />
+                            <span style="font-size:0.875rem;color:var(--text-muted);">
+                                @(campoInterno ? "Sí" : "No")
+                            </span>
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
+                <div class="form-actions">
+                    <button class="btn-save" @onclick="GuardarRegistro">
+                        <i class="bi bi-check-lg"></i> Guardar
+                    </button>
+                    <button class="btn-cancel" @onclick="Cancelar">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                </div>
             </div>
         </div>
     }
+
 </div>
 
 @code {
@@ -170,26 +233,10 @@
     private string buscarNombre = "";
 
     private bool ValidarFormulario(){
-        if (campoId <= 0){
-            mensaje = "El ID debe ser un número positivo.";
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(campoNombre)){
-            mensaje = "El nombre es obligatorio.";
-            return false;
-        }
-
-        if (campoFecha == default){
-            mensaje = "La fecha de fundación es obligatoria.";
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(campoAmbito)){
-            mensaje = "El ámbito es obligatorio.";
-            return false;
-        }
-
+        if (campoId <= 0){ mensaje = "El ID debe ser un número positivo."; return false; }
+        if (string.IsNullOrWhiteSpace(campoNombre)){ mensaje = "El nombre es obligatorio."; return false; }
+        if (campoFecha == default){ mensaje = "La fecha de fundación es obligatoria."; return false; }
+        if (string.IsNullOrWhiteSpace(campoAmbito)){ mensaje = "El ámbito es obligatorio."; return false; }
         return true;
     }
 
@@ -206,7 +253,6 @@
     private async Task CargarRegistros(){
         cargando = true;
         mensaje = "";
-
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_INVESTIGACION");
         registros = ok ? datos : new();
         if (!ok) { exito = false; mensaje = msg; }
@@ -215,17 +261,11 @@
 
     private void NuevoRegistro(){
         editando = false;
-        campoId = 0; 
-        campoNombre = ""; 
-        campoUrl = "";
-        campoCategoria = ""; 
-        campoConvocatoria = "";
+        campoId = 0; campoNombre = ""; campoUrl = "";
+        campoCategoria = ""; campoConvocatoria = "";
         campoFecha = DateTime.Today;
-        campoUniversidad = 0; 
-        campoInterno = true; 
-        campoAmbito = "Nacional";
-        mensaje = ""; 
-        mostrarFormulario = true;
+        campoUniversidad = 0; campoInterno = true; campoAmbito = "Nacional";
+        mensaje = ""; mostrarFormulario = true;
     }
 
     private void EditarRegistro(Dictionary<string, object?> r){
@@ -239,16 +279,11 @@
         campoInterno = r["interno"]?.ToString() == "1";
         campoAmbito = r["ambito"]?.ToString() ?? "Nacional";
         if (DateTime.TryParse(r["fecha_fundacion"]?.ToString(), out var f)) campoFecha = f;
-        mensaje = ""; 
-        mostrarFormulario = true;
+        mensaje = ""; mostrarFormulario = true;
     }
 
     private async Task GuardarRegistro(){
-        if (!ValidarFormulario()){
-            exito = false;
-            return;
-        }
-
+        if (!ValidarFormulario()){ exito = false; return; }
         var parametros = new Dictionary<string, object?>{
             ["p_id"] = campoId,
             ["p_nombre"] = campoNombre,
@@ -260,17 +295,11 @@
             ["p_interno"] = campoInterno,
             ["p_ambito"] = campoAmbito
         };
-
         string sp = editando ? "SP_ACTUALIZAR_GRUPO_INVESTIGACION" : "SP_INGRESAR_GRUPO_INVESTIGACION";
         var (ok, _, msg) = await Sp.EjecutarSpAsync(sp, parametros);
         exito   = ok;
-        mensaje = ok
-            ? (editando ? "Grupo actualizado." : "Grupo creado.")
-            : $"Error: {msg}";
-        if (ok){
-            mostrarFormulario = false;
-            await CargarRegistros(); 
-        }
+        mensaje = ok ? (editando ? "Grupo actualizado." : "Grupo creado.") : $"Error: {msg}";
+        if (ok){ mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> r){
@@ -278,62 +307,37 @@
         string nombre = r["nombre"]?.ToString() ?? "";
         if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar el grupo '{nombre}' y sus semilleros?"))
             return;
-
         var (ok, _, msg) = await Sp.EjecutarSpAsync(
             "SP_ELIMINAR_GRUPO_INVESTIGACION",
             new() { ["p_id"] = id });
-
         exito   = ok;
         mensaje = ok ? "Grupo eliminado." : $"Error: {msg}";
         if (ok) await CargarRegistros();
     }
 
-    private void Cancelar(){ 
-        mostrarFormulario = false; 
-        mensaje = ""; 
-    }
+    private void Cancelar(){ mostrarFormulario = false; mensaje = ""; }
 
     private async Task Buscar(){
         if (buscarId == null && string.IsNullOrWhiteSpace(buscarNombre)){
-            mensaje = "Ingrese un ID o nombre de búsqueda.";
-            exito = false;
-            return;
+            mensaje = "Ingrese un ID o nombre de búsqueda."; exito = false; return;
         }
-
         try{
             cargando = true;
-
             var parametros = new Dictionary<string, object?>{
                 ["p_id"] = buscarId,
                 ["p_nombre"] = string.IsNullOrWhiteSpace(buscarNombre) ? null : buscarNombre
             };
-
             var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_BUSCAR_GRUPO_POR_ID_NOMBRE", parametros);
-            
             registros = ok ? datos : new();
-
-            if (!ok){ 
-                exito = false;
-                mensaje = msg; 
-            }else if (registros.Count == 0){
-                mensaje = "No se encontraron coincidencias.";
-                exito = true;
-            }else{
-                mensaje = $"Se encontraron {registros.Count} coincidencias.";
-                exito = true;
-            }
-        }catch (Exception ex){
-            exito = false;
-            mensaje = $"Error al buscar: {ex.Message}";
-        }finally{
-            cargando = false;
-        }
+            if (!ok){ exito = false; mensaje = msg; }
+            else if (registros.Count == 0){ mensaje = "No se encontraron coincidencias."; exito = true; }
+            else { mensaje = $"Se encontraron {registros.Count} coincidencias."; exito = true; }
+        }catch (Exception ex){ exito = false; mensaje = $"Error al buscar: {ex.Message}"; }
+        finally{ cargando = false; }
     }
 
     private async Task LimpiarBusqueda(){
-        buscarId = null;
-        buscarNombre = "";
-        mensaje = "";
+        buscarId = null; buscarNombre = ""; mensaje = "";
         await CargarRegistros();
     }
 }
