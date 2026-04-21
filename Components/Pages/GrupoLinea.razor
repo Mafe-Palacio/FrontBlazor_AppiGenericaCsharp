@@ -12,7 +12,7 @@
     <div class="crud-header">
         <h2 class="crud-title">
             <i class="bi bi-window-stack"></i>
-            Relación Grupos - Líneas de Investigación
+            Grupos de investigación por Líneas de Investigación
         </h2>
         @if (!mostrarFormulario){
             <button class="btn-add" @onclick="NuevoRegistro">
@@ -35,6 +35,7 @@
     @* -- LISTAR -- *@
     @if (!mostrarFormulario){
 
+        @* Barra de búsqueda *@
         <div class="search-bar">
             <div class="search-field">
                 <i class="bi bi-hash search-icon"></i>
@@ -50,6 +51,7 @@
             </button>
         </div>
 
+        @* Tabla *@
         @if (cargando){
             <div class="loading-wrap">
                 <div class="spinner"></div>
