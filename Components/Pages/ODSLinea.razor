@@ -7,97 +7,139 @@
 <PageTitle>ODS - Línea de Investigación</PageTitle>
 
 <div class="container mt-4">
-    <h3>ODS por Línea de Investigación</h3>
+
+    @* ───── HEADER ───── *@
+    <div class="crud-header">
+        <h2 class="crud-title">
+            <i class="bi bi-journals"></i>
+            ODS por Línea de Investigación
+        </h2>
+        @if (!mostrarFormulario){
+            <button class="btn-add" @onclick="NuevoRegistro">
+                <i class="bi bi-plus-lg"></i> Nueva Relación
+            </button>
+        }
+    </div>
 
     @* ───────── ALERTA ───────── *@
     @if (!string.IsNullOrEmpty(mensaje)){
-        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+        <div class="alert-custom @(exito ? "alert-ok" : "alert-err")">
+            <i class="bi @(exito ? "bi-check-circle" : "bi-exclamation-circle")"></i>
             @mensaje
-            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+            <button class="alert-close" @onclick="() => mensaje = string.Empty">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
     }
 
     @* -- LISTAR -- *@
     @if (!mostrarFormulario){
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nueva Relación</button>
 
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <input class="form-control" type="number" placeholder="Buscar por ID - Línea Investigación" @bind="buscarId_linea" />
+        @* Barra de búsqueda *@
+        <div class="search-bar">
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
+                <input type="number" class="search-input" placeholder="Buscar por ID - Línea Investigación" @bind="buscarId_linea" />
             </div>
-            <div class="col-md-4">
-                <input class="form-control" type="number" placeholder="Buscar por ID - ODS" @bind="buscarId_ods" />
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
+                <input type="number" class="search-input" placeholder="Buscar por ID - ODS" @bind="buscarId_ods" />
             </div>
-            <div class="col-md-4">
-                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
-                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
-            </div>
+
+            <button class="btn-search" @onclick="Buscar">Buscar</button>
+            <button class="btn-clear" @onclick="LimpiarBusqueda">
+                <i class="bi bi-x-circle"></i> Limpiar
+            </button>
         </div>
 
+        @* Tabla *@
         @if (cargando){
-            <div class="d-flex justify-content-center my-4">
-                <div class="spinner-border text-primary"></div>
+            <div class="loading-wrap">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
             </div>
         }else if (registros.Any()){
-            <table class="table table-striped table-hover align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width:110px">ID - Línea de Investigación</th>
-                        <th>Nombre - Línea de Investigación</th>
-                        <th style="width:80px">ID - ODS</th>
-                        <th>Nombre - ODS</th>
-                        <th>Categoría</th>
-                        <th style="width:130px" class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in registros){
+            <div class="table-wrap">
+                <table class="crud-table">
+                    <thead>
                         <tr>
-                            <td class="text-center">@r["linea_investigacion"]</td>
-                            <td>@r["nombre_linea"]</td>
-                            <td class="text-center">@r["ods"]</td>
-                            <td>@r["nombre_ods"]</td>
-                            <td>@r["categoria"]</td>
-                            <td class="text-center">
-                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRelacion(r)">Eliminar</button>
-                            </td>
+                            <th class="col-id">ID - Línea de Investigación</th>
+                            <th>Nombre - Línea de Investigación</th>
+                            <th class="col-id">ID - ODS</th>
+                            <th>Nombre - ODS</th>
+                            <th>Categoría</th>
+                            <th class="col-actions">Acciones</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in registros){
+                            <tr>
+                                <td class="col-id">
+                                    <span class="id-badge">@r["linea_investigacion"]</span>
+                                </td>
+                                <td class="td-nombre">@r["nombre_linea"]</td>
+                                <td class="col-id">
+                                    <span class="id-badge">@r["ods"]</span>
+                                </td>
+                                <td class="td-nombre">@r["nombre_ods"]</td>
+                                <td class="td-nombre">@r["categoria"]</td>
+                                <td class="col-actions">
+                                    <div class="action-group">
+                                        <button class="btn-action btn-delete" title="Eliminar" @onclick="() => EliminarRelacion(r)">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }else{
-            <div class="alert alert-warning">No se encontraron registros en la tabla ods_linea.</div>
+            <div class="empty-state">
+                <i class="bi bi-inbox empty-icon"></i>
+                <p>No hay relaciones activas.</p>
+            </div>
         }
     }
 
     @* ───────── FORMULARIO ───────── *@
     @if (mostrarFormulario){
-        <div class="card mb-3">
-            <div class="card-header">Nueva Relación ODS - Línea</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
+        <div class="form-card">
+            <div class="form-card-header">
+                Nueva Relación ODS - Línea
+            </div>
+            <div class="form-card-body">
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Línea de Investigación *</label>
                         <select class="form-select" @bind="campoIdLinea">
-                            <option value="0" disabled selected>Seleccione una línea de investigación</option>
+                            <option value="" disabled selected>Seleccione una línea de investigación</option>
                             @foreach (var l in lineas){
                                 <option value="@l["id"]">@l["nombre"] (@l["id"])</option>
                             }
                         </select>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Objetivo de Desarrollo Sostenible *</label>
                         <select class="form-select" @bind="campoIdOds">
-                            <option value="0" disabled selected>Seleccione un ODS</option>
+                            <option value="" disabled selected>Seleccione un ODS</option>
                             @foreach (var o in objetivos){
                                 <option value="@o["id"]">@o["nombre"] (@o["id"])</option>
                             }
                         </select>
                     </div>
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRelacion" disabled="@validacionIncompleta">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-                <small class="text-muted d-block mt-2">* Campos obligatorios (clave primaria compuesta)</small>
+
+                <div class="form-actions">
+                    <button class="btn-save" @onclick="GuardarRelacion" disabled="@validacionIncompleta">
+                        <i class="bi bi-check-lg"></i> Guardar
+                    </button>
+                    <button class="btn-cancel" @onclick="Cancelar">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                    <small class="text-muted d-block mt-2">* Campos obligatorios (clave primaria compuesta)</small>
+                </div>
             </div>
         </div>
     }
@@ -227,7 +269,7 @@
                 mensaje = msg;
             }else if (registros.Count == 0){
                 mensaje = "No se encontraron coincidencias.";
-                exito = true;
+                exito = false;
             }else{
                 mensaje = $"Se encontraron {registros.Count} coincidencias.";
                 exito = true;
