@@ -6,100 +6,142 @@
 <PageTitle>Semilleros</PageTitle>
 
 <div class="container mt-4">
-    <h3>Semilleros</h3>
+
+    @* ───────── HEADER ───────── *@
+    <div class="crud-header">
+        <h2 class="crud-title">
+            <i class="bi bi-journal-text"></i>
+            Semilleros
+        </h2>
+        @if (!mostrarFormulario){
+            <button class="btn-add" @onclick="NuevoRegistro">
+                <i class="bi bi-plus-lg"></i> Nuevo Semillero
+            </button>
+        }
+    </div>
 
     @* ───────── ALERTA ───────── *@
-    @if (!string.IsNullOrEmpty(mensaje)){
-        <div class="alert @(exito ? "alert-success" : "alert-danger") alert-dismissible fade show">
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert-custom @(exito ? "alert-ok" : "alert-err")">
+            <i class="bi @(exito ? "bi-check-circle" : "bi-exclamation-circle")"></i>
             @mensaje
-            <button type="button" class="btn-close" @onclick="() => mensaje = string.Empty"></button>
+            <button class="alert-close" @onclick="() => mensaje = string.Empty">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
     }
 
-    @* -- LISTAR -- *@
+    @* ───────── LISTA ───────── *@
     @if (!mostrarFormulario){
-        <button class="btn btn-primary mb-3" @onclick="NuevoRegistro">Nuevo Semillero</button>
         
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <input class="form-control" type="number" placeholder="Buscar por ID" @bind="buscarId" />
+        @* Barra de búsqueda *@
+        <div class="search-bar">
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
+                <input class="form-input" type="number" placeholder="Buscar por ID" @bind="buscarId" />
             </div>
-            <div class="col-md-5">
-                <input class="form-control" placeholder="Buscar por nombre" @bind="buscarNombre" />
+            <div class="search-field search-field--wide">
+                <i class="bi bi-search search-icon"></i>
+                <input class="form-input" placeholder="Buscar por nombre" @bind="buscarNombre" />
             </div>
-            <div class="col-md-4">
-                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
-                <button class="btn btn-secondary" @onclick="LimpiarBusqueda">Limpiar</button>
-            </div>
+            <button class="btn-search" @onclick="Buscar">Buscar</button>
+            <button class="btn-clear" @onclick="LimpiarBusqueda">
+                <i class="bi bi-x-circle"></i> Limpiar
+            </button>
         </div>
 
+        @* Tabla *@
         @if (cargando){
-            <div class="d-flex justify-content-center my-4">
-                <div class="spinner-border text-primary"></div>
+            <div class="loading-wrap">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
             </div>
         }else if (registros.Any()){
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Fecha Fundación</th>
-                        <th>Grupo</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in registros)
-                    {
+            <div class="table-wrap">
+                <table class="crud-table">
+                    <thead>
                         <tr>
-                            <td>@r["id"]</td>
-                            <td>@r["nombre"]</td>
-                            <td>@r["fecha_fundacion"]</td>
-                            <td>@r["nombre_grupo"]</td>
-                            <td>
-                                <button class="btn btn-warning btn-sm me-1" @onclick="() => EditarRegistro(r)">Editar</button>
-                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarRegistro(r)">Eliminar</button>
-                            </td>
+                            <th class="col-id">ID</th>
+                            <th>Nombre</th>
+                            <th>Fecha Fundación</th>
+                            <th>Grupo</th>
+                            <th class="col-actions">Acciones</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in registros)
+                        {
+                            <tr>
+                                <td class="col-id">
+                                    <span class="id-badge">@r["id"]</span>
+                                </td>
+                                <td class="td-nombre">@r["nombre"]</td>
+                                <td class="td-desc">@r["fecha_fundacion"]</td>
+                                <td class="td-nombre">@r["nombre_grupo"]</td>
+                                <td class="col-actions">
+                                    <div class="action-group">
+                                        <button class="btn-action btn-edit" title="Editar" @onclick="() => EditarRegistro(r)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn-action btn-delete" title="Eliminar" @onclick="() => EliminarRegistro(r)">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         }else{
-            <div class="alert alert-warning">No hay semilleros activos.</div>
+            <div class="empty-state">
+                <i class="bi bi-inbox empty-icon"></i>
+                <p>No hay semilleros activos.</p>
+            </div>
         }
     }
 
-    @* -- FORMULARIO -- *@
+    @* ───────── FORMULARIO ───────── *@
     @if (mostrarFormulario){
-        <div class="card mb-3">
-            <div class="card-header">@(editando ? "Editar Semillero" : "Nuevo Semillero")</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 mb-3">
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi @(editando ? "bi-pencil-square" : "bi-plus-square")"></i>
+                @(editando ? "Editar Semillero" : "Nuevo Semillero")
+            </div>
+            <div class="form-card-body">
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">ID</label>
-                        <input class="form-control" type="number" @bind="campoId" disabled="@editando" />
+                        <input class="form-input" type="number" @bind="campoId" disabled="@editando" />
                     </div>
-                    <div class="col-md-9 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Nombre</label>
-                        <input class="form-control" @bind="campoNombre" maxlength="60" />
+                        <input class="form-input" @bind="campoNombre" maxlength="60" placeholder="Nombre del semillero" />
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Fecha Fundación</label>
-                        <input class="form-control" type="date" @bind="campoFecha" />
+                        <input class="form-input" type="date" @bind="campoFecha" />
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="form-group">
                         <label class="form-label">Grupo de Investigación</label>
-                        <select class="form-select" @bind="campoGrupo">
+                        <select class="form-input" @bind="campoGrupo">
                             <option value="0">-- Seleccione --</option>
-                            @foreach (var g in grupos)
-                            {
+                            @foreach (var g in grupos){
                                 <option value="@g["id"]">@g["nombre"]</option>
                             }
                         </select>
                     </div>
                 </div>
-                <button class="btn btn-success me-2" @onclick="GuardarRegistro">Guardar</button>
-                <button class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+
+                <div class="form-actions">
+                    <button class="btn-save" @onclick="GuardarRegistro">
+                        <i class="bi bi-check-lg"></i> Guardar
+                    </button>
+                    <button class="btn-cancel" @onclick="Cancelar">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                </div>
             </div>
         </div>
     }
@@ -142,8 +184,7 @@
         await CargarGrupos();
     }
 
-    private async Task CargarRegistros()
-    {
+    private async Task CargarRegistros(){
         cargando = true;
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
         registros = ok ? datos : new();
@@ -151,14 +192,12 @@
         cargando = false;
     }
 
-    private async Task CargarGrupos()
-    {
+    private async Task CargarGrupos(){
         var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_INVESTIGACION");
         grupos = ok ? datos : new();
     }
 
-    private async Task NuevoRegistro()
-    {
+    private async Task NuevoRegistro(){
         editando = false;
         campoId = 0; 
         campoNombre = "";
@@ -169,8 +208,7 @@
         mostrarFormulario = true;
     }
 
-    private async Task EditarRegistro(Dictionary<string, object?> r)
-    {
+    private async Task EditarRegistro(Dictionary<string, object?> r){
         editando    = true;
         campoId     = Convert.ToInt32(r["id"]);
         campoNombre = r["nombre"]?.ToString() ?? "";
@@ -181,15 +219,13 @@
         mostrarFormulario = true;
     }
 
-    private async Task GuardarRegistro()
-    {
+    private async Task GuardarRegistro(){
         if(!ValidarFormulario()){
             exito = false;
             return;
         }
 
-        var parametros = new Dictionary<string, object?>
-        {
+        var parametros = new Dictionary<string, object?>{
             ["p_id"]                  = campoId,
             ["p_nombre"]              = campoNombre,
             ["p_fecha_fundacion"]     = campoFecha.ToString("yyyy-MM-dd"),
@@ -208,8 +244,7 @@
         }
     }
 
-    private async Task EliminarRegistro(Dictionary<string, object?> r)
-    {
+    private async Task EliminarRegistro(Dictionary<string, object?> r){
         int id = Convert.ToInt32(r["id"]);
         string nombre = r["nombre"]?.ToString() ?? "";
         if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar el semillero '{nombre}'?"))
@@ -252,7 +287,7 @@
                 mensaje = msg; 
             }else if (registros.Count == 0){
                 mensaje = "No se encontraron coincidencias.";
-                exito = true;
+                exito = false;
             }else{
                 mensaje = $"Se encontraron {registros.Count} coincidencias.";
                 exito = true;
