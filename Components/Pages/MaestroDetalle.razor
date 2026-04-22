@@ -1,0 +1,549 @@
+@page "/grupos-semilleros"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+@inject IJSRuntime JS
+@using System.Text.Json
+
+<PageTitle>Grupos con Semilleros</PageTitle>
+
+<div class="crud-wrapper">
+
+    @* ───────── HEADER ───────── *@
+    <div class="crud-header">
+        <h2 class="crud-title">
+            <i class="bi bi-diagram-3"></i>
+            Grupos de Investigación con Semilleros
+        </h2>
+        @if (!mostrarFormulario){
+            <button class="btn-add" @onclick="NuevoRegistro">
+                <i class="bi bi-plus-lg"></i> Nuevo Grupo
+            </button>
+        }
+    </div>
+
+    @* ───────── ALERTA ───────── *@
+    @if (!string.IsNullOrEmpty(mensaje)){
+        <div class="alert-custom @(exito ? "alert-ok" : "alert-err")">
+            <i class="bi @(exito ? "bi-check-circle" : "bi-exclamation-circle")"></i>
+            @mensaje
+            <button class="alert-close" @onclick="() => mensaje = string.Empty">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    }
+
+    @* ───────── LISTA ───────── *@
+    @if (!mostrarFormulario){
+
+        <div class="search-bar">
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
+                <input type="number" class="search-input" placeholder="ID Grupo" @bind="buscarIdGrupo" />
+            </div>
+            <div class="search-field search-field--wide">
+                <i class="bi bi-search search-icon"></i>
+                <input class="search-input" placeholder="Nombre del grupo" @bind="buscarNombreGrupo" />
+            </div>
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
+                <input type="number" class="search-input" placeholder="ID Semillero" @bind="buscarIdSemillero" />
+            </div>
+            <div class="search-field search-field--wide">
+                <i class="bi bi-search search-icon"></i>
+                <input class="search-input" placeholder="Nombre del semillero" @bind="buscarNombreSemillero" />
+            </div>
+            <button class="btn-search" @onclick="Buscar">Buscar</button>
+            <button class="btn-clear" @onclick="LimpiarBusqueda">
+                <i class="bi bi-x-circle"></i> Limpiar
+            </button>
+        </div>
+
+        @if (cargando){
+            <div class="loading-wrap">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+            </div>
+        }else if (grupos.Any()){
+            @foreach (var g in grupos){
+                <div class="card mb-3 shadow-sm">
+                    @* Cabecera del grupo *@
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="id-badge me-2">@g["id"]</span>
+                            <strong>@g["nombre"]</strong>
+                            @if (!string.IsNullOrEmpty(g["categoria"]?.ToString())){
+                                <span class="badge bg-secondary ms-2">@g["categoria"]</span>
+                            }
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">
+                                Fundación: @g["fecha_fundacion"] &nbsp;|&nbsp; Ámbito: @g["ambito"]
+                                @if (!string.IsNullOrEmpty(g["nombre_universidad"]?.ToString())){
+                                    <span> &nbsp;|&nbsp; @g["nombre_universidad"]</span>
+                                }
+                            </span>
+                            <div class="action-group">
+                                <button class="btn-action btn-edit" title="Editar grupo"
+                                        @onclick="() => EditarRegistro(g)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn-action btn-delete" title="Eliminar grupo y semilleros"
+                                        @onclick="() => EliminarRegistro(g)">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Semilleros del grupo *@
+                    <div class="card-body p-2">
+                        @{
+                            var semillerosGrupo = semilleros
+                                .Where(s => s["grupo_investigacion"]?.ToString() == g["id"]?.ToString())
+                                .ToList();
+                        }
+                        @if (semillerosGrupo.Any()){
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th style="width:70px">ID</th>
+                                        <th>Nombre Semillero</th>
+                                        <th style="width:140px">Fecha Fundación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in semillerosGrupo){
+                                        <tr>
+                                            <td><span class="id-badge">@s["id"]</span></td>
+                                            <td>@s["nombre"]</td>
+                                            <td>@s["fecha_fundacion"]</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }else{
+                            <span class="text-muted small ms-2">Sin semilleros registrados.</span>
+                        }
+                    </div>
+                </div>
+            }
+        }else{
+            <div class="empty-state">
+                <i class="bi bi-inbox empty-icon"></i>
+                <p>No hay grupos de investigación activos.</p>
+            </div>
+        }
+    }
+
+    @* ───────── FORMULARIO ───────── *@
+    @if (mostrarFormulario){
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi @(editando ? "bi-pencil-square" : "bi-plus-square")"></i>
+                @(editando ? "Editar Grupo de Investigación" : "Nuevo Grupo de Investigación")
+            </div>
+            <div class="form-card-body">
+
+                @* ── SECCIÓN MAESTRO ── *@
+                <h6 class="text-primary border-bottom pb-1 mb-3">Datos del Grupo</h6>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">ID *</label>
+                        <input class="form-input" type="number" @bind="campoIdGrupo" disabled="@editando" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nombre *</label>
+                        <input class="form-input" @bind="campoNombreGrupo" maxlength="60" placeholder="Nombre del grupo" />
+                    </div>
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr;">
+                    <div class="form-group">
+                        <label class="form-label">URL GrupLAC</label>
+                        <input class="form-input" @bind="campoUrlGruplac" maxlength="128" placeholder="https://..." />
+                    </div>
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <select class="form-input" @bind="campoCategoria">
+                            <option value="">-- Seleccione --</option>
+                            <option>A1</option>
+                            <option>A</option>
+                            <option>A2</option>
+                            <option>B</option>
+                            <option>C</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Convocatoria</label>
+                        <input class="form-input" @bind="campoConvocatoria" maxlength="10" placeholder="Ej: 2023" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fecha Fundación *</label>
+                        <input class="form-input" type="date" @bind="campoFechaFund" />
+                    </div>
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label class="form-label">Universidad</label>
+                        <select class="form-input" @bind="campoUniversidad">
+                            <option value="0">-- Ninguna --</option>
+                            @foreach (var u in universidades){
+                                <option value="@u["id"]">@u["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ámbito *</label>
+                        <select class="form-input" @bind="campoAmbito">
+                            <option>Nacional</option>
+                            <option>Internacional</option>
+                            <option>Regional</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="justify-content:flex-end; padding-bottom:4px;">
+                        <label class="form-label">¿Interno?</label>
+                        <div style="display:flex; align-items:center; gap:8px; padding-top:6px;">
+                            <input type="checkbox" @bind="campoInterno"
+                                   style="width:18px;height:18px;accent-color:var(--green-dark);cursor:pointer;" />
+                            <span style="font-size:0.875rem;color:var(--text-muted);">
+                                @(campoInterno ? "Sí" : "No")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── SECCIÓN DETALLE: semilleros (solo al crear) ── *@
+                @if (!editando){
+                    <h6 class="text-primary border-bottom pb-1 mb-3 mt-3">
+                        Semilleros
+                        <button type="button" class="btn btn-sm btn-outline-primary ms-2"
+                                @onclick="AgregarSemillero">
+                            <i class="bi bi-plus"></i> Agregar Semillero
+                        </button>
+                    </h6>
+
+                    @if (!semillerosFormulario.Any()){
+                        <div class="alert alert-info py-2 small">
+                            Sin semilleros. Puede guardar solo el grupo o agregar los que necesite.
+                        </div>
+                    }else{
+                        <div class="table-wrap">
+                            <table class="crud-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:90px">ID *</th>
+                                        <th>Nombre *</th>
+                                        <th style="width:170px">Fecha Fundación *</th>
+                                        <th style="width:50px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < semillerosFormulario.Count; i++){
+                                        var idx = i;
+                                        <tr>
+                                            <td>
+                                                <input class="form-control form-control-sm" type="number"
+                                                       value="@semillerosFormulario[idx].Id"
+                                                       @onchange="e => semillerosFormulario[idx].Id = int.TryParse(e.Value?.ToString(), out var v) ? v : 0" />
+                                            </td>
+                                            <td>
+                                                <input class="form-control form-control-sm" maxlength="60"
+                                                       value="@semillerosFormulario[idx].Nombre"
+                                                       @onchange="e => semillerosFormulario[idx].Nombre = e.Value?.ToString() ?? string.Empty" />
+                                            </td>
+                                            <td>
+                                                <input class="form-control form-control-sm" type="date"
+                                                       value="@semillerosFormulario[idx].FechaFundacion.ToString("yyyy-MM-dd")"
+                                                       @onchange="e => { if (DateTime.TryParse(e.Value?.ToString(), out var d)) semillerosFormulario[idx].FechaFundacion = d; }" />
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn-action btn-delete"
+                                                        @onclick="() => QuitarSemillero(idx)">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                }
+
+                <div class="form-actions">
+                    <button class="btn-save" @onclick="GuardarRegistro">
+                        <i class="bi bi-check-lg"></i> Guardar
+                    </button>
+                    <button class="btn-cancel" @onclick="Cancelar">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                    <small class="text-muted ms-3">* Campos obligatorios</small>
+                </div>
+
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    // ── listas ──
+    private List<Dictionary<string, object?>> grupos        = new();
+    private List<Dictionary<string, object?>> semilleros    = new();
+    private List<Dictionary<string, object?>> universidades = new();
+    private List<SemilleroItem> semillerosFormulario        = new();
+
+    // ── estado ──
+    private bool   cargando          = true;
+    private bool   mostrarFormulario = false;
+    private bool   editando          = false;
+    private string mensaje           = string.Empty;
+    private bool   exito             = false;
+
+    // ── campos maestro ──
+    private int      campoIdGrupo      = 0;
+    private string   campoNombreGrupo  = "";
+    private string   campoUrlGruplac   = "";
+    private string   campoCategoria    = "";
+    private string   campoConvocatoria = "";
+    private DateTime campoFechaFund    = DateTime.Today;
+    private int      campoUniversidad  = 0;
+    private bool     campoInterno      = true;
+    private string   campoAmbito       = "Nacional";
+
+    // ── búsqueda ──
+    private int?   buscarIdGrupo        = null;
+    private string buscarNombreGrupo    = "";
+    private int?   buscarIdSemillero    = null;
+    private string buscarNombreSemillero = "";
+
+    // ── modelo fila semillero ──
+    private class SemilleroItem {
+        public int      Id             { get; set; } = 0;
+        public string   Nombre         { get; set; } = "";
+        public DateTime FechaFundacion { get; set; } = DateTime.Today;
+    }
+
+    protected override async Task OnInitializedAsync(){
+        await CargarUniversidades();
+        await CargarRegistros();
+    }
+
+    private async Task CargarUniversidades(){
+        var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_UNIVERSIDADES");
+        universidades = ok ? datos : new();
+    }
+
+    private async Task CargarRegistros(){
+        cargando = true;
+
+        var (okG, datosG, msgG) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_CON_SEMILLEROS");
+        grupos = okG ? datosG : new();
+
+        var (okS, datosS, _) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
+        semilleros = okS ? datosS : new();
+
+        if (!okG){ exito = false; mensaje = msgG; }
+        cargando = false;
+    }
+
+    private void NuevoRegistro(){
+        editando          = false;
+        campoIdGrupo      = 0;
+        campoNombreGrupo  = "";
+        campoUrlGruplac   = "";
+        campoCategoria    = "";
+        campoConvocatoria = "";
+        campoFechaFund    = DateTime.Today;
+        campoUniversidad  = 0;
+        campoInterno      = true;
+        campoAmbito       = "Nacional";
+        semillerosFormulario = new();
+        mostrarFormulario = true;
+        mensaje = "";
+    }
+
+    private void EditarRegistro(Dictionary<string, object?> g){
+        editando          = true;
+        campoIdGrupo      = Convert.ToInt32(g["id"]);
+        campoNombreGrupo  = g["nombre"]?.ToString() ?? "";
+        campoUrlGruplac   = g["url_gruplac"]?.ToString() ?? "";
+        campoCategoria    = g["categoria"]?.ToString() ?? "";
+        campoConvocatoria = g["convocatoria"]?.ToString() ?? "";
+        campoUniversidad  = g["universidad"] != null ? Convert.ToInt32(g["universidad"]) : 0;
+        campoInterno      = g["interno"]?.ToString() == "1" || g["interno"]?.ToString() == "True";
+        campoAmbito       = g["ambito"]?.ToString() ?? "Nacional";
+        if (DateTime.TryParse(g["fecha_fundacion"]?.ToString(), out var f)) campoFechaFund = f;
+        semillerosFormulario = new();
+        mostrarFormulario = true;
+        mensaje = "";
+    }
+
+    private void AgregarSemillero() =>
+        semillerosFormulario.Add(new SemilleroItem());
+
+    private void QuitarSemillero(int idx) =>
+        semillerosFormulario.RemoveAt(idx);
+
+    private bool ValidarFormulario(){
+        if (campoIdGrupo <= 0){
+            mensaje = "El ID del grupo debe ser un número positivo."; return false;
+        }
+        if (string.IsNullOrWhiteSpace(campoNombreGrupo)){
+            mensaje = "El nombre del grupo es obligatorio."; return false;
+        }
+        if (campoFechaFund == default){
+            mensaje = "La fecha de fundación es obligatoria."; return false;
+        }
+        if (string.IsNullOrWhiteSpace(campoAmbito)){
+            mensaje = "El ámbito es obligatorio."; return false;
+        }
+        for (int i = 0; i < semillerosFormulario.Count; i++){
+            var s = semillerosFormulario[i];
+            if (s.Id <= 0){
+                mensaje = $"El ID del semillero #{i + 1} debe ser mayor a 0."; return false;
+            }
+            if (string.IsNullOrWhiteSpace(s.Nombre)){
+                mensaje = $"El nombre del semillero #{i + 1} es obligatorio."; return false;
+            }
+        }
+        var ids = semillerosFormulario.Select(s => s.Id).ToList();
+        if (ids.Count != ids.Distinct().Count()){
+            mensaje = "Hay semilleros con IDs duplicados en el formulario."; return false;
+        }
+        return true;
+    }
+
+    private async Task GuardarRegistro(){
+        if (!ValidarFormulario()){ exito = false; return; }
+
+        bool ok; string msg;
+
+        if (editando){
+            // Solo actualiza datos del grupo
+            var parametros = new Dictionary<string, object?>{
+                ["p_id_grupo"]     = campoIdGrupo,
+                ["p_nombre_grupo"] = campoNombreGrupo,
+                ["p_url_gruplac"]  = string.IsNullOrWhiteSpace(campoUrlGruplac)   ? null : campoUrlGruplac,
+                ["p_categoria"]    = string.IsNullOrWhiteSpace(campoCategoria)    ? null : campoCategoria,
+                ["p_convocatoria"] = string.IsNullOrWhiteSpace(campoConvocatoria) ? null : campoConvocatoria,
+                ["p_fecha_fund"]   = campoFechaFund.ToString("yyyy-MM-dd"),
+                ["p_universidad"]  = campoUniversidad == 0 ? null : (object?)campoUniversidad,
+                ["p_interno"]      = campoInterno,
+                ["p_ambito"]       = campoAmbito
+            };
+            (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ACTUALIZAR_GRUPO_CON_SEMILLEROS", parametros);
+            mensaje = ok ? "Grupo actualizado correctamente." : $"Error: {msg}";
+        }else{
+            // Crea grupo + semilleros
+            var semillerosJson = semillerosFormulario.Any()
+                ? JsonSerializer.Serialize(semillerosFormulario.Select(s => new {
+                    id              = s.Id,
+                    nombre          = s.Nombre,
+                    fecha_fundacion = s.FechaFundacion.ToString("yyyy-MM-dd")
+                  }))
+                : "[]";
+
+            var parametros = new Dictionary<string, object?>{
+                ["p_id_grupo"]     = campoIdGrupo,
+                ["p_nombre_grupo"] = campoNombreGrupo,
+                ["p_url_gruplac"]  = string.IsNullOrWhiteSpace(campoUrlGruplac)   ? null : campoUrlGruplac,
+                ["p_categoria"]    = string.IsNullOrWhiteSpace(campoCategoria)    ? null : campoCategoria,
+                ["p_convocatoria"] = string.IsNullOrWhiteSpace(campoConvocatoria) ? null : campoConvocatoria,
+                ["p_fecha_fund"]   = campoFechaFund.ToString("yyyy-MM-dd"),
+                ["p_universidad"]  = campoUniversidad == 0 ? null : (object?)campoUniversidad,
+                ["p_interno"]      = campoInterno,
+                ["p_ambito"]       = campoAmbito,
+                ["p_semilleros"]   = semillerosJson
+            };
+            (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_GRUPO_CON_SEMILLEROS", parametros);
+            mensaje = ok
+                ? $"Grupo creado con {semillerosFormulario.Count} semillero(s)."
+                : $"Error: {msg}";
+        }
+
+        exito = ok;
+        if (ok){
+            mostrarFormulario = false;
+            await CargarRegistros();
+        }
+    }
+
+    private async Task EliminarRegistro(Dictionary<string, object?> g){
+        int id = Convert.ToInt32(g["id"]);
+        string nombre = g["nombre"]?.ToString() ?? "";
+
+        var semCount = semilleros
+            .Count(s => s["grupo_investigacion"]?.ToString() == id.ToString());
+
+        string confirmMsg = semCount > 0
+            ? $"¿Eliminar el grupo '{nombre}' y sus {semCount} semillero(s)? Esta acción es lógica y se puede revertir."
+            : $"¿Eliminar el grupo '{nombre}'?";
+
+        if (!await JS.InvokeAsync<bool>("confirm", confirmMsg))
+            return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(
+            "SP_ELIMINAR_GRUPO_CON_SEMILLEROS",
+            new() { ["p_id_grupo"] = id });
+
+        exito   = ok;
+        mensaje = ok ? $"Grupo y sus semilleros eliminados." : $"Error: {msg}";
+        if (ok) await CargarRegistros();
+    }
+
+    private void Cancelar(){
+        mostrarFormulario = false;
+        mensaje = "";
+    }
+
+    private async Task Buscar(){
+        if (buscarIdGrupo == null &&
+            string.IsNullOrWhiteSpace(buscarNombreGrupo) &&
+            buscarIdSemillero == null &&
+            string.IsNullOrWhiteSpace(buscarNombreSemillero)){
+            mensaje = "Ingrese al menos un criterio de búsqueda.";
+            exito = false;
+            return;
+        }
+
+        try{
+            cargando = true;
+            var parametros = new Dictionary<string, object?>{
+                ["p_id_grupo"]         = buscarIdGrupo,
+                ["p_nombre_grupo"]     = string.IsNullOrWhiteSpace(buscarNombreGrupo)     ? null : buscarNombreGrupo,
+                ["p_id_semillero"]     = buscarIdSemillero,
+                ["p_nombre_semillero"] = string.IsNullOrWhiteSpace(buscarNombreSemillero) ? null : buscarNombreSemillero
+            };
+
+            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_BUSCAR_GRUPOS_CON_SEMILLEROS", parametros);
+            grupos = ok ? datos : new();
+
+            // Recargar semilleros filtrados a los grupos encontrados
+            var (okS, datosS, _) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
+            semilleros = okS ? datosS : new();
+
+            if (!ok){ exito = false; mensaje = msg; }
+            else if (grupos.Count == 0){ mensaje = "No se encontraron coincidencias."; exito = false; }
+            else { mensaje = $"Se encontraron {grupos.Count} grupo(s)."; exito = true; }
+        }catch (Exception ex){
+            exito = false; mensaje = $"Error al buscar: {ex.Message}";
+        }finally{
+            cargando = false;
+        }
+    }
+
+    private async Task LimpiarBusqueda(){
+        buscarIdGrupo        = null;
+        buscarNombreGrupo    = "";
+        buscarIdSemillero    = null;
+        buscarNombreSemillero = "";
+        mensaje = "";
+        await CargarRegistros();
+    }
+}
