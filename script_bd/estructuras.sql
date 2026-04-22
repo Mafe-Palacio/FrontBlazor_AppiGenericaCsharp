@@ -825,8 +825,8 @@ BEGIN
         li.nombre  AS nombre_linea,
         al.area_conocimiento,
         ac.gran_area,
-        ac.area    AS nombre_area,
-        ac.disciplina,
+        ac.area,
+        ac.disciplina AS nombre_area,
         al.estado
     FROM ac_linea al
     INNER JOIN linea_investigacion li ON al.linea_investigacion = li.id
