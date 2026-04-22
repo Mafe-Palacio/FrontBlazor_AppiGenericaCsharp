@@ -43,8 +43,8 @@
                 <i class="bi bi-hash search-icon"></i>
                 <input type="number" class="search-input" placeholder="Buscar por Cédula Docente" @bind="buscarCedula" />
             </div>
-            <div class="search-field search-field--wide">
-                <i class="bi bi-search search-icon"></i>
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
                 <input type="number" class="search-input" placeholder="Buscar por ID - Grupo Investigación" @bind="buscarIdGrupo" />
             </div>
             <button class="btn-search" @onclick="Buscar">Buscar</button>
@@ -118,8 +118,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Docente *</label>
-                        <select class="form-select" @bind="campoCedula">
-                            <option value="" disabled selected>Seleccione un docente</option>
+                        <select class="form-input" @bind="campoCedula">
+                            <option value="0" disabled selected>-- Seleccione un docente --</option>
                             @foreach (var d in docentes){
                                 <option value="@d["cedula"]">@d["nombres"] @d["apellidos"] (@d["cedula"])</option>
                             }
@@ -127,8 +127,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Grupo de Investigación *</label>
-                        <select class="form-select" @bind="campoIdGrupo">
-                            <option value="" disabled selected>Seleccione un grupo de investigación</option>
+                        <select class="form-input" @bind="campoIdGrupo">
+                            <option value="0" disabled selected>-- Seleccione un grupo de investigación --</option>
                             @foreach (var g in grupos){
                                 <option value="@g["id"]">@g["nombre"] (@g["id"])</option>
                             }

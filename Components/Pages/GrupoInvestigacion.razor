@@ -11,11 +11,10 @@
     @* ───────── HEADER ───────── *@
     <div class="crud-header">
         <h2 class="crud-title">
-            <i class="bi bi-building"></i>
+            <i class="bi bi-journals"></i>
             Grupos de Investigación
         </h2>
-        @if (!mostrarFormulario)
-        {
+        @if (!mostrarFormulario){
             <button class="btn-add" @onclick="NuevoRegistro">
                 <i class="bi bi-plus-lg"></i> Nuevo Grupo
             </button>
@@ -23,8 +22,7 @@
     </div>
 
     @* ───────── ALERTA ───────── *@
-    @if (!string.IsNullOrEmpty(mensaje))
-    {
+    @if (!string.IsNullOrEmpty(mensaje)){
         <div class="alert-custom @(exito ? "alert-ok" : "alert-err")">
             <i class="bi @(exito ? "bi-check-circle" : "bi-exclamation-circle")"></i>
             @mensaje
@@ -35,8 +33,7 @@
     }
 
     @* ───────── LISTA ───────── *@
-    @if (!mostrarFormulario)
-    {
+    @if (!mostrarFormulario){
         <div class="search-bar">
             <div class="search-field">
                 <i class="bi bi-hash search-icon"></i>
@@ -52,15 +49,13 @@
             </button>
         </div>
 
-        @if (cargando)
-        {
+        @if (cargando){
             <div class="loading-wrap">
                 <div class="spinner"></div>
                 <span>Cargando...</span>
             </div>
         }
-        else if (registros.Any())
-        {
+        else if (registros.Any()){
             <div class="table-wrap">
                 <table class="crud-table">
                     <thead>
@@ -77,8 +72,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var r in registros)
-                        {
+                        @foreach (var r in registros){
                             <tr>
                                 <td class="col-id">
                                     <span class="id-badge">@r["id"]</span>
@@ -107,9 +101,7 @@
                     </tbody>
                 </table>
             </div>
-        }
-        else
-        {
+        }else{
             <div class="empty-state">
                 <i class="bi bi-inbox empty-icon"></i>
                 <p>No hay grupos de investigación activos.</p>
@@ -118,8 +110,7 @@
     }
 
     @* ───────── FORMULARIO ───────── *@
-    @if (mostrarFormulario)
-    {
+    @if (mostrarFormulario){
         <div class="form-card">
             <div class="form-card-header">
                 <i class="bi @(editando ? "bi-pencil-square" : "bi-plus-square")"></i>
@@ -149,6 +140,7 @@
                     <div class="form-group">
                         <label class="form-label">Categoría</label>
                         <select class="form-input" @bind="campoCategoria">
+                            <option value="" disabled selected>-- Seleccione --</option>
                             <option>A1</option>
                             <option>A</option>
                             <option>A2</option>
@@ -170,8 +162,8 @@
                     <div class="form-group">
                         <label class="form-label">Universidad</label>
                         <select class="form-input" @bind="campoUniversidad">
-                            @foreach (var u in universidades)
-                            {
+                            <option value="0" disabled selected>-- Seleccione --</option>
+                            @foreach (var u in universidades){
                                 <option value="@u["id"]">@u["nombre"]</option>
                             }
                         </select>
@@ -233,10 +225,26 @@
     private string buscarNombre = "";
 
     private bool ValidarFormulario(){
-        if (campoId <= 0){ mensaje = "El ID debe ser un número positivo."; return false; }
-        if (string.IsNullOrWhiteSpace(campoNombre)){ mensaje = "El nombre es obligatorio."; return false; }
-        if (campoFecha == default){ mensaje = "La fecha de fundación es obligatoria."; return false; }
-        if (string.IsNullOrWhiteSpace(campoAmbito)){ mensaje = "El ámbito es obligatorio."; return false; }
+        if (campoId <= 0){
+            mensaje = "El ID debe ser un número positivo.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(campoNombre)){
+            mensaje = "El nombre es obligatorio.";
+            return false;
+        }
+
+        if (campoFecha == default){
+            mensaje = "La fecha de fundación es obligatoria.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(campoAmbito)){
+            mensaje = "El ámbito es obligatorio.";
+            return false;
+        }
+
         return true;
     }
 
@@ -253,6 +261,7 @@
     private async Task CargarRegistros(){
         cargando = true;
         mensaje = "";
+
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_INVESTIGACION");
         registros = ok ? datos : new();
         if (!ok) { exito = false; mensaje = msg; }
@@ -261,11 +270,17 @@
 
     private void NuevoRegistro(){
         editando = false;
-        campoId = 0; campoNombre = ""; campoUrl = "";
-        campoCategoria = ""; campoConvocatoria = "";
+        campoId = 0; 
+        campoNombre = ""; 
+        campoUrl = "";
+        campoCategoria = ""; 
+        campoConvocatoria = "";
         campoFecha = DateTime.Today;
-        campoUniversidad = 0; campoInterno = true; campoAmbito = "Nacional";
-        mensaje = ""; mostrarFormulario = true;
+        campoUniversidad = 0; 
+        campoInterno = true; 
+        campoAmbito = "Nacional";
+        mensaje = ""; 
+        mostrarFormulario = true;
     }
 
     private void EditarRegistro(Dictionary<string, object?> r){
@@ -279,11 +294,16 @@
         campoInterno = r["interno"]?.ToString() == "1";
         campoAmbito = r["ambito"]?.ToString() ?? "Nacional";
         if (DateTime.TryParse(r["fecha_fundacion"]?.ToString(), out var f)) campoFecha = f;
-        mensaje = ""; mostrarFormulario = true;
+        mensaje = ""; 
+        mostrarFormulario = true;
     }
 
     private async Task GuardarRegistro(){
-        if (!ValidarFormulario()){ exito = false; return; }
+        if (!ValidarFormulario()){
+            exito = false;
+            return;
+        }
+
         var parametros = new Dictionary<string, object?>{
             ["p_id"] = campoId,
             ["p_nombre"] = campoNombre,
@@ -295,11 +315,17 @@
             ["p_interno"] = campoInterno,
             ["p_ambito"] = campoAmbito
         };
+
         string sp = editando ? "SP_ACTUALIZAR_GRUPO_INVESTIGACION" : "SP_INGRESAR_GRUPO_INVESTIGACION";
         var (ok, _, msg) = await Sp.EjecutarSpAsync(sp, parametros);
         exito   = ok;
-        mensaje = ok ? (editando ? "Grupo actualizado." : "Grupo creado.") : $"Error: {msg}";
-        if (ok){ mostrarFormulario = false; await CargarRegistros(); }
+        mensaje = ok
+            ? (editando ? "Grupo actualizado." : "Grupo creado.")
+            : $"Error: {msg}";
+        if (ok){
+            mostrarFormulario = false;
+            await CargarRegistros(); 
+        }
     }
 
     private async Task EliminarRegistro(Dictionary<string, object?> r){
@@ -307,37 +333,62 @@
         string nombre = r["nombre"]?.ToString() ?? "";
         if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar el grupo '{nombre}' y sus semilleros?"))
             return;
+
         var (ok, _, msg) = await Sp.EjecutarSpAsync(
             "SP_ELIMINAR_GRUPO_INVESTIGACION",
             new() { ["p_id"] = id });
+
         exito   = ok;
         mensaje = ok ? "Grupo eliminado." : $"Error: {msg}";
         if (ok) await CargarRegistros();
     }
 
-    private void Cancelar(){ mostrarFormulario = false; mensaje = ""; }
+    private void Cancelar(){ 
+        mostrarFormulario = false; 
+        mensaje = ""; 
+    }
 
     private async Task Buscar(){
         if (buscarId == null && string.IsNullOrWhiteSpace(buscarNombre)){
-            mensaje = "Ingrese un ID o nombre de búsqueda."; exito = false; return;
+            mensaje = "Ingrese un ID o nombre de búsqueda.";
+            exito = false;
+            return;
         }
+
         try{
             cargando = true;
+
             var parametros = new Dictionary<string, object?>{
                 ["p_id"] = buscarId,
                 ["p_nombre"] = string.IsNullOrWhiteSpace(buscarNombre) ? null : buscarNombre
             };
+
             var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_BUSCAR_GRUPO_POR_ID_NOMBRE", parametros);
+            
             registros = ok ? datos : new();
-            if (!ok){ exito = false; mensaje = msg; }
-            else if (registros.Count == 0){ mensaje = "No se encontraron coincidencias."; exito = true; }
-            else { mensaje = $"Se encontraron {registros.Count} coincidencias."; exito = true; }
-        }catch (Exception ex){ exito = false; mensaje = $"Error al buscar: {ex.Message}"; }
-        finally{ cargando = false; }
+
+            if (!ok){ 
+                exito = false;
+                mensaje = msg; 
+            }else if (registros.Count == 0){
+                mensaje = "No se encontraron coincidencias.";
+                exito = false;
+            }else{
+                mensaje = $"Se encontraron {registros.Count} coincidencias.";
+                exito = true;
+            }
+        }catch (Exception ex){
+            exito = false;
+            mensaje = $"Error al buscar: {ex.Message}";
+        }finally{
+            cargando = false;
+        }
     }
 
     private async Task LimpiarBusqueda(){
-        buscarId = null; buscarNombre = ""; mensaje = "";
+        buscarId = null;
+        buscarNombre = "";
+        mensaje = "";
         await CargarRegistros();
     }
 }

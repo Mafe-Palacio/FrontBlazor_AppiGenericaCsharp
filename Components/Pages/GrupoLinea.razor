@@ -110,8 +110,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Grupo de Investigación *</label>
-                        <select class="form-select" @bind="campoIdGrupo">
-                            <option value="" disabled selected>Seleccione un grupo de investigación</option>
+                        <select class="form-input" @bind="campoIdGrupo">
+                            <option value="0" disabled selected>-- Seleccione un grupo de investigación --</option>
                             @foreach (var g in grupos){
                                 <option value="@g["id"]">@g["nombre"] (@g["id"])</option>
                             }
@@ -120,8 +120,8 @@
                     
                     <div class="form-group">
                         <label class="form-label">Línea de Investigación *</label>
-                        <select class="form-select" @bind="campoIdLinea">
-                            <option value="" disabled selected>Seleccione una línea de investigación</option>
+                        <select class="form-input" @bind="campoIdLinea">
+                            <option value="0" disabled selected>-- Seleccione una línea de investigación --</option>
                             @foreach (var l in lineas){
                                 <option value="@l["id"]">@l["nombre"] (@l["id"])</option>
                             }

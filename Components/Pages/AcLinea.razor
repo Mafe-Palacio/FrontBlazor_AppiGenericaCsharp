@@ -36,6 +36,8 @@
 
     @* ───── LISTA ───── *@
     @if (!mostrarFormulario){
+
+        @* Barra de búsqueda *@
         <div class="search-bar">
             <div class="search-field">
                 <i class="bi bi-hash search-icon"></i>
@@ -51,6 +53,7 @@
             </button>
         </div>
 
+        @* Tabla *@
         @if (cargando){
             <div class="loading-wrap">
                 <div class="spinner"></div>
@@ -107,7 +110,7 @@
                     <div class="form-group">
                         <label class="form-label">Línea de Investigación *</label>
                         <select class="form-input" @bind="campoIdLinea">
-                            <option value="0" disabled>Seleccione una línea de investigación</option>
+                            <option value="0" disabled selected>-- Seleccione una línea de investigación --</option>
                             @foreach (var l in lineas){
                                 <option value="@l["id"]">@l["nombre"] (@l["id"])</option>
                             }
@@ -116,7 +119,7 @@
                     <div class="form-group">
                         <label class="form-label">Área de Conocimiento *</label>
                         <select class="form-input" @bind="campoIdArea">
-                            <option value="0" disabled>Seleccione un área de conocimiento</option>
+                            <option value="0" disabled selected>-- Seleccione un área de conocimiento --</option>
                             @foreach (var a in areas){
                                 <option value="@a["id"]">@a["disciplina"] (@a["id"])</option>
                             }

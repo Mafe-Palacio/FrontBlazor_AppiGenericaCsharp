@@ -21,8 +21,7 @@
     </div>
 
     @* ───────── ALERTA ───────── *@
-    @if (!string.IsNullOrEmpty(mensaje))
-    {
+    @if (!string.IsNullOrEmpty(mensaje)){
         <div class="alert-custom @(exito ? "alert-ok" : "alert-err")">
             <i class="bi @(exito ? "bi-check-circle" : "bi-exclamation-circle")"></i>
             @mensaje
@@ -39,11 +38,11 @@
         <div class="search-bar">
             <div class="search-field">
                 <i class="bi bi-hash search-icon"></i>
-                <input class="form-input" type="number" placeholder="Buscar por ID" @bind="buscarId" />
+                <input class="search-input" type="number" placeholder="Buscar por ID" @bind="buscarId" />
             </div>
             <div class="search-field search-field--wide">
                 <i class="bi bi-search search-icon"></i>
-                <input class="form-input" placeholder="Buscar por nombre" @bind="buscarNombre" />
+                <input class="search-input" placeholder="Buscar por nombre" @bind="buscarNombre" />
             </div>
             <button class="btn-search" @onclick="Buscar">Buscar</button>
             <button class="btn-clear" @onclick="LimpiarBusqueda">
@@ -126,7 +125,7 @@
                     <div class="form-group">
                         <label class="form-label">Grupo de Investigación</label>
                         <select class="form-input" @bind="campoGrupo">
-                            <option value="0">-- Seleccione --</option>
+                            <option value="0" disabled selected>-- Seleccione --</option>
                             @foreach (var g in grupos){
                                 <option value="@g["id"]">@g["nombre"]</option>
                             }

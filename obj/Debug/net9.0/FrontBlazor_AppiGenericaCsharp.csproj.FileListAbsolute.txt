@@ -235,4 +235,4 @@ C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\ob
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\ref\FrontBlazor_AppiGenericaCsharp.dll
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\38zrahbi1u-hksbfth2y0.gz
 C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\n5gztkbl53-hksbfth2y0.gz
-C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\8javswpns2-czfxsdwyhd.gz
+C:\Users\USUARIO\Desktop\Nueva carpeta - copia\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\8javswpns2-6kpiixl9ko.gz

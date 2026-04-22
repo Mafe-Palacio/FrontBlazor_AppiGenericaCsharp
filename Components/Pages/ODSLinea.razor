@@ -113,8 +113,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Línea de Investigación *</label>
-                        <select class="form-select" @bind="campoIdLinea">
-                            <option value="" disabled selected>Seleccione una línea de investigación</option>
+                        <select class="form-input" @bind="campoIdLinea">
+                            <option value="0" disabled selected>-- Seleccione una línea de investigación --</option>
                             @foreach (var l in lineas){
                                 <option value="@l["id"]">@l["nombre"] (@l["id"])</option>
                             }
@@ -122,8 +122,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Objetivo de Desarrollo Sostenible *</label>
-                        <select class="form-select" @bind="campoIdOds">
-                            <option value="" disabled selected>Seleccione un ODS</option>
+                        <select class="form-input" @bind="campoIdOds">
+                            <option value="0" disabled selected>-- Seleccione un ODS --</option>
                             @foreach (var o in objetivos){
                                 <option value="@o["id"]">@o["nombre"] (@o["id"])</option>
                             }

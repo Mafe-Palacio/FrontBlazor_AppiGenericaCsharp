@@ -12,7 +12,7 @@
     <div class="crud-header">
         <div class="crud-header-left">
             <h2 class="crud-title">
-                <i class="bi bi-window-stack"></i>
+                <i class="bi bi-journals"></i>
                 Semilleros por Líneas de Investigación
             </h2>
         </div>
@@ -43,7 +43,8 @@
                 <i class="bi bi-hash search-icon"></i>
                 <input class="search-input" type="number" placeholder="Buscar por ID - Semillero" @bind="buscarId_semillero" />
             </div>
-            <div class="search-field search-field--wide">
+            <div class="search-field">
+                <i class="bi bi-hash search-icon"></i>
                 <input class="search-input" type="number" placeholder="Buscar por ID - Línea Investigación" @bind="buscarId_linea" />
             </div>
             <button class="btn-search" @onclick="Buscar">Buscar</button>
@@ -111,8 +112,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Semillero *</label>
-                        <select class="form-select" @bind="campoIdSemillero">
-                            <option value="" disabled selected>Seleccione un semillero</option>
+                        <select class="form-input" @bind="campoIdSemillero">
+                            <option value="0" disabled selected>-- Seleccione un semillero --</option>
                             @foreach (var s in semilleros){
                                 <option value="@s["id"]">@s["nombre"] (@s["id"])</option>
                             }
@@ -120,8 +121,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Línea de Investigación *</label>
-                        <select class="form-select" @bind="campoIdLinea">
-                            <option value="" disabled selected>Seleccione una línea de investigación</option>
+                        <select class="form-input" @bind="campoIdLinea">
+                            <option value="0" disabled selected>-- Seleccione una línea de investigación --</option>
                             @foreach (var l in lineas){
                                 <option value="@l["id"]">@l["nombre"] (@l["id"])</option>
                             }
