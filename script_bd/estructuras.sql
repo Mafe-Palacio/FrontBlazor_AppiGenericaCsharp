@@ -2614,3 +2614,294 @@ BEGIN
     ORDER BY cedula;
 END;
 GO
+
+
+
+
+-- ============================================================
+--  MAESTRO-DETALLE: grupo_investigacion + semillero
+-- ============================================================
+
+-- ------------------------------------------------------------
+-- Ingresar grupo CON semilleros (maestro-detalle)
+-- ------------------------------------------------------------
+CREATE PROCEDURE SP_INGRESAR_GRUPO_CON_SEMILLEROS
+    @p_id_grupo       INT,
+    @p_nombre_grupo   NVARCHAR(60),
+    @p_url_gruplac    NVARCHAR(128) = NULL,
+    @p_categoria      NVARCHAR(10)  = NULL,
+    @p_convocatoria   NVARCHAR(10)  = NULL,
+    @p_fecha_fund     DATE,
+    @p_universidad    INT           = NULL,
+    @p_interno        BIT,
+    @p_ambito         NVARCHAR(45),
+    @p_semilleros     NVARCHAR(MAX) = NULL,
+    @p_resultado      NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @v_msg NVARCHAR(256);
+
+    -- Validar que el ID del grupo no exista (ni activo ni inactivo)
+    IF EXISTS (SELECT 1 FROM grupo_investigacion WHERE id = @p_id_grupo)
+    BEGIN
+        SET @v_msg = CONCAT(N'Ya existe un grupo de investigación con el ID ', @p_id_grupo, N'. Use otro ID.');
+        THROW 50001, @v_msg, 1;
+    END
+
+    -- Validar universidad si se envía
+    IF @p_universidad IS NOT NULL AND
+       NOT EXISTS (SELECT 1 FROM universidad WHERE id = @p_universidad)
+    BEGIN
+        SET @v_msg = CONCAT(N'La universidad con ID ', @p_universidad, N' no existe.');
+        THROW 50002, @v_msg, 1;
+    END
+
+    -- Validar que los IDs de semilleros no existan (ni activos ni inactivos)
+    IF @p_semilleros IS NOT NULL AND @p_semilleros <> '[]'
+    BEGIN
+        DECLARE @idSemilleroRepetido INT;
+        SELECT TOP 1 @idSemilleroRepetido = j.id
+        FROM OPENJSON(@p_semilleros)
+        WITH (id INT '$.id') j
+        WHERE EXISTS (SELECT 1 FROM semillero WHERE id = j.id);
+
+        IF @idSemilleroRepetido IS NOT NULL
+        BEGIN
+            SET @v_msg = CONCAT(N'Ya existe un semillero con el ID ', @idSemilleroRepetido, N'. Use otro ID.');
+            THROW 50003, @v_msg, 1;
+        END
+
+        -- Validar IDs duplicados dentro del mismo JSON
+        IF EXISTS (
+            SELECT id, COUNT(*) AS cnt
+            FROM OPENJSON(@p_semilleros) WITH (id INT '$.id') j
+            GROUP BY id
+            HAVING COUNT(*) > 1
+        )
+        BEGIN
+            THROW 50004, N'Hay IDs de semilleros duplicados en la lista enviada.', 1;
+        END
+    END
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Insertar grupo
+        INSERT INTO grupo_investigacion
+            (id, nombre, url_gruplac, categoria, convocatoria,
+             fecha_fundacion, universidad, interno, ambito, estado)
+        VALUES
+            (@p_id_grupo, @p_nombre_grupo, @p_url_gruplac, @p_categoria,
+             @p_convocatoria, @p_fecha_fund, @p_universidad,
+             @p_interno, @p_ambito, 1);
+
+        -- Insertar semilleros si se enviaron
+        IF @p_semilleros IS NOT NULL AND @p_semilleros <> '[]'
+        BEGIN
+            INSERT INTO semillero (id, nombre, fecha_fundacion, grupo_investigacion, estado)
+            SELECT j.id, j.nombre, TRY_CAST(j.fecha_fundacion AS DATE), @p_id_grupo, 1
+            FROM OPENJSON(@p_semilleros)
+            WITH (
+                id              INT          '$.id',
+                nombre          NVARCHAR(60) '$.nombre',
+                fecha_fundacion NVARCHAR(20) '$.fecha_fundacion'
+            ) j;
+        END
+
+        -- Resultado
+        SET @p_resultado = (
+            SELECT
+                g.id, g.nombre, g.url_gruplac, g.categoria, g.convocatoria,
+                g.fecha_fundacion, g.universidad, g.interno, g.ambito, g.estado,
+                (
+                    SELECT s.id, s.nombre, s.fecha_fundacion
+                    FROM semillero s
+                    WHERE s.grupo_investigacion = g.id AND s.estado = 1
+                    FOR JSON PATH
+                ) AS semilleros
+            FROM grupo_investigacion g
+            WHERE g.id = @p_id_grupo
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+-- ------------------------------------------------------------
+-- Actualizar grupo CON semilleros
+-- ------------------------------------------------------------
+CREATE PROCEDURE SP_ACTUALIZAR_GRUPO_CON_SEMILLEROS
+    @p_id_grupo       INT,
+    @p_nombre_grupo   NVARCHAR(60),
+    @p_url_gruplac    NVARCHAR(128) = NULL,
+    @p_categoria      NVARCHAR(10)  = NULL,
+    @p_convocatoria   NVARCHAR(10)  = NULL,
+    @p_fecha_fund     DATE,
+    @p_universidad    INT           = NULL,
+    @p_interno        BIT,
+    @p_ambito         NVARCHAR(45),
+    @p_resultado      NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @v_msg NVARCHAR(256);
+
+    IF NOT EXISTS (SELECT 1 FROM grupo_investigacion WHERE id = @p_id_grupo AND estado = 1)
+    BEGIN
+        SET @v_msg = CONCAT(N'El grupo con ID ', @p_id_grupo, N' no existe o está inactivo.');
+        THROW 50001, @v_msg, 1;
+    END
+
+    IF @p_universidad IS NOT NULL AND
+       NOT EXISTS (SELECT 1 FROM universidad WHERE id = @p_universidad)
+    BEGIN
+        SET @v_msg = CONCAT(N'La universidad con ID ', @p_universidad, N' no existe.');
+        THROW 50002, @v_msg, 1;
+    END
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        UPDATE grupo_investigacion
+        SET nombre          = @p_nombre_grupo,
+            url_gruplac     = @p_url_gruplac,
+            categoria       = @p_categoria,
+            convocatoria    = @p_convocatoria,
+            fecha_fundacion = @p_fecha_fund,
+            universidad     = @p_universidad,
+            interno         = @p_interno,
+            ambito          = @p_ambito
+        WHERE id = @p_id_grupo;
+
+        SET @p_resultado = (
+            SELECT
+                g.id, g.nombre, g.url_gruplac, g.categoria, g.convocatoria,
+                g.fecha_fundacion, g.universidad, g.interno, g.ambito, g.estado,
+                (
+                    SELECT s.id, s.nombre, s.fecha_fundacion
+                    FROM semillero s
+                    WHERE s.grupo_investigacion = g.id AND s.estado = 1
+                    FOR JSON PATH
+                ) AS semilleros
+            FROM grupo_investigacion g
+            WHERE g.id = @p_id_grupo
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
+
+-- ------------------------------------------------------------
+-- Listar grupos con sus semilleros (vista maestro-detalle)
+-- ------------------------------------------------------------
+CREATE PROCEDURE SP_LISTAR_GRUPOS_CON_SEMILLEROS
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        g.id,
+        g.nombre,
+        g.url_gruplac,
+        g.categoria,
+        g.convocatoria,
+        g.fecha_fundacion,
+        g.universidad,
+        u.nombre AS nombre_universidad,
+        g.interno,
+        g.ambito,
+        g.estado
+    FROM grupo_investigacion g
+    LEFT JOIN universidad u ON g.universidad = u.id
+    WHERE g.estado = 1
+    ORDER BY g.id;
+END;
+GO
+
+-- ------------------------------------------------------------
+-- Buscar grupos con filtros (ID grupo, nombre grupo,
+-- ID semillero, nombre semillero)
+-- ------------------------------------------------------------
+CREATE PROCEDURE SP_BUSCAR_GRUPOS_CON_SEMILLEROS
+    @p_id_grupo        INT           = NULL,
+    @p_nombre_grupo    NVARCHAR(60)  = NULL,
+    @p_id_semillero    INT           = NULL,
+    @p_nombre_semillero NVARCHAR(60) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT DISTINCT
+        g.id,
+        g.nombre,
+        g.url_gruplac,
+        g.categoria,
+        g.convocatoria,
+        g.fecha_fundacion,
+        g.universidad,
+        u.nombre AS nombre_universidad,
+        g.interno,
+        g.ambito,
+        g.estado
+    FROM grupo_investigacion g
+    LEFT JOIN universidad u  ON g.universidad = u.id
+    LEFT JOIN semillero   s  ON s.grupo_investigacion = g.id AND s.estado = 1
+    WHERE g.estado = 1
+      AND (@p_id_grupo        IS NULL OR g.id      = @p_id_grupo)
+      AND (@p_nombre_grupo    IS NULL OR g.nombre  LIKE '%' + @p_nombre_grupo    + '%')
+      AND (@p_id_semillero    IS NULL OR s.id      = @p_id_semillero)
+      AND (@p_nombre_semillero IS NULL OR s.nombre LIKE '%' + @p_nombre_semillero + '%')
+    ORDER BY g.id;
+END;
+GO
+
+-- ------------------------------------------------------------
+-- Eliminar grupo (borrado lógico) y sus semilleros en cascada
+-- ------------------------------------------------------------
+CREATE PROCEDURE SP_ELIMINAR_GRUPO_CON_SEMILLEROS
+    @p_id_grupo  INT,
+    @p_resultado NVARCHAR(MAX) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM grupo_investigacion WHERE id = @p_id_grupo AND estado = 1)
+        THROW 50001, N'No se puede eliminar: el grupo no existe o ya está inactivo.', 1;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Borrado lógico de todos los semilleros del grupo
+        UPDATE semillero
+        SET estado = 0
+        WHERE grupo_investigacion = @p_id_grupo AND estado = 1;
+
+        -- Borrado lógico del grupo
+        UPDATE grupo_investigacion
+        SET estado = 0
+        WHERE id = @p_id_grupo;
+
+        SET @p_resultado = JSON_OBJECT(
+            'mensaje'   : 'Grupo y semilleros eliminados lógicamente',
+            'id_grupo'  : @p_id_grupo
+        );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
+GO
