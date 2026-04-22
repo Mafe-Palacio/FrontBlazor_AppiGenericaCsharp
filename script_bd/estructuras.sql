@@ -1251,7 +1251,7 @@ BEGIN
     DECLARE @v_msg NVARCHAR(256);
 
     -- Validar que no exista activa con mismo ID
-    IF EXISTS (SELECT 1 FROM area_aplicacion WHERE id = @p_id AND estado = 1)
+    IF EXISTS (SELECT 1 FROM area_aplicacion WHERE id = @p_id)
     BEGIN
         SET @v_msg = CONCAT(N'Ya existe un área de aplicación activa con el ID ', @p_id, N'.');
         THROW 50001, @v_msg, 1;
@@ -1415,7 +1415,7 @@ BEGIN
     SET NOCOUNT ON;
     DECLARE @v_msg NVARCHAR(256);
 
-    IF EXISTS (SELECT 1 FROM objetivo_desarrollo_sostenible WHERE id = @p_id AND estado = 1)
+    IF EXISTS (SELECT 1 FROM objetivo_desarrollo_sostenible WHERE id = @p_id)
     BEGIN
         SET @v_msg = CONCAT(N'Ya existe un ODS activo con el ID ', @p_id, N'.');
         THROW 50001, @v_msg, 1;
@@ -1583,7 +1583,7 @@ BEGIN
     SET NOCOUNT ON;
     DECLARE @v_msg NVARCHAR(256);
 
-    IF EXISTS (SELECT 1 FROM area_conocimiento WHERE id = @p_id AND estado = 1)
+    IF EXISTS (SELECT 1 FROM area_conocimiento WHERE id = @p_id)
     BEGIN
         SET @v_msg = CONCAT(N'Ya existe un área de conocimiento activa con el ID ', @p_id, N'.');
         THROW 50001, @v_msg, 1;
