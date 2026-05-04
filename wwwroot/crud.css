@@ -421,3 +421,121 @@
     border-color: var(--danger);
     color: var(--danger);
 }
+
+/* ══════════════════════════════════════════
+   MAESTRO-DETALLE  –  agregar al final de crud.css
+   ══════════════════════════════════════════ */
+
+/* Separa visualmente cada grupo */
+.crud-table tbody.md-grupo-body {
+    border-top: 3px solid var(--border);
+}
+.crud-table tbody.md-grupo-body:first-of-type {
+    border-top: none;
+}
+
+/* Fila del grupo: fondo tintado suave */
+.md-grupo-row {
+    background: var(--green-faint) !important;
+}
+.md-grupo-row:hover {
+    background: var(--green-faint) !important; /* sin cambio al hover */
+}
+
+/* Fila de detalle: sin hover */
+.md-detail-row {
+    background: var(--white) !important;
+}
+.md-detail-row:hover {
+    background: var(--white) !important;
+}
+
+/* Celda que ocupa todo el ancho */
+.md-detail-cell {
+    padding: 0 !important;
+}
+
+/* Contenedor del bloque semilleros con sangría */
+.md-detail-wrap {
+    margin: 0.55rem 1rem 0.7rem 2.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Cabecera "N semillero(s)" */
+.md-semilleros-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.38rem 0.85rem;
+    background: var(--green-deeper);
+    color: var(--white);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+/* Sub-tabla de semilleros */
+.md-sub-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    background: var(--white);
+}
+.md-sub-table thead tr {
+    background: var(--green-dark);
+    color: var(--white);
+}
+.md-sub-table thead tr:hover {
+    background: var(--green-dark) !important;
+}
+.md-sub-table thead th {
+    padding: 0.45rem 0.85rem;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: none;
+    text-align: center; /* centrado */
+}
+.md-sub-table tbody tr {
+    border-bottom: 1px solid #eef3ec;
+}
+.md-sub-table tbody tr:last-child { border-bottom: none; }
+.md-sub-table tbody tr:hover { background: var(--white) !important; } /* sin hover */
+.md-sub-table td {
+    padding: 0.5rem 0.85rem;
+    color: var(--text);
+    vertical-align: middle;
+    text-align: center; /* centrado */
+}
+
+/* Badge categoría (dentro de la fila grupo) */
+.md-cat-badge {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green-deeper);
+    border-radius: 5px;
+    padding: 1px 7px;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+/* Íconos interno */
+.md-interno-si { color: var(--green-deeper); font-size: 1rem; }
+.md-interno-no { color: var(--text-muted);   font-size: 1rem; opacity: 0.45; }
+
+/* Sin semilleros */
+.md-no-semilleros {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-style: italic;
+    background: var(--white);
+}

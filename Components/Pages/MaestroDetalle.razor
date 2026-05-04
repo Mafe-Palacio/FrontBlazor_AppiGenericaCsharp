@@ -50,7 +50,7 @@
             </div>
             <div class="search-field search-field--wide">
                 <i class="bi bi-search search-icon"></i>
-                <input class="search-input" placeholder="Nombre del semillero" @bind="buscarNombreSemillero" />
+                <input class="search-input" placeholder="Nombre semillero" @bind="buscarNombreSemillero" />
             </div>
             <button class="btn-search" @onclick="Buscar">Buscar</button>
             <button class="btn-clear" @onclick="LimpiarBusqueda">
@@ -64,69 +64,123 @@
                 <span>Cargando...</span>
             </div>
         }else if (grupos.Any()){
-            @foreach (var g in grupos){
-                <div class="card mb-3 shadow-sm">
-                    @* Cabecera del grupo *@
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="id-badge me-2">@g["id"]</span>
-                            <strong>@g["nombre"]</strong>
-                            @if (!string.IsNullOrEmpty(g["categoria"]?.ToString())){
-                                <span class="badge bg-secondary ms-2">@g["categoria"]</span>
-                            }
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-muted small">
-                                Fundación: @g["fecha_fundacion"] &nbsp;|&nbsp; Ámbito: @g["ambito"]
-                                @if (!string.IsNullOrEmpty(g["nombre_universidad"]?.ToString())){
-                                    <span> &nbsp;|&nbsp; @g["nombre_universidad"]</span>
-                                }
-                            </span>
-                            <div class="action-group">
-                                <button class="btn-action btn-edit" title="Editar grupo"
-                                        @onclick="() => EditarRegistro(g)">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn-action btn-delete" title="Eliminar grupo y semilleros"
-                                        @onclick="() => EliminarRegistro(g)">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
 
-                    @* Semilleros del grupo *@
-                    <div class="card-body p-2">
-                        @{
+            <div class="table-wrap">
+                <table class="crud-table">
+
+                    @* ── Encabezado principal de la tabla ── *@
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Convocatoria</th>
+                            <th>Fundación</th>
+                            <th>Universidad</th>
+                            <th>Ámbito</th>
+                            <th>Interno</th>
+                            <th class="col-actions">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    @* ── Un <tbody> por cada grupo (maestro + detalle) ── *@
+                    @foreach (var g in grupos){
+                        
                             var semillerosGrupo = semilleros
                                 .Where(s => s["grupo_investigacion"]?.ToString() == g["id"]?.ToString())
                                 .ToList();
-                        }
-                        @if (semillerosGrupo.Any()){
-                            <table class="table table-sm table-bordered mb-0">
-                                <thead class="table-secondary">
-                                    <tr>
-                                        <th style="width:70px">ID</th>
-                                        <th>Nombre Semillero</th>
-                                        <th style="width:140px">Fecha Fundación</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var s in semillerosGrupo){
-                                        <tr>
-                                            <td><span class="id-badge">@s["id"]</span></td>
-                                            <td>@s["nombre"]</td>
-                                            <td>@s["fecha_fundacion"]</td>
-                                        </tr>
+
+                            var tieneCategoria = !string.IsNullOrEmpty(g["categoria"]?.ToString());
+                        
+
+                        <tbody class="md-grupo-body">
+
+                            @* ── Fila 1: datos del grupo ── *@
+                            <tr class="md-grupo-row">
+                                <td class="col-id">
+                                    <span class="id-badge">@g["id"]</span>
+                                </td>
+                                <td class="td-nombre">@g["nombre"]</td>
+                                <td>
+                                    @if (tieneCategoria){
+                                        <span class="md-cat-badge">@g["categoria"]</span>
+                                    }else{
+                                        <span class="td-desc">—</span>
                                     }
-                                </tbody>
-                            </table>
-                        }else{
-                            <span class="text-muted small ms-2">Sin semilleros registrados.</span>
-                        }
-                    </div>
-                </div>
-            }
+                                </td>
+                                <td class="td-desc">
+                                    @(string.IsNullOrEmpty(g["convocatoria"]?.ToString()) ? "—" : g["convocatoria"]?.ToString())
+                                </td>
+                                <td class="td-desc">@g["fecha_fundacion"]</td>
+                                <td class="td-desc">
+                                    @(string.IsNullOrEmpty(g["nombre_universidad"]?.ToString()) ? "—" : g["nombre_universidad"]?.ToString())
+                                </td>
+                                <td class="td-desc">@g["ambito"]</td>
+                                <td>
+                                    @(campoInterno ? "Sí" : "No")
+                                </td>
+                                <td class="col-actions">
+                                    <div class="action-group">
+                                        <button class="btn-action btn-edit" title="Editar grupo"
+                                                @onclick="() => EditarRegistro(g)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn-action btn-delete" title="Eliminar grupo"
+                                                @onclick="() => EliminarRegistro(g)">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            @* ── Fila 2: detalle de semilleros ── *@
+                            <tr class="md-detail-row">
+                                <td colspan="9" class="md-detail-cell">
+                                    <div class="md-detail-wrap">
+
+                                        @* Cabecera del sub-bloque *@
+                                        <div class="md-semilleros-header">
+                                            <i class="bi bi-mortarboard-fill"></i>
+                                            @semillerosGrupo.Count semillero(s) registrado(s)
+                                        </div>
+
+                                        @* Sub-tabla o mensaje vacío *@
+                                        @if (semillerosGrupo.Any()){
+                                            <table class="md-sub-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:80px">ID</th>
+                                                        <th>Nombre del Semillero</th>
+                                                        <th style="width:160px">Fecha Fundación</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var s in semillerosGrupo){
+                                                        <tr>
+                                                            <td><span class="id-badge">@s["id"]</span></td>
+                                                            <td class="td-nombre">@s["nombre"]</td>
+                                                            <td class="td-desc">@s["fecha_fundacion"]</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        }else{
+                                            <div class="md-no-semilleros">
+                                                <i class="bi bi-journal-x"></i>
+                                                Sin semilleros registrados para este grupo.
+                                            </div>
+                                        }
+
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    }
+
+                </table>
+            </div>
+
         }else{
             <div class="empty-state">
                 <i class="bi bi-inbox empty-icon"></i>
@@ -275,7 +329,7 @@
                     }
                 }
 
-                <div class="form-actions">
+                <div class="form-actions mt-3">
                     <button class="btn-save" @onclick="GuardarRegistro">
                         <i class="bi bi-check-lg"></i> Guardar
                     </button>
@@ -317,9 +371,9 @@
     private string   campoAmbito       = "Nacional";
 
     // ── búsqueda ──
-    private int?   buscarIdGrupo        = null;
-    private string buscarNombreGrupo    = "";
-    private int?   buscarIdSemillero    = null;
+    private int?   buscarIdGrupo         = null;
+    private string buscarNombreGrupo     = "";
+    private int?   buscarIdSemillero     = null;
     private string buscarNombreSemillero = "";
 
     // ── modelo fila semillero ──
@@ -425,7 +479,6 @@
         bool ok; string msg;
 
         if (editando){
-            // Solo actualiza datos del grupo
             var parametros = new Dictionary<string, object?>{
                 ["p_id_grupo"]     = campoIdGrupo,
                 ["p_nombre_grupo"] = campoNombreGrupo,
@@ -440,7 +493,6 @@
             (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ACTUALIZAR_GRUPO_CON_SEMILLEROS", parametros);
             mensaje = ok ? "Grupo actualizado correctamente." : $"Error: {msg}";
         }else{
-            // Crea grupo + semilleros
             var semillerosJson = semillerosFormulario.Any()
                 ? JsonSerializer.Serialize(semillerosFormulario.Select(s => new {
                     id              = s.Id,
@@ -493,7 +545,7 @@
             new() { ["p_id_grupo"] = id });
 
         exito   = ok;
-        mensaje = ok ? $"Grupo y sus semilleros eliminados." : $"Error: {msg}";
+        mensaje = ok ? "Grupo y sus semilleros eliminados." : $"Error: {msg}";
         if (ok) await CargarRegistros();
     }
 
@@ -524,7 +576,6 @@
             var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_BUSCAR_GRUPOS_CON_SEMILLEROS", parametros);
             grupos = ok ? datos : new();
 
-            // Recargar semilleros filtrados a los grupos encontrados
             var (okS, datosS, _) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
             semilleros = okS ? datosS : new();
 
@@ -539,9 +590,9 @@
     }
 
     private async Task LimpiarBusqueda(){
-        buscarIdGrupo        = null;
-        buscarNombreGrupo    = "";
-        buscarIdSemillero    = null;
+        buscarIdGrupo         = null;
+        buscarNombreGrupo     = "";
+        buscarIdSemillero     = null;
         buscarNombreSemillero = "";
         mensaje = "";
         await CargarRegistros();
