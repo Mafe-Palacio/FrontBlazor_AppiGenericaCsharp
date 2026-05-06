@@ -233,7 +233,7 @@
 }
 
 .col-id { width: 70px; }
-.col-actions { width: 90px; text-align: center; }
+.col-actions { width: 115px; text-align: center; }
 
 .id-badge {
     display: inline-block;
@@ -538,4 +538,60 @@
     font-size: 0.82rem;
     font-style: italic;
     background: var(--white);
+}
+
+/* Botón "+ Agregar" dentro de la cabecera de semilleros */
+.btn-add-semillero {
+    background: var(--green-light);
+    color: var(--green-deeper);
+}
+.btn-add-semillero:hover { background: #b8dba8; }
+
+/* Botón "+ Agregar" mejorado para mantener la coherencia visual */
+.btn-add-semillero-grupo {
+    background: var(--green-light); /* Fondo verde suave */
+    color: var(--green-deeper);     /* Texto verde oscuro para contraste */
+    border: 1px solid var(--border); /* Borde sutil */
+    border-radius: var(--radius);    /* 10px según tu variable */
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+    margin-left: 10px;               /* Espacio respecto al texto "Semilleros" */
+    vertical-align: middle;
+}
+
+.btn-add-semillero-grupo:hover {
+    background: var(--green-dark);   /* Se oscurece al pasar el mouse */
+    color: var(--white);             /* Texto cambia a blanco */
+    transform: translateY(-1px);     /* Pequeño efecto de elevación */
+    box-shadow: 0 2px 5px rgba(100,140,80,0.15);
+}
+
+.btn-add-semillero-grupo i {
+    font-size: 1.1rem;               /* Tamaño del icono de más (+) */
+}
+
+/* ── Subtítulo para secciones internas (como Semilleros) ── */
+.crud-subtitle {
+    font-size: 1.05rem;             /* Más pequeño que el 1.35rem del título principal */
+    font-weight: 700;               /* Negrita marcada */
+    color: var(--text);             /* Mismo tono de las variables en crud.css */
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding-bottom: 0.3rem;
+    margin-right: 1rem;
+    margin-top: 0.2rem;      
+    margin-bottom: 0.5rem;
+}
+
+.crud-subtitle i {
+    color: var(--green-dark);       /* Icono en un verde ligeramente más suave */
+    font-size: 1rem;
 }

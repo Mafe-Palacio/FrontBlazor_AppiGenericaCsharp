@@ -14,7 +14,7 @@
             <i class="bi bi-diagram-3"></i>
             Grupos de Investigación con Semilleros
         </h2>
-        @if (!mostrarFormulario){
+        @if (!mostrarFormulario && !mostrarFormularioSemillero){
             <button class="btn-add" @onclick="NuevoRegistro">
                 <i class="bi bi-plus-lg"></i> Nuevo Grupo
             </button>
@@ -33,7 +33,7 @@
     }
 
     @* ───────── LISTA ───────── *@
-    @if (!mostrarFormulario){
+    @if (!mostrarFormulario && !mostrarFormularioSemillero){
 
         <div class="search-bar">
             <div class="search-field">
@@ -121,6 +121,10 @@
                                 </td>
                                 <td class="col-actions">
                                     <div class="action-group">
+                                        <button class="btn-action btn-add-semillero" title="Agregar semillero"
+                                                @onclick="() => NuevoSemillero(g)">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
                                         <button class="btn-action btn-edit" title="Editar grupo"
                                                 @onclick="() => EditarRegistro(g)">
                                             <i class="bi bi-pencil"></i>
@@ -138,12 +142,6 @@
                                 <td colspan="9" class="md-detail-cell">
                                     <div class="md-detail-wrap">
 
-                                        @* Cabecera del sub-bloque *@
-                                        <div class="md-semilleros-header">
-                                            <i class="bi bi-mortarboard-fill"></i>
-                                            @semillerosGrupo.Count semillero(s) registrado(s)
-                                        </div>
-
                                         @* Sub-tabla o mensaje vacío *@
                                         @if (semillerosGrupo.Any()){
                                             <table class="md-sub-table">
@@ -152,6 +150,7 @@
                                                         <th style="width:80px">ID</th>
                                                         <th>Nombre del Semillero</th>
                                                         <th style="width:160px">Fecha Fundación</th>
+                                                        <th class="col-actions">Acciones</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -160,6 +159,18 @@
                                                             <td><span class="id-badge">@s["id"]</span></td>
                                                             <td class="td-nombre">@s["nombre"]</td>
                                                             <td class="td-desc">@s["fecha_fundacion"]</td>
+                                                            <td class="col-actions">
+                                                                <div class="action-group">
+                                                                    <button class="btn-action btn-edit" title="Editar semillero"
+                                                                            @onclick="() => EditarSemillero(s)">
+                                                                        <i class="bi bi-pencil"></i>
+                                                                    </button>
+                                                                    <button class="btn-action btn-delete" title="Eliminar semillero"
+                                                                            @onclick="() => EliminarSemillero(s)">
+                                                                        <i class="bi bi-trash3"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                     }
                                                 </tbody>
@@ -189,6 +200,59 @@
         }
     }
 
+    @* ───────── FORMULARIO SEMILLERO ───────── *@
+    @if (mostrarFormularioSemillero){
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi @(editandoSemillero ? "bi-pencil-square" : "bi-plus-square")"></i>
+                @(editandoSemillero ? "Editar Semillero" : "Nuevo Semillero")
+            </div>
+            <div class="form-card-body">
+
+                <h6 class="crud-subtitle">Datos del Semillero</h6>
+
+                <div class="form-row" style="grid-template-columns: 120px 1fr;">
+                    <div class="form-group">
+                        <label class="form-label">ID *</label>
+                        <input class="form-input" type="number" @bind="campoIdSemillero"
+                               disabled="@editandoSemillero" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nombre *</label>
+                        <input class="form-input" @bind="campoNombreSemillero_Form"
+                               maxlength="60" placeholder="Nombre del semillero" />
+                    </div>
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label class="form-label">Grupo de Investigación</label>
+                        <select class="form-input" @bind="campoGrupoSemillero">
+                            @foreach (var g in grupos){
+                                <option value="@g["id"]">@g["id"] – @g["nombre"]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fecha Fundación *</label>
+                        <input class="form-input" type="date" @bind="campoFechaSemillero" />
+                    </div>
+                </div>
+
+                <div class="form-actions mt-3">
+                    <button class="btn-save" @onclick="GuardarSemillero">
+                        <i class="bi bi-check-lg"></i> Guardar
+                    </button>
+                    <button class="btn-cancel" @onclick="CancelarSemillero">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                    <small class="text-muted ms-3">* Campos obligatorios</small>
+                </div>
+
+            </div>
+        </div>
+    }
+
     @* ───────── FORMULARIO ───────── *@
     @if (mostrarFormulario){
         <div class="form-card">
@@ -199,7 +263,7 @@
             <div class="form-card-body">
 
                 @* ── SECCIÓN MAESTRO ── *@
-                <h6 class="text-primary border-bottom pb-1 mb-3">Datos del Grupo</h6>
+                <h6 class="crud-subtitle">Datos del Grupo</h6>
 
                 <div class="form-row">
                     <div class="form-group">
@@ -273,16 +337,17 @@
 
                 @* ── SECCIÓN DETALLE: semilleros (solo al crear) ── *@
                 @if (!editando){
-                    <h6 class="text-primary border-bottom pb-1 mb-3 mt-3">
-                        Semilleros
-                        <button type="button" class="btn btn-sm btn-outline-primary ms-2"
+                    <h6 class="text-primary border-bottom pb-1 mb-3 mt-3 d-flex">
+                        <span class="crud-subtitle">Semilleros</span>
+                        <button class="btn-add-semillero-grupo"
                                 @onclick="AgregarSemillero">
                             <i class="bi bi-plus"></i> Agregar Semillero
                         </button>
                     </h6>
 
                     @if (!semillerosFormulario.Any()){
-                        <div class="alert alert-info py-2 small">
+                        <div class="alert-custom alert-ok">
+                            <i class="bi bi-info-circle"></i>
                             Sin semilleros. Puede guardar solo el grupo o agregar los que necesite.
                         </div>
                     }else{
@@ -347,28 +412,36 @@
 
 @code {
     // ── listas ──
-    private List<Dictionary<string, object?>> grupos        = new();
-    private List<Dictionary<string, object?>> semilleros    = new();
+    private List<Dictionary<string, object?>> grupos = new();
+    private List<Dictionary<string, object?>> semilleros = new();
     private List<Dictionary<string, object?>> universidades = new();
-    private List<SemilleroItem> semillerosFormulario        = new();
+    private List<SemilleroItem> semillerosFormulario = new();
 
     // ── estado ──
-    private bool   cargando          = true;
-    private bool   mostrarFormulario = false;
-    private bool   editando          = false;
-    private string mensaje           = string.Empty;
-    private bool   exito             = false;
+    private bool cargando = true;
+    private bool mostrarFormulario = false;
+    private bool editando = false;
+    private string mensaje = string.Empty;
+    private bool exito = false;
+
+    // ── estado formulario SEMILLERO (separado del de grupo) ──
+    private bool mostrarFormularioSemillero = false;
+    private bool editandoSemillero = false;
+    private int campoIdSemillero = 0;
+    private string campoNombreSemillero_Form  = "";
+    private int campoGrupoSemillero = 0;
+    private DateTime campoFechaSemillero = DateTime.Today;
 
     // ── campos maestro ──
-    private int      campoIdGrupo      = 0;
-    private string   campoNombreGrupo  = "";
-    private string   campoUrlGruplac   = "";
-    private string   campoCategoria    = "";
-    private string   campoConvocatoria = "";
-    private DateTime campoFechaFund    = DateTime.Today;
-    private int      campoUniversidad  = 0;
-    private bool     campoInterno      = true;
-    private string   campoAmbito       = "Nacional";
+    private int campoIdGrupo = 0;
+    private string campoNombreGrupo = "";
+    private string campoUrlGruplac = "";
+    private string campoCategoria = "";
+    private string campoConvocatoria = "";
+    private DateTime campoFechaFund = DateTime.Today;
+    private int campoUniversidad = 0;
+    private bool campoInterno = true;
+    private string campoAmbito = "Nacional";
 
     // ── búsqueda ──
     private int?   buscarIdGrupo         = null;
@@ -435,6 +508,27 @@
         if (DateTime.TryParse(g["fecha_fundacion"]?.ToString(), out var f)) campoFechaFund = f;
         semillerosFormulario = new();
         mostrarFormulario = true;
+        mensaje = "";
+    }
+
+    private void NuevoSemillero(Dictionary<string, object?> g){
+        editandoSemillero         = false;
+        campoIdSemillero          = 0;
+        campoNombreSemillero_Form = "";
+        campoGrupoSemillero       = Convert.ToInt32(g["id"]);
+        campoFechaSemillero       = DateTime.Today;
+        mostrarFormularioSemillero = true;
+        mensaje = "";
+    }
+
+    private void EditarSemillero(Dictionary<string, object?> s){
+        editandoSemillero          = true;
+        campoIdSemillero           = Convert.ToInt32(s["id"]);
+        campoNombreSemillero_Form  = s["nombre"]?.ToString() ?? "";
+        campoGrupoSemillero        = Convert.ToInt32(s["grupo_investigacion"]);
+        if (DateTime.TryParse(s["fecha_fundacion"]?.ToString(), out var f))
+            campoFechaSemillero = f;
+        mostrarFormularioSemillero = true;
         mensaje = "";
     }
 
@@ -526,6 +620,33 @@
         }
     }
 
+    private async Task GuardarSemillero(){
+        if (campoIdSemillero <= 0){ mensaje = "ID inválido."; exito = false; return; }
+        if (string.IsNullOrWhiteSpace(campoNombreSemillero_Form)){ mensaje = "El nombre es obligatorio."; exito = false; return; }
+
+        var parametros = new Dictionary<string, object?>{
+            ["p_id"]                  = campoIdSemillero,
+            ["p_nombre"]              = campoNombreSemillero_Form,
+            ["p_grupo_investigacion"] = campoGrupoSemillero,
+            ["p_fecha_fundacion"]     = campoFechaSemillero.ToString("yyyy-MM-dd")
+        };
+
+        var spNombre = editandoSemillero ? "SP_ACTUALIZAR_SEMILLERO" : "SP_INGRESAR_SEMILLERO";
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(spNombre, parametros);
+
+        exito   = ok;
+        mensaje = ok ? (editandoSemillero ? "Semillero actualizado." : "Semillero creado.") : $"Error: {msg}";
+        if (ok){
+            mostrarFormularioSemillero = false;
+            await CargarRegistros();
+        }
+    }
+
+    private void CancelarSemillero(){
+        mostrarFormularioSemillero = false;
+        mensaje = "";
+    }
+
     private async Task EliminarRegistro(Dictionary<string, object?> g){
         int id = Convert.ToInt32(g["id"]);
         string nombre = g["nombre"]?.ToString() ?? "";
@@ -546,6 +667,21 @@
 
         exito   = ok;
         mensaje = ok ? "Grupo y sus semilleros eliminados." : $"Error: {msg}";
+        if (ok) await CargarRegistros();
+    }
+
+    private async Task EliminarSemillero(Dictionary<string, object?> s){
+        int id = Convert.ToInt32(s["id"]);
+        string nombre = s["nombre"]?.ToString() ?? "";
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar el semillero '{nombre}'?"))
+            return;
+
+        var (ok, _, msg) = await Sp.EjecutarSpAsync(
+            "SP_ELIMINAR_SEMILLERO",
+            new() { ["p_id"] = id });
+
+        exito   = ok;
+        mensaje = ok ? "Semillero eliminado." : $"Error: {msg}";
         if (ok) await CargarRegistros();
     }
 
