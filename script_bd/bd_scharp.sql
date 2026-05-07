@@ -789,3 +789,38 @@ CREATE TABLE intereses_futuros (
     ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 GO
+
+-- Tablas necesarias para el login (jwt)
+
+CREATE TABLE usuario (
+    email VARCHAR(200) PRIMARY KEY,
+    contrasena VARCHAR(200) NOT NULL
+);
+GO
+
+CREATE TABLE rol (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL
+);
+GO
+
+CREATE TABLE rol_usuario (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    fkemail VARCHAR(200) REFERENCES usuario(email),
+    fkidrol INTEGER REFERENCES rol(id)
+);
+GO
+
+CREATE TABLE ruta (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    ruta VARCHAR(200) NOT NULL,
+    descripcion TEXT DEFAULT ''
+);
+GO
+
+CREATE TABLE rutarol (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    fkidrol INTEGER REFERENCES rol(id),
+    fkidruta INTEGER REFERENCES ruta(id)
+);
+GO
