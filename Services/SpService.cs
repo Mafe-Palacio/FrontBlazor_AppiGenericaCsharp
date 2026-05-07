@@ -37,7 +37,7 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
                 }
 
                 var respuesta = await _http.PostAsJsonAsync("/api/procedimientos/ejecutarsp", payload);
-                
+
                 // Leer como string primero para evitar crash si viene vacio
                 var texto = await respuesta.Content.ReadAsStringAsync();
 
@@ -59,6 +59,7 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
                 {
                     return (false, new(), $"Respuesta inesperada: {texto}");
                 }
+
                 // Intentar leer el mensaje
                 string mensaje = contenido.TryGetProperty("mensaje", out JsonElement msg)
                     ? msg.GetString() ?? ""
@@ -68,7 +69,6 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
 
                 if (!respuesta.IsSuccessStatusCode)
                 {
-                    // Intentar obtener detalle del error
                     string detalle = contenido.TryGetProperty("detalle", out JsonElement det)
                         ? det.GetString() ?? mensaje
                         : mensaje;
@@ -80,34 +80,14 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
                 }
 
                 // Extraer la lista de resultados
+                // La API puede devolver "resultados" o "Resultados"
                 var resultados = new List<Dictionary<string, object?>>();
 
-                // La API puede devolver "resultados" o "Resultados"
                 if (contenido.TryGetProperty("resultados", out var arr) ||
                     contenido.TryGetProperty("Resultados", out arr))
                 {
                     if (arr.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var fila in arr.EnumerateArray())
-                        {
-                            var dic = new Dictionary<string, object?>();
-                            foreach (var prop in fila.EnumerateObject())
-                            {
-                                dic[prop.Name] = prop.Value.ValueKind switch
-                                {
-                                    JsonValueKind.String => prop.Value.GetString(),
-                                    JsonValueKind.Number => prop.Value.TryGetInt32(out int i)
-                                        ? i
-                                        : prop.Value.GetDouble(),
-                                    JsonValueKind.True  => true,
-                                    JsonValueKind.False => false,
-                                    JsonValueKind.Null  => null,
-                                    _ => prop.Value.GetRawText()
-                                };
-                            }
-                            resultados.Add(dic);
-                        }
-                    }
+                        resultados = ConvertirDatos(arr);
                 }
 
                 return (true, resultados, mensaje);
@@ -116,6 +96,37 @@ namespace FrontBlazor_AppiGenericaCsharp.Services
             {
                 return (false, new(), $"Error: {ex.Message}");
             }
+        }
+
+        // --------------------------------------------------
+        // CONVERTIR DATOS: transforma el array JSON en lista
+        // de diccionarios tipados que usan las paginas Blazor
+        // --------------------------------------------------
+        private List<Dictionary<string, object?>> ConvertirDatos(JsonElement datos)
+        {
+            var lista = new List<Dictionary<string, object?>>();
+
+            foreach (var fila in datos.EnumerateArray())
+            {
+                var dic = new Dictionary<string, object?>();
+                foreach (var prop in fila.EnumerateObject())
+                {
+                    dic[prop.Name] = prop.Value.ValueKind switch
+                    {
+                        JsonValueKind.String => prop.Value.GetString(),
+                        JsonValueKind.Number => prop.Value.TryGetInt32(out int i)
+                            ? i
+                            : prop.Value.GetDouble(),
+                        JsonValueKind.True  => true,
+                        JsonValueKind.False => false,
+                        JsonValueKind.Null  => null,
+                        _                  => prop.Value.GetRawText()
+                    };
+                }
+                lista.Add(dic);
+            }
+
+            return lista;
         }
     }
 }
