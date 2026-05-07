@@ -2674,13 +2674,13 @@ BEGIN
 
         -- Validar IDs duplicados dentro del mismo JSON
         IF EXISTS (
-            SELECT id, COUNT(*) AS cnt
+            SELECT 1
             FROM OPENJSON(@p_semilleros) WITH (id INT '$.id') j
             GROUP BY id
             HAVING COUNT(*) > 1
         )
         BEGIN
-            THROW 50004, N'Hay IDs de semilleros duplicados en la lista enviada.', 1;
+            THROW 50004, N'Hay IDs en semilleros.', 1;
         END
     END
 
@@ -2734,8 +2734,10 @@ BEGIN
 END;
 GO
 
+
 -- ------------------------------------------------------------
 -- Actualizar grupo CON semilleros
+-- Solo actualiza los campos del grupo maestro.
 -- ------------------------------------------------------------
 CREATE PROCEDURE SP_ACTUALIZAR_GRUPO_CON_SEMILLEROS
     @p_id_grupo       INT,
@@ -2904,4 +2906,65 @@ BEGIN
         THROW;
     END CATCH
 END;
+GO
+
+------------------------------------------
+-- Agregar datos a las tablas necesarias para el login
+------------------------------------------
+
+INSERT INTO dbo.usuario (email, contrasena) VALUES
+('mafe.palacio53@gmail.com', '12345'),
+('invitado@gmail.com', '12345')
+GO
+
+INSERT INTO dbo.rol (nombre) VALUES
+('Administrador'),
+('Invitado')
+GO
+
+INSERT INTO dbo.rol_usuario (fkemail, fkidrol) VALUES
+('mafe.palacio53@gmail.com', 1),
+('invitado@gmail.com', 2)
+GO
+
+INSERT INTO dbo.ruta (ruta, descripcion) VALUES
+('/', 'Inicio'),
+('/linea-investigacion', 'CRUD Línea de Investigación'),
+('/area-conocimiento', 'CRUD Área de Conocimiento'),
+('/area-aplicacion', 'CRUD Área de Aplicación'),
+('/objetivo-desarrollo-sostenible', 'CRUD Objetivo de Desarrollo Sostenible'),
+('/grupo-investigacion', 'CRUD Grupo de Investigación'),
+('/semillero', 'CRUD Semillero'),
+('/participa-grupo', 'CRUD Participa Grupo'),
+('/participa-semillero', 'CRUD Participa Semillero'),
+('/grupo-linea', 'CRUD Grupo - Línea'),
+('/ac-linea', 'CRUD AC - Línea'),
+('/aa-linea', 'CRUD AA - Línea'),
+('/semillero-linea', 'CRUD Semillero - Línea'),
+('/ods-linea', 'CRUD ODS - Línea'),
+('/grupos-semilleros', 'Maestro-Detalle Grupos con Semilleros')
+GO
+
+INSERT INTO dbo.rutarol (fkidrol, fkidruta) VALUES
+(1,1),
+(1,2),
+(1,3),
+(1,4),
+(1,5),
+(1,6),
+(1,7),
+(1,8),
+(1,9),
+(1,10),
+(1,11),
+(1,12),
+(1,13),
+(1,14),
+(1,15),
+(2,1),
+(2,2),
+(2,3),
+(2,4),
+(2,5),
+(2,15)
 GO
