@@ -655,7 +655,7 @@
             .Count(s => s["grupo_investigacion"]?.ToString() == id.ToString());
 
         string confirmMsg = semCount > 0
-            ? $"¿Eliminar el grupo '{nombre}' y sus {semCount} semillero(s)? Esta acción es lógica y se puede revertir."
+            ? $"¿Eliminar el grupo '{nombre}' y sus {semCount} semillero(s)?."
             : $"¿Eliminar el grupo '{nombre}'?";
 
         if (!await JS.InvokeAsync<bool>("confirm", confirmMsg))
