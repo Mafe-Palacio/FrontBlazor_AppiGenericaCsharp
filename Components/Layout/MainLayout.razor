@@ -43,9 +43,20 @@ else
                 <span>Frontend Blazor — API GenericaCsharp</span>
                 @if (_auth.EstaAutenticado)
                 {
-                    <div class="d-flex align-items-center gap-3">
-                        <small class="text-muted">@(_auth.NombreUsuario ?? _auth.Usuario)</small>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="_Logout">Cerrar sesion</button>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="user-name-tag me-2">
+                            <i class="bi bi-person-circle"></i> @(_auth.NombreUsuario ?? _auth.Usuario)
+                        </span>
+
+                        <button class="btn-user-action btn-user-settings" @onclick="IrACambiarContrasena">
+                            <i class="bi bi-key"></i> 
+                            <span>Contraseña</span>
+                        </button>
+
+                        <button class="btn-user-action btn-user-logout" @onclick="_Logout">
+                            <i class="bi bi-box-arrow-right"></i> 
+                            <span>Salir</span>
+                        </button>
                     </div>
                 }
                 else
@@ -141,6 +152,10 @@ else
     {
         await _auth.Logout();
         _nav.NavigateTo("/login");
+    }
+
+    private void IrACambiarContrasena(){
+        _nav.NavigateTo("/cambiar-contrasena");
     }
 
     public void Dispose()
