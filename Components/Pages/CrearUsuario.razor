@@ -1,3 +1,44 @@
+@*
+    CrearUsuario.razor - Pagina de registro de nuevos usuarios.
+
+    CONCEPTOS BLAZOR:
+    - @layout EmptyLayout         -> Usa layout vacio (sin sidebar/menu) porque
+                                     el registro no necesita navegacion lateral
+    - @inject AuthService auth    -> Inyecta el servicio de autenticacion (Dependency Injection)
+                                     para acceder al metodo Registrar()
+    - @inject NavigationManager   -> Para redirigir a /login despues del registro exitoso
+    - @rendermode InteractiveServer -> Necesario para que @onclick y @bind funcionen via SignalR
+    - @bind="email"               -> Two-way binding: sincroniza la variable C# con el input HTML
+                                     en tiempo real, sin necesidad de leer el DOM manualmente
+    - @onclick="DoRegister"       -> Al hacer clic en el boton, ejecuta el metodo DoRegister()
+    - disabled="@(cargando || registrado)" -> Deshabilita el boton mientras procesa o ya registro,
+                                              evitando envios dobles
+
+    AUTENTICACION / AUTORIZACION:
+    - La validacion de formato contrasena antes de guardarse:
+        * Email no vacio y con "@"
+        * Contrasena minimo 6 caracteres
+        * Al menos 1 mayuscula (char.IsUpper)
+        * Al menos 1 numero (char.IsDigit)
+        * Contrasena y confirmacion deben coincidir
+    - El hash de la contrasena ocurre en el SERVIDOR (API) con BCrypt,
+      nunca se envia ni almacena en texto plano
+    - Tras registro exitoso, el usuario es redirigido a /login para autenticarse
+
+    FLUJO:
+    1. Usuario llena email, contrasena y confirmacion
+    2. Clic en "Registrarse" -> llama DoRegister()
+    3. DoRegister() ejecuta validaciones del lado cliente
+       - Si alguna falla -> muestra alerta roja y detiene la ejecucion (return)
+    4. Si todas pasan -> cargando = true (muestra spinner, deshabilita boton)
+    5. Llama auth.Registrar(email, contrasena) que envia los datos a la API REST
+    6. cargando = false al recibir respuesta
+    7a. Si ok == true  -> registrado = true, muestra alerta verde,
+                          espera 2 segundos y redirige a /login
+    7b. Si ok == false -> muestra el mensaje de error devuelto por la API
+                          (ej: "El correo ya esta registrado")
+*@
+
 @page "/crear-usuario"
 @layout FrontBlazor_AppiGenericaCsharp.Components.Layout.EmptyLayout
 @inject FrontBlazor_AppiGenericaCsharp.Services.AuthService auth
