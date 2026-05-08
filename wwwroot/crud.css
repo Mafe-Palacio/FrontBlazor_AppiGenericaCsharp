@@ -798,3 +798,39 @@
     color: var(--text-muted);
     font-size: 0.85rem;
 }
+
+/* Sin Accesp */
+.login-header-danger {
+    background: var(--danger); 
+    color: var(--white);
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.access-icon-container {
+    font-size: 3.5rem;
+    color: var(--danger);
+    background: var(--danger-light);
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+}
+
+.btn-danger-soft {
+    background: var(--danger-light);
+    color: var(--danger);
+    border: 1px solid #f5caca;
+    border-radius: var(--radius);
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-danger-soft:hover {
+    background: var(--danger);
+    color: var(--white);
+}

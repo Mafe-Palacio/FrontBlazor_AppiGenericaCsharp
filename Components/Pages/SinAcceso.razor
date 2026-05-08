@@ -13,16 +13,28 @@
 @inject NavigationManager nav
 @rendermode InteractiveServer
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height:70vh">
-    <div class="card shadow" style="width:450px">
-        <div class="card-header text-center bg-danger text-white">
-            <h5 class="mb-0">Acceso Denegado</h5>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header-danger">
+            <i class="bi bi-shield-lock-fill" style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;"></i>
+            <h4 class="mb-0">Acceso Restringido</h4>
         </div>
-        <div class="card-body p-4 text-center">
-            <p class="fs-1 mb-2">&#x1F6AB;</p>
-            <p>No tiene permisos para acceder a esta pagina.</p>
-            <p class="text-muted small">Contacte al administrador si necesita acceso.</p>
-            <button class="btn btn-primary mt-2" @onclick='() => nav.NavigateTo("/")'>Volver al inicio</button>
+
+        <div class="login-body text-center">
+
+            <h5 class="fw-bold text-dark">¡Alto ahí!</h5>
+            <p class="text-muted mb-4">
+                No tienes los permisos necesarios para visualizar esta sección del sistema de investigación.
+            </p>
+
+            <div class="alert-custom alert-err mb-4" style="font-size: 0.85rem;">
+                <i class="bi bi-info-circle"></i>
+                Si crees que esto es un error, por favor contacta al administrador de la plataforma.
+            </div>
+
+            <button class="btn-danger-soft w-100" @onclick='() => nav.NavigateTo("/")'>
+                <i class="bi bi-house-door me-2"></i> Volver al inicio
+            </button>
         </div>
     </div>
 </div>
