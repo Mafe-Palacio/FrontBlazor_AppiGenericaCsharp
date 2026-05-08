@@ -8,8 +8,6 @@
                                      para acceder al metodo Registrar()
     - @inject NavigationManager   -> Para redirigir a /login despues del registro exitoso
     - @rendermode InteractiveServer -> Necesario para que @onclick y @bind funcionen via SignalR
-    - @bind="email"               -> Two-way binding: sincroniza la variable C# con el input HTML
-                                     en tiempo real, sin necesidad de leer el DOM manualmente
     - @onclick="DoRegister"       -> Al hacer clic en el boton, ejecuta el metodo DoRegister()
     - disabled="@(cargando || registrado)" -> Deshabilita el boton mientras procesa o ya registro,
                                               evitando envios dobles
