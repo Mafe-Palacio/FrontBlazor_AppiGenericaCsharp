@@ -1035,4 +1035,33 @@ WHERE u.{pkUsuario} = @email";
         if (RutasPermitidas.Count == 0) return true;
         return RutasPermitidas.Any(r => ruta == r || ruta.StartsWith(r + "/"));
     }
+
+
+
+
+    // Prueba de registrar
+    public async Task<(bool exito, string mensaje)> Registrar(string email, string contrasena){
+        try{
+            // 1. Crear usuario
+            var respUser = await _http.PostAsJsonAsync(
+                "api/usuario?camposEncriptar=contrasena",
+                new { email, contrasena });
+
+            if (!respUser.IsSuccessStatusCode)
+                return (false, "Error al crear el usuario.");
+
+            // Asignar rol Invitado (id=2) por defecto
+            var respRol = await _http.PostAsJsonAsync(
+                "api/rol_usuario",
+                new { fkemail = email, fkidrol = 2 });
+
+            if (!respRol.IsSuccessStatusCode)
+                return (false, "Usuario creado pero sin rol asignado.");
+
+            return (true, "Usuario registrado correctamente.");
+        } catch (Exception ex) {
+            return (false, $"Error: {ex.Message}");
+        }
+    }
+
 }

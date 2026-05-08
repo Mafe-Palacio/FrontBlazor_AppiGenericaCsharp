@@ -1,0 +1,109 @@
+@page "/crear-usuario"
+@layout FrontBlazor_AppiGenericaCsharp.Components.Layout.EmptyLayout
+@inject FrontBlazor_AppiGenericaCsharp.Services.AuthService auth
+@inject NavigationManager nav
+@rendermode InteractiveServer
+
+<div class="login-container">
+    <div class="login-card register-card">
+        <div class="login-header">
+            <i class="bi bi-person-plus" style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;"></i>
+            <h4>Crear Cuenta</h4>
+            <p class="small mb-0 opacity-75">Únete a la Gestión de Investigación</p>
+        </div>
+
+        <div class="login-body">
+
+            @if (!string.IsNullOrEmpty(error)){
+                <div class="alert-custom alert-err mb-3">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@error</span>
+                    <button class="alert-close" @onclick='() => error = ""'>&times;</button>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(exito)){
+                <div class="alert-custom alert-ok mb-3">
+                    <i class="bi bi-check-circle"></i>
+                    <span>@exito</span>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">Correo institucional</label>
+                <input type="email" class="login-input" @bind="email"
+                       placeholder="usuario@itm.edu.co" disabled="@cargando" />
+            </div>
+
+            <div class="form-row mb-3">
+                <div class="form-group">
+                    <label class="form-label small fw-bold text-muted">Contraseña</label>
+                    <input type="password" class="login-input" @bind="contrasena"
+                           placeholder="••••••••" disabled="@cargando" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label small fw-bold text-muted">Confirmar</label>
+                    <input type="password" class="login-input" @bind="confirmarContrasena"
+                           placeholder="••••••••" disabled="@cargando" />
+                </div>
+            </div>
+
+            <button class="btn-login mt-2" @onclick="DoRegister" disabled="@(cargando || registrado)">
+                @if (cargando){
+                    <span class="spinner me-2" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;"></span>
+                    <span>Procesando...</span>
+                }else{
+                    <span>Registrarse</span>
+                }
+            </button>
+
+            <div class="login-footer">
+                <span class="small text-muted">¿Ya tienes una cuenta?</span>
+                <a href="/login" class="login-link">Inicia sesión aquí</a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private string email = "";
+    private string contrasena = "";
+    private string confirmarContrasena = "";
+    private string error = "";
+    private string exito = "";
+    private bool cargando = false;
+    private bool registrado = false;
+
+    private async Task DoRegister(){
+        error = "";
+        exito = "";
+
+        // ── Validaciones ──
+        if (string.IsNullOrWhiteSpace(email)){
+            error = "El correo es obligatorio."; return;
+        }
+        if (!email.Contains("@")){
+            error = "Ingresá un correo válido."; return;
+        }
+        if (string.IsNullOrWhiteSpace(contrasena)){
+            error = "La contraseña es obligatoria."; return;
+        }
+        if (contrasena != confirmarContrasena){
+            error = "Las contraseñas no coinciden."; return;
+        }
+
+        cargando = true;
+        var (ok, mensaje) = await auth.Registrar(email.Trim(), contrasena);
+        cargando = false;
+
+        if (ok){
+            registrado = true;
+            exito = "Cuenta creada. Redirigiendo al login...";
+            await Task.Delay(2000);
+            nav.NavigateTo("/login");
+        }else{
+            error = mensaje;
+        }
+    }
+}

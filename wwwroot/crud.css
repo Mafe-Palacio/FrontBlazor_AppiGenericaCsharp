@@ -16,13 +16,13 @@
     --shadow:       0 2px 12px rgba(100,140,80,0.10);
 }
 
-/* ── Wrapper principal ── */
+/* Wrapper principal */
 .crud-wrapper {
     padding: 1.75rem 2rem;
     max-width: 1100px;
 }
 
-/* ── Header (título + botón añadir) ── */
+/* Header (título + botón añadir) */
 .crud-header {
     display: flex;
     align-items: center;
@@ -66,7 +66,7 @@
     transform: translateY(-1px);
 }
 
-/* ── Alertas ── */
+/* Alertas */
 .alert-custom {
     display: flex;
     align-items: center;
@@ -105,7 +105,7 @@
 
 .alert-close:hover { opacity: 1; }
 
-/* ── Barra de búsqueda ── */
+/* Barra de búsqueda */
 .search-bar {
     display: flex;
     align-items: center;
@@ -187,7 +187,7 @@
     color: var(--danger);
 }
 
-/* ── Tabla ── */
+/* Tabla */
 .table-wrap {
     border-radius: var(--radius);
     overflow: hidden;
@@ -248,7 +248,7 @@
 .td-nombre { font-weight: 500; }
 .td-desc { color: var(--text-muted); }
 
-/* ── Botones de acción ── */
+/* Botones de acción */
 .action-group {
     display: flex;
     align-items: center;
@@ -285,7 +285,7 @@
 
 .btn-delete:hover { background: #fad0d0; }
 
-/* ── Spinner / empty ── */
+/* Spinner / empty */
 .loading-wrap {
     display: flex;
     align-items: center;
@@ -422,9 +422,7 @@
     color: var(--danger);
 }
 
-/* ══════════════════════════════════════════
-   MAESTRO-DETALLE  –  agregar al final de crud.css
-   ══════════════════════════════════════════ */
+/* MAESTRO-DETALLE */
 
 /* Separa visualmente cada grupo */
 .crud-table tbody.md-grupo-body {
@@ -434,7 +432,7 @@
     border-top: none;
 }
 
-/* Fila del grupo: fondo tintado suave */
+/* Fila del grupo */
 .md-grupo-row {
     background: var(--green-faint) !important;
 }
@@ -442,7 +440,7 @@
     background: var(--green-faint) !important; /* sin cambio al hover */
 }
 
-/* Fila de detalle: sin hover */
+/* Fila de detalle */
 .md-detail-row {
     background: var(--white) !important;
 }
@@ -450,12 +448,10 @@
     background: var(--white) !important;
 }
 
-/* Celda que ocupa todo el ancho */
 .md-detail-cell {
     padding: 0 !important;
 }
 
-/* Contenedor del bloque semilleros con sangría */
 .md-detail-wrap {
     margin: 0.55rem 1rem 0.7rem 2.5rem;
     border: 1px solid var(--border);
@@ -463,7 +459,7 @@
     overflow: hidden;
 }
 
-/* Cabecera "N semillero(s)" */
+/* Cabecera "# semillero(s)" */
 .md-semilleros-header {
     display: flex;
     align-items: center;
@@ -498,18 +494,18 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
     border: none;
-    text-align: center; /* centrado */
+    text-align: center; 
 }
 .md-sub-table tbody tr {
     border-bottom: 1px solid #eef3ec;
 }
 .md-sub-table tbody tr:last-child { border-bottom: none; }
-.md-sub-table tbody tr:hover { background: var(--white) !important; } /* sin hover */
+.md-sub-table tbody tr:hover { background: var(--white) !important; } 
 .md-sub-table td {
     padding: 0.5rem 0.85rem;
     color: var(--text);
     vertical-align: middle;
-    text-align: center; /* centrado */
+    text-align: center; 
 }
 
 /* Badge categoría (dentro de la fila grupo) */
@@ -540,19 +536,18 @@
     background: var(--white);
 }
 
-/* Botón "+ Agregar" dentro de la cabecera de semilleros */
 .btn-add-semillero {
     background: var(--green-light);
     color: var(--green-deeper);
 }
 .btn-add-semillero:hover { background: #b8dba8; }
 
-/* Botón "+ Agregar" mejorado para mantener la coherencia visual */
+/* Botón "+ Agregar" del componente maestro - detalle */
 .btn-add-semillero-grupo {
-    background: var(--green-light); /* Fondo verde suave */
-    color: var(--green-deeper);     /* Texto verde oscuro para contraste */
-    border: 1px solid var(--border); /* Borde sutil */
-    border-radius: var(--radius);    /* 10px según tu variable */
+    background: var(--green-light); 
+    color: var(--green-deeper);     
+    border: 1px solid var(--border); 
+    border-radius: var(--radius);    
     padding: 0.4rem 0.9rem;
     font-size: 0.85rem;
     font-weight: 600;
@@ -561,26 +556,26 @@
     align-items: center;
     gap: 0.4rem;
     transition: all 0.2s ease;
-    margin-left: 10px;               /* Espacio respecto al texto "Semilleros" */
+    margin-left: 10px;              
     vertical-align: middle;
 }
 
 .btn-add-semillero-grupo:hover {
-    background: var(--green-dark);   /* Se oscurece al pasar el mouse */
-    color: var(--white);             /* Texto cambia a blanco */
-    transform: translateY(-1px);     /* Pequeño efecto de elevación */
+    background: var(--green-dark);   
+    color: var(--white);             
+    transform: translateY(-1px);     
     box-shadow: 0 2px 5px rgba(100,140,80,0.15);
 }
 
 .btn-add-semillero-grupo i {
-    font-size: 1.1rem;               /* Tamaño del icono de más (+) */
+    font-size: 1.1rem;              
 }
 
-/* ── Subtítulo para secciones internas (como Semilleros) ── */
+/* Subtítulo para secciones internas */
 .crud-subtitle {
-    font-size: 1.05rem;             /* Más pequeño que el 1.35rem del título principal */
-    font-weight: 700;               /* Negrita marcada */
-    color: var(--text);             /* Mismo tono de las variables en crud.css */
+    font-size: 1.05rem;             
+    font-weight: 700;               
+    color: var(--text);             
     margin: 0;
     display: flex;
     align-items: center;
@@ -592,6 +587,106 @@
 }
 
 .crud-subtitle i {
-    color: var(--green-dark);       /* Icono en un verde ligeramente más suave */
+    color: var(--green-dark);       
     font-size: 1rem;
+}
+
+/* Vista de Login */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--green-faint); 
+}
+
+.login-card {
+    background: var(--white);
+    width: 100%;
+    max-width: 400px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.login-header {
+    background: var(--green-dark);
+    color: var(--white);
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.login-header h4 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.login-body {
+    padding: 2rem;
+}
+
+/* Estilos para el login */
+.login-input {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+    margin-top: 0.3rem;
+}
+
+.login-input:focus {
+    outline: none;
+    border-color: var(--green-dark);
+    box-shadow: 0 0 0 3px rgba(142,186,116,0.15);
+}
+
+.btn-login {
+    background: var(--green-dark);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    width: 100%;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 1rem;
+}
+
+.btn-login:hover:not(:disabled) {
+    background: var(--green-deeper);
+}
+
+.btn-login:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Registro */
+.login-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.login-link {
+    color: var(--green-dark);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.login-link:hover {
+    color: var(--green-deeper);
+    text-decoration: underline;
+}
+
+.register-card {
+    max-width: 500px; /* Un poco más ancho que el login por si pides más datos */
 }
