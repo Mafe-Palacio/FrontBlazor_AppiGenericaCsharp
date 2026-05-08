@@ -1,0 +1,151 @@
+
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService SpService
+@rendermode InteractiveServer
+
+<div class="ov-section">
+
+    <p class="ov-section-label">Cantidad de registros</p>
+
+    @if (cargando)
+    {
+        <div class="cards-loading">
+            <div class="spinner-border spinner-border-sm text-success me-2"></div>
+            <span>Cargando métricas...</span>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMsg))
+    {
+        <div class="alert alert-warning d-flex align-items-center gap-2 py-2">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>No se pudieron cargar las métricas: @errorMsg</span>
+        </div>
+    }
+    else
+    {
+        <div class="ov-cards-grid">
+
+            <div class="ov-card">
+                <div class="ov-icon" style="background:#d4edca; color:#6fa057;">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <div class="ov-body">
+                    <span class="ov-value">@totalLineas</span>
+                    <span class="ov-label">Líneas de Investigación</span>
+                </div>
+            </div>
+
+            <div class="ov-card">
+                <div class="ov-icon" style="background:#dbeafe; color:#1d4ed8;">
+                    <i class="bi bi-briefcase"></i>
+                </div>
+                <div class="ov-body">
+                    <span class="ov-value">@totalAreasAplicacion</span>
+                    <span class="ov-label">Áreas de Aplicación</span>
+                </div>
+            </div>
+
+            <div class="ov-card">
+                <div class="ov-icon" style="background:#ede9fe; color:#6d28d9;">
+                    <i class="bi bi-book"></i>
+                </div>
+                <div class="ov-body">
+                    <span class="ov-value">@totalAreasConocimiento</span>
+                    <span class="ov-label">Áreas de Conocimiento</span>
+                </div>
+            </div>
+
+            <div class="ov-card">
+                <div class="ov-icon" style="background:#fff3e0; color:#d4870a;">
+                    <i class="bi bi-globe2"></i>
+                </div>
+                <div class="ov-body">
+                    <span class="ov-value">@totalODS</span>
+                    <span class="ov-label">Objetivos ODS</span>
+                </div>
+            </div>
+
+            <div class="ov-card @(totalGrupos < 5 ? "ov-card--alert" : "")">
+                <div class="ov-icon"
+                     style="background:@(totalGrupos < 5 ? "#fdeaea" : "#d4edca");
+                            color:@(totalGrupos < 5 ? "#e05555" : "#6fa057");">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="ov-body">
+                    <span class="ov-value">@totalGrupos</span>
+                    <span class="ov-label">Grupos de Investigación</span>
+                </div>
+            </div>
+
+        </div>
+    }
+</div>
+
+@code {
+    private int totalLineas            = 0;
+    private int totalAreasAplicacion   = 0;
+    private int totalAreasConocimiento = 0;
+    private int totalODS               = 0;
+    private int totalGrupos            = 0;
+
+    private bool   cargando = true;
+    private string errorMsg = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarCards();
+    }
+
+    private async Task CargarCards()
+    {
+        cargando = true;
+        errorMsg = "";
+
+        try
+        {
+            var (exito, resultados, mensaje) = await SpService.EjecutarSpAsync("SP_DASHBOARD_CARDS");
+
+            if (exito && resultados != null && resultados.Count > 0)
+            {
+                // El SP devuelve 1 fila con las 5 columnas de conteo
+                var fila = resultados[0];
+
+                totalLineas            = ObtenerInt(fila, "total_lineas");
+                totalAreasAplicacion   = ObtenerInt(fila, "total_areas_aplicacion");
+                totalAreasConocimiento = ObtenerInt(fila, "total_areas_conocimiento");
+                totalODS               = ObtenerInt(fila, "total_ods");
+                totalGrupos            = ObtenerInt(fila, "total_grupos");
+            }
+            else
+            {
+                errorMsg = string.IsNullOrEmpty(mensaje)
+                    ? "El SP no devolvió resultados."
+                    : mensaje;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMsg = "Error de conexión con la API.";
+            Console.WriteLine($"[Cards] Excepción: {ex.Message}");
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    private int ObtenerInt(Dictionary<string, object?> dict, string clave)
+    {
+        if (!dict.TryGetValue(clave, out object? valor) || valor is null)
+            return 0;
+
+        return valor switch
+        {
+            int    i => i,
+            long   l => (int)l,
+            double d => (int)d,
+            string s when int.TryParse(s, out int p) => p,
+            _        => 0
+        };
+    }
+}

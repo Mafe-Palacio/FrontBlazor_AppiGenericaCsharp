@@ -1,0 +1,43 @@
+
+@page "/dashboard"
+@using FrontBlazor_AppiGenericaCsharp.Components.Pages.Dashboard
+
+<HeadContent>
+    <link rel="stylesheet" href="dashboard.css" />
+</HeadContent>
+
+<PageTitle>Dashboard - Métricas</PageTitle>
+
+<div class="crud-wrapper dashboard-wrapper">
+
+    <div class="crud-header">
+        <div class="crud-title">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </div>
+        <button class="btn-back" @onclick="Volver">
+            <i class="bi bi-arrow-left"></i>
+            <span>Volver</span>
+        </button>
+    </div>
+
+    @* Cards *@
+    <Cards />
+
+    <hr class="dashboard-divider" />
+
+    @* Gráfica - aún no está *@
+    <div class="dashboard-modules">
+        <GraficaGruposSemilleros />
+    </div>
+
+</div>
+
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+    private void Volver()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

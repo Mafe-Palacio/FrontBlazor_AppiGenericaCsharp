@@ -834,3 +834,34 @@
     background: var(--danger);
     color: var(--white);
 }
+
+/* Botón Dashboard */
+.btn-dashboard {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-deeper) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.6rem 1.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(100,140,80,0.3);
+}
+
+.btn-dashboard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(100,140,80,0.4);
+    background: linear-gradient(135deg, var(--green-deeper) 0%, var(--green) 100%);
+}
+
+.btn-dashboard:active {
+    transform: translateY(0);
+}
+
+.btn-dashboard i {
+    font-size: 1.1rem;
+}
