@@ -1,13 +1,42 @@
 @*
-    CambiarContrasena.razor - Formulario para cambiar contrasena.
+    CambiarContrasena.razor - Formulario para actualizar la contrasena del usuario autenticado.
 
-    SE MUESTRA CUANDO:
-    1. El usuario hace clic voluntariamente
-    2. El sistema lo FUERZA despues de usar contrasena temporal (recuperacion)
+    CONCEPTOS BLAZOR:
+    - @inject AuthService auth      -> Inyecta el servicio de autenticacion (Dependency Injection)
+                                       para acceder al metodo CambiarContrasena()
+    - @inject NavigationManager     -> Para redirigir al inicio "/" tras el cambio exitoso
+    - @rendermode InteractiveServer -> Necesario para que @onclick y @bind funcionen via SignalR
+    - @onclick="Cambiar"            -> Al hacer clic en el boton, ejecuta el metodo Cambiar()
 
-    VALIDACION:
-    - Minimo 6 caracteres, 1 mayuscula, 1 numero
-    - La API encripta con BCrypt via ?camposEncriptar=contrasena
+    AUTENTICACION / AUTORIZACION:
+    - Esta pagina sirve para DOS escenarios distintos:
+        1. Cambio VOLUNTARIO: el usuario ya autenticado decide cambiar su contrasena
+        2. Cambio FORZADO: el sistema redirige aqui automaticamente cuando detecta que
+           el usuario inicio sesion con una contrasena temporal (recuperacion de cuenta).
+           En este caso auth.DebeCambiarContrasena == true (ver Login.razor)
+    - La validacion de formato ocurre en el CLIENTE (C#) antes de llamar a la API
+    - El hash de la nueva contrasena ocurre en el SERVIDOR via el parametro
+      ?camposEncriptar=contrasena, que le indica a la API que aplique BCrypt
+      sobre ese campo antes de guardarlo. Nunca se almacena en texto plano.
+    - El usuario debe estar autenticado para que auth.CambiarContrasena() funcione,
+      ya que el servicio usa el token/sesion activa para identificar a quien actualizar
+
+    FLUJO:
+    1. Usuario llega a esta pagina (voluntariamente o forzado por el sistema)
+    2. Escribe nueva contrasena y confirmacion
+    3. Clic en "Actualizar Contrasena" -> llama Cambiar()
+    4. Cambiar() ejecuta validaciones del lado cliente en orden:
+       - Las contrasenas deben coincidir
+       - Minimo 6 caracteres
+       - Al menos 1 mayuscula (char.IsUpper)
+       - Al menos 1 numero (char.IsDigit)
+       - Si alguna falla -> muestra alerta roja y detiene con return
+    5. Si todas pasan -> cargando = true (muestra spinner, deshabilita boton)
+    6. Llama auth.CambiarContrasena(nueva) que envia la nueva contrasena a la API REST
+    7. cargando = false al recibir respuesta
+    8a. Si ok == true  -> tipoMensaje = "success", muestra alerta verde,
+                          espera 1.5 segundos y redirige a "/" (inicio)
+    8b. Si ok == false -> tipoMensaje = "danger", muestra el error devuelto por la API
 *@
 
 @page "/cambiar-contrasena"
