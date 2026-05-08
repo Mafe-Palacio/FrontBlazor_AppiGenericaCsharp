@@ -147,7 +147,7 @@ public class AuthService
 
     // ── Dependencias privadas ────────────────────────────────
     private readonly ProtectedSessionStorage _session;  // Almacenamiento encriptado del navegador
-    private readonly string _apiUrl;                    // URL de la API (ej: http://localhost:5035)
+    private readonly string _apiUrl;                    // URL de la API (ej: http://localhost:5034)
     private readonly HttpClient _http;                  // Cliente HTTP para llamar a la API
     private readonly Dictionary<string, object> _cache = new(); // Cache de estructura BD
 
