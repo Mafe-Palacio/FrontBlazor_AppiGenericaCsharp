@@ -315,4 +315,4 @@ C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.
 C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\FrontBlazor_AppiGenericaCsharp.pdb
 C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\FrontBlazor_AppiGenericaCsharp.genruntimeconfig.cache
 C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\ref\FrontBlazor_AppiGenericaCsharp.dll
-C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\8javswpns2-e6o0cqp3oc.gz
+C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\8javswpns2-arox7mtakf.gz

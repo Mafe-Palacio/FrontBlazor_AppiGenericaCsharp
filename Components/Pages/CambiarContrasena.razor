@@ -15,33 +15,55 @@
 @inject NavigationManager nav
 @rendermode InteractiveServer
 
-<div class="container" style="max-width:450px; margin-top:80px">
-    <div class="card shadow">
-        <div class="card-header text-center bg-warning text-dark">
-            <h5 class="mb-0">Cambiar Contrasena</h5>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header-warn">
+            <i class="bi bi-shield-lock" style="font-size: 2.2rem; display: block; margin-bottom: 0.5rem;"></i>
+            <h5 class="mb-0">Actualizar Seguridad</h5>
+            <p class="small mb-0 opacity-75">Define tu nueva contraseña</p>
         </div>
-        <div class="card-body p-4">
+
+        <div class="login-body">
             @if (!string.IsNullOrEmpty(mensaje))
             {
-                <div class='alert alert-@tipoMensaje small py-2'>@mensaje</div>
+                <div class="alert-custom @(tipoMensaje == "success" ? "alert-ok" : "alert-err") mb-3">
+                    <i class="bi @(tipoMensaje == "success" ? "bi-check-circle" : "bi-exclamation-triangle")"></i>
+                    <span>@mensaje</span>
+                    <button class="alert-close" @onclick='() => mensaje = ""'>&times;</button>
+                </div>
             }
 
             <div class="mb-3">
-                <label class="form-label small">Nueva contrasena</label>
-                <input type="password" class="form-control" @bind="nueva" />
-                <small class="text-muted">Minimo 6 caracteres, 1 mayuscula, 1 numero</small>
+                <label class="form-label small fw-bold text-muted">Nueva contraseña</label>
+                <input type="password" class="login-input" @bind="nueva" placeholder="Mínimo 6 caracteres" />
+                <div class="req-text">
+                    <i class="bi bi-info-circle me-1"></i> 
+                    Debe incluir 1 mayúscula y 1 número.
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label small">Confirmar contrasena</label>
-                <input type="password" class="form-control" @bind="confirmar" />
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-muted">Confirmar contraseña</label>
+                <input type="password" class="login-input" @bind="confirmar" placeholder="Repite tu contraseña" />
             </div>
-            <button class="btn btn-warning w-100" @onclick="Cambiar" disabled="@cargando">
+
+            <button class="btn-warning-custom" @onclick="Cambiar" disabled="@cargando">
                 @if (cargando)
                 {
-                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    <span class="spinner me-2" style="width:16px; height:16px; border-width:2px; display:inline-block; vertical-align:middle; border-top-color: var(--white);"></span>
+                    <span>Procesando...</span>
                 }
-                Cambiar
+                else
+                {
+                    <span>Actualizar Contraseña</span>
+                }
             </button>
+
+            <div class="text-center mt-4">
+                <a href="/login" class="small text-muted text-decoration-none">
+                    <i class="bi bi-arrow-left"></i> Volver al inicio de sesión
+                </a>
+            </div>
         </div>
     </div>
 </div>

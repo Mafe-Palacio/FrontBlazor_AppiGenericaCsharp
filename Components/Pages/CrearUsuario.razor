@@ -12,6 +12,11 @@
             <p class="small mb-0 opacity-75">Únete a la Gestión de Investigación</p>
         </div>
 
+        <div class="req-text">
+            <i class="bi bi-info-circle me-1"></i> 
+            Debe incluir 1 mayúscula y 1 número.
+        </div>
+
         <div class="login-body">
 
             @if (!string.IsNullOrEmpty(error)){
@@ -30,7 +35,7 @@
             }
 
             <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">Correo institucional</label>
+                <label class="form-label small fw-bold text-muted">Correo electrónico</label>
                 <input type="email" class="login-input" @bind="email"
                        placeholder="usuario@itm.edu.co" disabled="@cargando" />
             </div>
@@ -88,6 +93,15 @@
         }
         if (string.IsNullOrWhiteSpace(contrasena)){
             error = "La contraseña es obligatoria."; return;
+        }
+        if (contrasena.Length < 6) { 
+            error = "Minimo 6 caracteres."; return; 
+        }
+        if (!contrasena.Any(char.IsUpper)) { 
+            error = "Debe incluir al menos una mayuscula."; return; 
+        }
+        if (!contrasena.Any(char.IsDigit)) { 
+            error = "Debe incluir al menos un numero."; return; 
         }
         if (contrasena != confirmarContrasena){
             error = "Las contraseñas no coinciden."; return;

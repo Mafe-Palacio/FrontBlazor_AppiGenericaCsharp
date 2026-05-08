@@ -25,32 +25,50 @@
 @inject IConfiguration config
 @rendermode InteractiveServer
 
-<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;background:#f0f2f5">
-    <div class="card shadow" style="width:400px">
-        <div class="card-header text-center bg-info text-white">
-            <h5 class="mb-0">Recuperar Contrasena</h5>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-envelope-check" style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;"></i>
+            <h4>Recuperar Acceso</h4>
+            <p class="small mb-0 opacity-75">Te ayudaremos a volver al sistema</p>
         </div>
-        <div class="card-body p-4">
+
+        <div class="login-body">
             @if (!string.IsNullOrEmpty(mensaje))
             {
-                <div class='alert alert-@tipoMensaje small py-2'>@mensaje</div>
+                <div class="alert-custom @(tipoMensaje == "success" ? "alert-ok" : "alert-err") mb-3">
+                    <i class="bi @(tipoMensaje == "success" ? "bi-check-circle" : "bi-exclamation-triangle")"></i>
+                    <span>@mensaje</span>
+                    <button class="alert-close" @onclick='() => mensaje = ""'>&times;</button>
+                </div>
             }
 
-            <p class="small text-muted">Ingrese su correo para recibir una contrasena temporal.</p>
-
-            <div class="mb-3">
-                <label class="form-label small">Correo electronico</label>
-                <input type="email" class="form-control" @bind="email" />
+            <div class="info-text-box">
+                <i class="bi bi-info-circle me-1"></i>
+                Ingresa tu correo. Te enviaremos una <strong>contraseña temporal</strong> para que puedas ingresar.
             </div>
-            <button class="btn btn-info w-100 text-white" @onclick="Recuperar" disabled="@cargando">
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-muted">Correo electrónico</label>
+                <input type="email" class="login-input" @bind="email" placeholder="usuario@itm.edu.co" />
+            </div>
+
+            <button class="btn-recover" @onclick="Recuperar" disabled="@cargando">
                 @if (cargando)
                 {
-                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    <span class="spinner me-2" style="width:16px; height:16px; border-width:2px; display:inline-block; vertical-align:middle;"></span>
+                    <span>Enviando...</span>
                 }
-                Enviar
+                else
+                {
+                    <span>Enviar instrucciones</span>
+                }
             </button>
-            <div class="text-center mt-3">
-                <a href="/login" class="small text-muted">Volver al login</a>
+
+            <div class="login-footer">
+                <a href="/login" class="login-link">
+                    <i class="bi bi-arrow-left"></i> Volver al inicio de sesión
+                </a>
             </div>
         </div>
     </div>

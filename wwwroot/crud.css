@@ -437,7 +437,7 @@
     background: var(--green-faint) !important;
 }
 .md-grupo-row:hover {
-    background: var(--green-faint) !important; /* sin cambio al hover */
+    background: var(--green-faint) !important; 
 }
 
 /* Fila de detalle */
@@ -689,4 +689,112 @@
 
 .register-card {
     max-width: 500px; /* Un poco más ancho que el login por si pides más datos */
+}
+
+/* Cambiar contraseña */
+.login-header-warn {
+    background: var(--green-dark);
+    color: var(--white);
+    text-align: center;
+    padding: 1.5rem 1rem;
+}
+
+.btn-warning-custom {
+    background: var(--green-dark);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.65rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.15s;
+}
+
+.btn-warning-custom:hover:not(:disabled) {
+    background: var(--green-deeper);
+}
+
+.req-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--green-faint);
+    padding: 0.5rem;
+    border-radius: 6px;
+    display: block;
+    margin-top: 0.4rem;
+    border-left: 3px solid var(--green-dark);
+
+}
+
+/* Recuperar contraseña */
+.info-text-box {
+    background: var(--green-faint);
+    color: var(--text-muted);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+}
+
+.btn-recover {
+    background: var(--green-dark);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    width: 100%;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-recover:hover:not(:disabled) {
+    background: var(--green-deeper);
+}
+
+/* botones Cerrar Sesión - cambiar contraseña */
+.btn-user-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: var(--radius); /* 10px */
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.btn-user-settings {
+    background: var(--green-faint);
+    color: var(--green-deeper);
+    border-color: var(--border);
+}
+
+.btn-user-settings:hover {
+    background: var(--green-light);
+    color: var(--green-dark);
+}
+
+.btn-user-logout {
+    background: var(--danger-light);
+    color: var(--danger);
+    border-color: #f5caca; /* Un tono un poco más oscuro que el fondo danger-light */
+}
+
+.btn-user-logout:hover {
+    background: var(--danger);
+    color: var(--white);
+    border-color: var(--danger);
+}
+
+.user-name-tag {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.85rem;
 }
