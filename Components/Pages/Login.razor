@@ -25,38 +25,55 @@
 @inject NavigationManager nav
 @rendermode InteractiveServer
 
-<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;background:#f0f2f5">
-    <div class="card shadow" style="width:400px">
-        <div class="card-header text-center" style="background:var(--bs-primary, #0d6efd);color:white">
-            <h4 class="mb-0">FrontBlazorTutorial</h4>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-microscope" style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;"></i>
+            <link rel="icon" type="image/png" href="nuevo_logo.png" />
+            <h4>Gestión de Investigación</h4>
+            <p class="small mb-0 opacity-75">CRUD Investigación</p>
         </div>
-        <div class="card-body p-4">
+
+        <div class="login-body">
             @if (!string.IsNullOrEmpty(error))
             {
-                <div class="alert alert-danger small py-2 alert-dismissible fade show">
-                    @error
-                    <button type="button" class="btn-close" @onclick='() => error = ""'></button>
+                <div class="alert-custom alert-err mb-3">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>@error</span>
+                    <button class="alert-close" @onclick='() => error = ""'>&times;</button>
                 </div>
             }
 
             <div class="mb-3">
-                <label class="form-label small">Correo electronico</label>
-                <input type="email" class="form-control" @bind="email" />
+                <label class="form-label small fw-bold text-muted">Correo electrónico</label>
+                <input type="email" class="login-input" @bind="email" placeholder="nombre@itm.edu.co" />
             </div>
-            <div class="mb-3">
-                <label class="form-label small">Contrasena</label>
-                <input type="password" class="form-control" @bind="contrasena"
-                       @onkeypress="OnKeyPress" />
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-muted">Contraseña</label>
+                <input type="password" class="login-input" @bind="contrasena" 
+                       @onkeypress="OnKeyPress" placeholder="••••••••" />
             </div>
-            <button class="btn btn-primary w-100" @onclick="DoLogin" disabled="@cargando">
+
+            <button class="btn-login" @onclick="DoLogin" disabled="@cargando">
                 @if (cargando)
                 {
-                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    <span class="spinner me-2" style="width:16px; height:16px; border-width:2px; display:inline-block; vertical-align:middle;"></span>
+                    <span>Cargando...</span>
                 }
-                Iniciar sesion
+                else
+                {
+                    <span>Iniciar sesión</span>
+                }
             </button>
-            <div class="text-center mt-3">
-                <a href="/recuperar-contrasena" class="small text-muted">Olvido su contrasena?</a>
+
+            <div class="text-center mt-4">
+                <a href="/crear-usuario" class="login-link">
+                    Crear cuenta
+                </a>
+                <a href="/recuperar-contrasena" class="small text-muted text-decoration-none hover-danger">
+                    ¿Olvidó su contraseña?
+                </a>
             </div>
         </div>
     </div>
