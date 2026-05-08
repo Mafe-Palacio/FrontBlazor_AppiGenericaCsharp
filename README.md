@@ -138,23 +138,7 @@ La API devuelve `{ "exito": true, "resultados": [...], "mensaje": "..." }` y el 
 
 ---
 
-## 🎨 Design System
-
-El proyecto usa un sistema de diseño propio definido en `crud.css` sin depender de componentes de Bootstrap. Variables principales:
-
-```css
---green:        #A2CB8B;
---green-dark:   #8dba74;
---green-deeper: #6fa057;
---green-light:  #d4edca;
---green-faint:  #f0f7ed;
-```
-
-Clases reutilizables: `crud-wrapper`, `crud-table`, `table-wrap`, `form-card`, `btn-add`, `btn-action`, `btn-edit`, `btn-delete`, `id-badge`, `alert-custom`, `search-bar`, `md-*` (maestro-detalle).
-
----
-
 ## 👩‍💻 Desarrollado por
 
-**Maria Fernanda Palacio** — Ingeniería de Sistemas  
-Instituto Tecnológico Metropolitano (ITM) — 2026
+**Maria Fernanda Palacio**  
+Aplicación y Servicios Web (ITM) — 2026
