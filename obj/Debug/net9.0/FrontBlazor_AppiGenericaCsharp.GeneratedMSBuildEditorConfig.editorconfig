@@ -52,16 +52,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDcmVhclVzdWFyaW8ucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/USUARIO/Desktop/Proyecto/FrontBlazor_AppiGenericaCsharp/Components/Pages/Dashboard/Cards.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xEYXNoYm9hcmRcQ2FyZHMucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/USUARIO/Desktop/Proyecto/FrontBlazor_AppiGenericaCsharp/Components/Pages/Dashboard/Dashboard.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xEYXNoYm9hcmRcRGFzaGJvYXJkLnJhem9y
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/USUARIO/Desktop/Proyecto/FrontBlazor_AppiGenericaCsharp/Components/Pages/Dashboard/GraficaGruposSemilleros.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xEYXNoYm9hcmRcR3JhZmljYUdydXBvc1NlbWlsbGVyb3MucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/USUARIO/Desktop/Proyecto/FrontBlazor_AppiGenericaCsharp/Components/Pages/Error.razor]

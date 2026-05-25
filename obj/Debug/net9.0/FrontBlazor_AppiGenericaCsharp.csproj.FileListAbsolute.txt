@@ -385,5 +385,5 @@ C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.
 C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\0g0tdqq8mx-ody88ncx6z.gz
 C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\8javswpns2-ein8yi8pr1.gz
 C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\FrontBla.2978AABE.Up2Date
-C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\yzzpfp71xo-444sfot15i.gz
-C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\refzjl7hxr-dye86dh4hy.gz
+C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\refzjl7hxr-rriik72cps.gz
+C:\Users\USUARIO\Desktop\Proyecto\FrontBlazor_AppiGenericaCsharp\obj\Debug\net9.0\compressed\smu8y6gy0r-3eztdmtahq.gz
