@@ -2968,3 +2968,417 @@ INSERT INTO dbo.rutarol (fkidrol, fkidruta) VALUES
 (2,5),
 (2,15)
 GO
+
+INSERT INTO dbo.usuario (email, contrasena) VALUES
+('administrador@gmail.com', '12345')
+GO
+
+INSERT INTO dbo.rol_usuario (fkemail, fkidrol) VALUES
+('administrador@gmail.com', 1)
+GO
+
+INSERT INTO dbo.ruta (ruta, descripcion) VALUES
+('/dashboard', 'Dashboard')
+GO
+
+INSERT INTO dbo.rutarol (fkidrol, fkidruta) VALUES
+(1,16)
+GO
+
+
+-- ================================================================
+-- SPs para el Dashboard
+-- ================================================================
+
+USE bd_csharp
+GO
+
+-- SP 1: Las 5 Cards
+CREATE OR ALTER PROCEDURE SP_DASHBOARD_CARDS
+AS
+BEGIN
+    SELECT
+
+        -- Total grupos
+        ( SELECT COUNT(*) FROM grupo_investigacion ) AS total_grupos,
+
+        -- Total semilleros
+        ( SELECT COUNT(*) FROM semillero) AS total_semilleros,
+
+        -- Áreas de aplicación vinculadas
+        ( SELECT COUNT(DISTINCT aa.id)
+          FROM area_aplicacion aa
+          INNER JOIN aa_linea aal
+          ON aa.id = aal.area_aplicacion ) AS areas_aplicacion_vinculadas,
+
+        -- Áreas de conocimiento vinculadas
+        ( SELECT COUNT(DISTINCT ac.id)
+          FROM area_conocimiento ac
+          INNER JOIN ac_linea acl
+          ON ac.id = acl.area_conocimiento ) AS areas_conocimiento_vinculadas,
+         
+        -- ODS vinculados
+        ( SELECT COUNT(DISTINCT ods.id)
+          FROM objetivo_desarrollo_sostenible ods
+          INNER JOIN ods_linea ol
+          ON ods.id = ol.ods ) AS ods_vinculados
+END
+GO
+
+-- SP 2: Gráfico de Barras - "Grupos por Categoría"
+CREATE OR ALTER PROCEDURE SP_GRAFICA_GRUPOS_CATEGORIA
+AS
+BEGIN
+    SELECT
+        categoria,
+        COUNT(*) AS cantidad
+    FROM grupo_investigacion
+    GROUP BY categoria
+    ORDER BY cantidad DESC
+END
+GO
+
+-- SP 3: Gráfico de Torta - "Áreas de Conocimiento más investigadas"
+CREATE OR ALTER PROCEDURE SP_GRAFICA_AREAS_CONOCIMIENTO
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        ac.area AS area,
+        COUNT(al.linea_investigacion) AS cantidad
+    FROM area_conocimiento ac
+    INNER JOIN ac_linea al ON ac.id = al.area_conocimiento
+    GROUP BY ac.area
+    ORDER BY cantidad DESC
+END
+GO
+
+-- SP 4: Gráfico de Líneas - "Evolución de Fundaciones"
+CREATE OR ALTER PROCEDURE SP_GRAFICA_EVOLUCION_FUNDACIONES
+AS
+BEGIN
+    SELECT
+        anio,
+        SUM(cantidad_grupos)     AS cantidad_grupos,
+        SUM(cantidad_semilleros) AS cantidad_semilleros
+    FROM ( SELECT YEAR(fecha_fundacion) AS anio, COUNT(*) AS cantidad_grupos, 0 AS cantidad_semilleros
+            FROM grupo_investigacion
+            GROUP BY YEAR(fecha_fundacion)
+            UNION ALL
+            SELECT YEAR(fecha_fundacion), 0, COUNT(*)
+            FROM semillero
+            GROUP BY YEAR(fecha_fundacion) ) AS sub
+    GROUP BY anio
+    ORDER BY anio
+END
+GO
+
+-- SP 5: Gráfico de barras horizontales - “Top grupos con más líneas”
+CREATE OR ALTER PROCEDURE SP_GRAFICA_TOP_GRUPOS_LINEAS
+AS
+BEGIN
+    SELECT
+        g.nombre,
+        COUNT(gl.linea_investigacion) AS cantidad_lineas
+    FROM grupo_investigacion g
+    INNER JOIN grupo_linea gl
+    ON g.id = gl.grupo_investigacion
+    GROUP BY g.nombre
+    ORDER BY cantidad_lineas DESC
+END
+GO
+
+-- Tabla final
+CREATE OR ALTER PROCEDURE SP_DASHBOARD_TOTALES_TABLAS
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        (SELECT COUNT(*) FROM linea_investigacion) AS total_lineas,
+        (SELECT COUNT(*) FROM area_aplicacion) AS total_areas_ap,
+        (SELECT COUNT(*) FROM area_conocimiento) AS total_areas_co,
+        (SELECT COUNT(*) FROM objetivo_desarrollo_sostenible) AS total_ods,
+        (SELECT COUNT(*) FROM grupo_investigacion) AS total_grupos,
+        (SELECT COUNT(*) FROM semillero) AS total_semilleros,
+        (SELECT COUNT(*) FROM participa_grupo) AS total_participa_grupo,
+        (SELECT COUNT(*) FROM participa_semillero) AS total_participa_semillero,
+        (SELECT COUNT(*) FROM grupo_linea) AS total_grupo_linea,
+        (SELECT COUNT(*) FROM ac_linea) AS total_ac_linea,
+        (SELECT COUNT(*) FROM aa_linea) AS total_aa_linea,
+        (SELECT COUNT(*) FROM semillero_linea) AS total_semillero_linea,
+        (SELECT COUNT(*) FROM ods_linea) AS total_ods_linea
+END
+GO
+
+-- ================================================================
+-- SPs para el Panel de consultas o reportes
+-- ================================================================
+
+-- SP 6: Reporte 1 - Semilleros, lineas de investigación y universidad de un grupo
+-- Radiografía Completa de Semilleros
+CREATE OR ALTER PROCEDURE SP_REPORTE_RADIOGRAFIA_SEMILLEROS
+AS
+BEGIN
+    SELECT
+        S.id AS id_semillero,
+        S.nombre AS semillero,
+        G.nombre AS grupo_investigacion,
+        G.categoria AS categoria_grupo,
+        G.ambito,
+        L.nombre AS linea_investigacion,
+        L.descripcion
+    FROM semillero S
+    INNER JOIN grupo_investigacion G
+        ON S.grupo_investigacion = G.id
+    INNER JOIN semillero_linea SL
+        ON S.id = SL.semillero
+    INNER JOIN linea_investigacion L
+        ON SL.linea_investigacion = L.id
+    ORDER BY
+        S.nombre,
+        L.nombre
+END
+GO
+
+-- SP 7: Reporte 2 - Grupos de investigación asociados a los ODS y en qué áreas de la ciencia.
+-- Impacto Social de la Investigación
+CREATE OR ALTER PROCEDURE SP_REPORTE_IMPACTO_SOCIAL
+AS
+BEGIN
+    SELECT
+        G.nombre AS grupo,
+        G.categoria,
+        G.ambito,
+        ODS.nombre AS objetivo_desarrollo_sostenible,
+        ODS.categoria AS categoria_ods
+    FROM grupo_investigacion G
+    INNER JOIN grupo_linea GL
+        ON G.id = GL.grupo_investigacion
+    INNER JOIN ods_linea OL
+        ON GL.linea_investigacion = OL.linea_investigacion
+    INNER JOIN objetivo_desarrollo_sostenible ODS
+        ON OL.ods = ODS.id
+    ORDER BY
+        G.nombre,
+        ODS.nombre
+END
+GO
+
+-- SP 8: Reporte 3 - Docentes en qué semilleros y bajo qué líneas de investigación específicas estan metidos.
+-- Vinculación de Docentes a la Universidad
+CREATE OR ALTER PROCEDURE SP_REPORTE_DOCENTES_SEMILLEROS
+AS
+BEGIN
+    SELECT
+        D.cedula,
+        D.nombres AS docente,
+        PS.rol,
+        PS.fecha_inicio,
+        PS.fecha_fin,
+        S.nombre AS semillero,
+        L.nombre AS linea_investigacion
+    FROM docente D
+    INNER JOIN participa_semillero PS
+        ON D.cedula = PS.docente
+    INNER JOIN semillero S
+        ON PS.semillero = S.id
+    INNER JOIN semillero_linea SL
+        ON S.id = SL.semillero
+    INNER JOIN linea_investigacion L
+        ON SL.linea_investigacion = L.id
+    ORDER BY
+        D.nombres,
+        S.nombre
+END
+GO
+
+-- SP 9: Reporte 4 - Resumen de Grupos (docentes + líneas)
+CREATE OR ALTER PROCEDURE SP_REPORTE_RESUMEN_GRUPOS
+AS
+BEGIN
+    SELECT
+        G.id,
+        G.nombre AS grupo,
+        G.categoria,
+        G.ambito,
+        COUNT(DISTINCT PG.docente_cedula) AS total_docentes,
+        COUNT(DISTINCT GL.linea_investigacion) AS total_lineas
+    FROM grupo_investigacion G
+    LEFT JOIN participa_grupo PG ON G.id = PG.grupo_investigacion_id
+    LEFT JOIN docente D ON PG.docente_cedula = D.cedula
+    LEFT JOIN grupo_linea GL ON G.id = GL.grupo_investigacion
+    LEFT JOIN linea_investigacion L ON GL.linea_investigacion = L.id
+    GROUP BY G.id, G.nombre, G.categoria, G.ambito
+    ORDER BY total_docentes DESC
+END
+GO
+
+-- SP 10: Reporte 5 - Resumen de Semilleros (líneas + docentes)
+CREATE OR ALTER PROCEDURE SP_REPORTE_RESUMEN_SEMILLEROS
+AS
+BEGIN
+    SELECT
+        S.id,
+        S.nombre AS semillero,
+        G.nombre AS grupo_padre,
+        COUNT(DISTINCT SL.linea_investigacion) AS total_lineas,
+        COUNT(DISTINCT PS.docente) AS total_docentes
+    FROM semillero S
+    INNER JOIN grupo_investigacion G ON S.grupo_investigacion = G.id
+    LEFT JOIN  semillero_linea SL ON S.id = SL.semillero
+    LEFT JOIN  linea_investigacion L ON SL.linea_investigacion = L.id
+    LEFT JOIN  participa_semillero PS ON S.id = PS.semillero
+    GROUP BY S.id, S.nombre, G.nombre
+    ORDER BY total_lineas DESC
+END
+GO
+
+-- SP 11: Reporte 6 - Áreas de Aplicación vinculadas a ODS
+CREATE OR ALTER PROCEDURE SP_REPORTE_AA_ODS
+AS
+BEGIN
+    SELECT
+        AA.nombre AS area_aplicacion,
+        L.nombre AS linea_investigacion,
+        ODS.nombre AS ods,
+        ODS.categoria AS categoria_ods
+    FROM area_aplicacion AA
+    INNER JOIN aa_linea AAL ON AA.id = AAL.area_aplicacion
+    INNER JOIN linea_investigacion L ON AAL.linea_investigacion = L.id
+    INNER JOIN ods_linea OL ON L.id = OL.linea_investigacion
+    INNER JOIN objetivo_desarrollo_sostenible ODS ON OL.ods = ODS.id
+    ORDER BY AA.nombre, ODS.nombre
+END
+GO
+
+-- SP 12: Reporte 7 - Grupos y su cobertura de Áreas de Aplicación
+CREATE OR ALTER PROCEDURE SP_REPORTE_GRUPOS_AREAS_APLICACION
+AS
+BEGIN
+    SELECT
+        G.nombre AS grupo,
+        G.categoria,
+        L.nombre AS linea_investigacion,
+        AA.nombre AS area_aplicacion
+    FROM grupo_investigacion G
+    INNER JOIN grupo_linea GL ON G.id = GL.grupo_investigacion
+    INNER JOIN linea_investigacion L ON GL.linea_investigacion = L.id
+    INNER JOIN aa_linea AAL ON L.id = AAL.linea_investigacion
+    INNER JOIN area_aplicacion AA ON AAL.area_aplicacion = AA.id
+    ORDER BY G.nombre, AA.nombre
+END
+GO
+
+-- SP 13: Reporte 8 - Docentes en Grupos con sus líneas
+CREATE OR ALTER PROCEDURE SP_REPORTE_DOCENTES_GRUPOS_LINEAS
+AS
+BEGIN
+    SELECT
+        D.cedula,
+        D.nombres AS docente,
+        PG.rol,
+        PG.fecha_inicio,
+        PG.fecha_fin,
+        G.nombre AS grupo,
+        G.categoria,
+        L.nombre AS linea_investigacion
+    FROM docente D
+    INNER JOIN participa_grupo PG ON D.cedula = PG.docente_cedula
+    INNER JOIN grupo_investigacion G ON PG.grupo_investigacion_id = G.id
+    INNER JOIN grupo_linea GL ON G.id = GL.grupo_investigacion
+    INNER JOIN linea_investigacion L ON GL.linea_investigacion = L.id
+    ORDER BY D.nombres, G.nombre
+END
+GO
+
+-- SP 14: Reporte 9 - Líneas de Investigación con toda su vinculación científica
+CREATE OR ALTER PROCEDURE SP_REPORTE_LINEAS_VINCULACION_CIENTIFICA
+AS
+BEGIN
+    SELECT
+        L.nombre AS linea_investigacion,
+        AC.gran_area,
+        AC.area,
+        AC.disciplina,
+        ODS.nombre AS ods,
+        ODS.categoria AS categoria_ods
+    FROM linea_investigacion L
+    INNER JOIN ac_linea ACL ON L.id = ACL.linea_investigacion
+    INNER JOIN area_conocimiento AC ON ACL.area_conocimiento = AC.id
+    INNER JOIN ods_linea OL ON L.id = OL.linea_investigacion
+    INNER JOIN objetivo_desarrollo_sostenible ODS ON OL.ods = ODS.id
+    ORDER BY L.nombre
+END
+GO
+
+-- SP 15: Reporte 10 - Vista completa de un Semillero (grupo, área conocimiento, ODS)
+CREATE OR ALTER PROCEDURE SP_REPORTE_SEMILLERO_360
+AS
+BEGIN
+    SELECT
+        S.nombre AS semillero,
+        G.nombre AS grupo_investigacion,
+        G.categoria AS categoria_grupo,
+        L.nombre AS linea_investigacion,
+        AC.gran_area,
+        AC.area,
+        AC.disciplina
+    FROM semillero S
+    INNER JOIN grupo_investigacion G  ON S.grupo_investigacion = G.id
+    INNER JOIN semillero_linea SL ON S.id = SL.semillero
+    INNER JOIN linea_investigacion L ON SL.linea_investigacion = L.id
+    INNER JOIN ac_linea ACL ON L.id = ACL.linea_investigacion
+    INNER JOIN area_conocimiento AC ON ACL.area_conocimiento = AC.id
+    ORDER BY S.nombre, L.nombre
+END
+GO
+
+
+-- Permisos para el panel de consultas / reportes
+INSERT INTO dbo.ruta (ruta, descripcion) VALUES
+('/reportes', 'Panel de Consultas y Reportes')
+GO
+
+INSERT INTO dbo.rutarol (fkidrol, fkidruta) VALUES
+(1,17),
+(2,17)
+GO
+
+INSERT INTO dbo.ruta (ruta, descripcion) VALUES
+('/reportes/radiografia-semilleros', 'Radiografía Completa de Semilleros'),
+('/reportes/impacto-social', 'Impacto Social de la Investigación (ODS)'),
+('/reportes/docentes-semilleros', 'Vinculación de Docentes a Semilleros'),
+('/reportes/resumen-grupos', 'Resumen de Grupos (docentes + líneas)'),
+('/reportes/resumen-semilleros', 'Resumen de Semilleros (líneas + docentes)'),
+('/reportes/areas-ods', 'Áreas de Aplicación vinculadas a ODS'),
+('/reportes/grupos-areas', 'Grupos y su cobertura de Áreas de Aplicación'),
+('/reportes/docentes-grupos', 'Docentes en Grupos con sus Líneas'),
+('/reportes/lineas-vinculacion', 'Líneas de Investigación y Vinculación Científica'),
+('/reportes/semillero-completo', 'Vista Completa de un Semillero')
+GO
+
+INSERT INTO dbo.rutarol (fkidrol, fkidruta) VALUES
+(1,18),
+(1,19),
+(1,20),
+(1,21),
+(1,22),
+(1,23),
+(1,24),
+(1,25),
+(1,26),
+(1,27)
+GO
+
+INSERT INTO dbo.rutarol (fkidrol, fkidruta) VALUES
+(2,18),
+(2,19),
+(2,20),
+(2,21),
+(2,22),
+(2,23),
+(2,24),
+(2,25),
+(2,26),
+(2,27)
+GO
