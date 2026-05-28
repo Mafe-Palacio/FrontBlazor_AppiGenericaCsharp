@@ -1,131 +1,65 @@
-/** dashboard-charts.js
-     Helpers para Chart.js usados desde Blazor via JS Interop
-    Archivo: wwwroot/dashboard-charts.js
-    Agregar en App.razor: <script src="dashboard-charts.js"></script>
-*/
+// dashboard-charts.js  —  Chart.js helpers para Blazor
+// wwwroot/dashboard-charts.js
 
 window.dashCharts = (() => {
-    /** Registro de instancias para poder destruirlas al salir del componente */
-    const _instancias = {};
+    const _inst = {};
 
-    /** ─── Colores del tema (matching crud.css variables) */
-    const VERDE_DEEP   = '#6fa057';
-    const VERDE_DARK   = '#8dba74';
-    const VERDE_LIGHT  = '#d4edca';
-    const AZUL         = '#1d4ed8';
-    const AZUL_LIGHT   = '#dbeafe';
-    const MORADO       = '#6d28d9';
-    const MORADO_LIGHT = '#ede9fe';
-    const NARANJA      = '#d4870a';
-    const NARANJA_L    = '#fff3e0';
-    const ROJO         = '#e05555';
-    const ROJO_LIGHT   = '#fdeaea';
+    const VERDE = ['#2d6a1f','#3d7a2a','#4e8c3a','#6fa057','#8dba74',
+                   '#a2cb8b','#b8dba0','#c8e8b5','#1a4d12','#5a9648'];
 
-    const PALETTE = [VERDE_DEEP, AZUL, MORADO, NARANJA, ROJO,
-                     '#0891b2', '#059669', '#7c3aed', '#db2777', '#b45309'];
-
-    /**  Destruir instancia previa */
-    function destroy(canvasId) {
-        if (_instancias[canvasId]) {
-            _instancias[canvasId].destroy();
-            delete _instancias[canvasId];
-        }
+    function destroy(id) {
+        if (_inst[id]) { _inst[id].destroy(); delete _inst[id]; }
     }
 
-    /** ─── Gráfica de Barras: Líneas por Grupo de Investigación */
-    function renderBarras(canvasId, labels, data) {
-        destroy(canvasId);
-        const ctx = document.getElementById(canvasId);
+    // ── G1: Barras verticales — Grupos por Categoría ─────────────
+    function renderBarras(id, labels, data) {
+        destroy(id);
+        const ctx = document.getElementById(id);
         if (!ctx) return;
-
-        const gradientes = data.map((_, i) => {
-            const g = ctx.getContext('2d').createLinearGradient(0, 0, 0, 260);
-            const color = PALETTE[i % PALETTE.length];
-            g.addColorStop(0, color);
-            g.addColorStop(1, color + '55');
-            return g;
-        });
-
-        _instancias[canvasId] = new Chart(ctx, {
+        _inst[id] = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: labels,
+                labels,
                 datasets: [{
-                    label: 'Líneas de investigación',
-                    data: data,
-                    backgroundColor: gradientes,
-                    borderColor: PALETTE.slice(0, data.length),
-                    borderWidth: 2,
-                    borderRadius: 8,
-                    borderSkipped: false,
+                    label: 'Cantidad',
+                    data,
+                    backgroundColor: VERDE.slice(0, data.length).map(c => c + 'cc'),
+                    borderColor:     VERDE.slice(0, data.length),
+                    borderWidth: 2, borderRadius: 8, borderSkipped: false,
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1e2a1a',
-                        titleColor: '#fff',
-                        bodyColor: '#d4edca',
-                        padding: 10,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: ctx => ` ${ctx.parsed.y} líneas`
-                        }
-                    }
+                    tooltip: { backgroundColor:'#1e2a1a', titleColor:'#fff', bodyColor:'#d4edca',
+                               padding:10, cornerRadius:8,
+                               callbacks: { label: c => ` ${c.parsed.y} grupos` } }
                 },
                 scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            color: '#6b7c65',
-                            font: { size: 11 },
-                            maxRotation: 30,
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: '#d0e3c822' },
-                        ticks: {
-                            color: '#6b7c65',
-                            stepSize: 1,
-                            font: { size: 11 }
-                        }
-                    }
+                    x: { grid:{display:false}, ticks:{color:'#6b7c65', font:{size:12}} },
+                    y: { beginAtZero:true, grid:{color:'#d0e3c822'},
+                         ticks:{color:'#6b7c65', stepSize:1, font:{size:11}} }
                 },
-                animation: {
-                    duration: 800,
-                    easing: 'easeOutQuart'
-                }
+                animation: { duration:800, easing:'easeOutQuart' }
             }
         });
     }
 
-    /** ─── Gráfica de Dona: ODS por Categoría */
-    function renderDona(canvasId, labels, data) {
-        destroy(canvasId);
-        const ctx = document.getElementById(canvasId);
+    // ── G2: Pie — Áreas de Conocimiento ──────────────────────────
+    // Leyenda a la DERECHA para que no quede cortada con altura fija
+    function renderPie(id, labels, data) {
+        destroy(id);
+        const ctx = document.getElementById(id);
         if (!ctx) return;
-
-        const coloresCategoria = {
-            'Social':      AZUL,
-            'Ambientales': VERDE_DEEP,
-            'Económicos':  NARANJA,
-            'Estrategicos': MORADO,
-        };
-
-        const colores = labels.map(l => coloresCategoria[l] || ROJO);
-
-        _instancias[canvasId] = new Chart(ctx, {
-            type: 'doughnut',
+        _inst[id] = new Chart(ctx, {
+            type: 'pie',
             data: {
-                labels: labels,
+                labels,
                 datasets: [{
-                    data: data,
-                    backgroundColor: colores.map(c => c + 'cc'),
-                    borderColor: colores,
+                    data,
+                    backgroundColor: VERDE.slice(0, data.length).map(c => c + 'dd'),
+                    borderColor: '#fff',
                     borderWidth: 2,
                     hoverOffset: 10,
                 }]
@@ -133,37 +67,111 @@ window.dashCharts = (() => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '65%',
+                layout: { padding: { right: 8 } },
                 plugins: {
                     legend: {
-                        position: 'bottom',
+                        position: 'right',          // ← a la derecha, no abajo
+                        align: 'center',
                         labels: {
                             color: '#1e2a1a',
-                            font: { size: 12 },
-                            padding: 16,
+                            font: { size: 11, family: 'Inter, sans-serif' },
+                            padding: 14,
                             usePointStyle: true,
-                            pointStyleWidth: 10,
+                            pointStyleWidth: 9,
+                            boxHeight: 9,
                         }
                     },
                     tooltip: {
-                        backgroundColor: '#1e2a1a',
-                        titleColor: '#fff',
-                        bodyColor: '#d4edca',
-                        padding: 10,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: ctx => ` ${ctx.label}: ${ctx.parsed} ODS`
-                        }
+                        backgroundColor:'#1e2a1a', titleColor:'#fff', bodyColor:'#d4edca',
+                        padding:10, cornerRadius:8,
+                        callbacks: { label: c => ` ${c.label}: ${c.parsed}` }
                     }
                 },
-                animation: {
-                    animateRotate: true,
-                    duration: 900,
-                    easing: 'easeOutQuart'
-                }
+                animation: { animateRotate:true, duration:900, easing:'easeOutQuart' }
             }
         });
     }
 
-    return { renderBarras, renderDona, destroy };
+    // ── G3: Líneas — Evolución de Fundaciones ────────────────────
+    function renderLineas(id, anios, dataGrupos, dataSemilleros) {
+        destroy(id);
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        _inst[id] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: anios,
+                datasets: [
+                    {
+                        label: 'Grupos',
+                        data: dataGrupos,
+                        borderColor: '#2d6a1f', backgroundColor: '#2d6a1f22',
+                        borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: '#2d6a1f',
+                        tension: 0.4, fill: true,
+                    },
+                    {
+                        label: 'Semilleros',
+                        data: dataSemilleros,
+                        borderColor: '#8dba74', backgroundColor: '#8dba7422',
+                        borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: '#8dba74',
+                        tension: 0.4, fill: true,
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position:'top', labels:{ color:'#1e2a1a', font:{size:11},
+                              usePointStyle:true, padding:14 } },
+                    tooltip: { backgroundColor:'#1e2a1a', titleColor:'#fff', bodyColor:'#d4edca',
+                               padding:10, cornerRadius:8, mode:'index', intersect:false }
+                },
+                scales: {
+                    x: { grid:{color:'#d0e3c822'}, ticks:{color:'#6b7c65', font:{size:11}} },
+                    y: { beginAtZero:true, grid:{color:'#d0e3c822'},
+                         ticks:{color:'#6b7c65', stepSize:1, font:{size:11}} }
+                },
+                animation: { duration:900, easing:'easeOutQuart' }
+            }
+        });
+    }
+
+    // ── G4: Barras horizontales — Top Grupos con más Líneas ──────
+    function renderBarrasH(id, labels, data) {
+        destroy(id);
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        _inst[id] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Líneas',
+                    data,
+                    backgroundColor: VERDE.slice(0, data.length).map(c => c + 'cc'),
+                    borderColor:     VERDE.slice(0, data.length),
+                    borderWidth: 2, borderRadius: 6,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { backgroundColor:'#1e2a1a', titleColor:'#fff', bodyColor:'#d4edca',
+                               padding:10, cornerRadius:8,
+                               callbacks: { label: c => ` ${c.parsed.x} líneas` } }
+                },
+                scales: {
+                    x: { beginAtZero:true, grid:{color:'#d0e3c822'},
+                         ticks:{color:'#6b7c65', font:{size:11}} },
+                    y: { grid:{display:false}, ticks:{color:'#6b7c65', font:{size:11},
+                         maxRotation:0} }
+                },
+                animation: { duration:800, easing:'easeOutQuart' }
+            }
+        });
+    }
+
+    return { renderBarras, renderPie, renderLineas, renderBarrasH, destroy };
 })();

@@ -7,133 +7,128 @@
 <PageTitle>Dashboard</PageTitle>
 
 <style>
-    /* ── layout ───────────────────────────────────── */
-    .db-wrap       { padding: 1.75rem 2rem; max-width: 1300px; }
-    .db-header     { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
-    .db-title      { display:flex; align-items:center; gap:.6rem; font-size:1.4rem; font-weight:800; color:var(--text); }
-    .db-title i    { color:var(--green-deeper); }
-    .db-divider    { border:none; border-top:1.5px solid var(--border); margin:1.5rem 0; }
+    .db-wrap    { padding:1.75rem 2rem; max-width:1400px; }
+    .db-header  { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+    .db-title   { display:flex; align-items:center; gap:.6rem; font-size:1.4rem; font-weight:800; color:var(--text); }
+    .db-title i { color:var(--green-deeper); }
+    .db-divider { border:none; border-top:1.5px solid var(--border); margin:1.5rem 0; }
 
-    /* ── cards con gradiente ──────────────────────── */
-    .db-card {
-        border:none; border-radius:16px; padding:20px 18px 16px;
-        position:relative; overflow:hidden; color:#fff;
-        transition: transform .2s, box-shadow .2s;
-        min-height:110px;
-    }
+    /* Cards */
+    .db-card { border:none; border-radius:16px; padding:20px 18px 16px;
+               position:relative; overflow:hidden; color:#fff;
+               transition:transform .2s,box-shadow .2s; min-height:115px; }
     .db-card:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(0,0,0,.18); }
-    .db-card-bg    { position:absolute; right:-10px; top:50%; transform:translateY(-50%);
-                     font-size:5.5rem; opacity:.13; pointer-events:none; }
-    .db-card-val   { display:block; font-size:2.2rem; font-weight:900; line-height:1; letter-spacing:-.02em; }
-    .db-card-lbl   { display:block; font-size:.7rem; font-weight:600; text-transform:uppercase;
-                     letter-spacing:.05em; opacity:.85; margin-top:4px; }
-    .db-card-bar   { height:4px; background:rgba(255,255,255,.28); border-radius:99px;
-                     overflow:hidden; margin-top:12px; }
-    .db-card-fill  { height:100%; background:rgba(255,255,255,.8); border-radius:99px; }
-    .db-card-ico   { position:absolute; top:12px; right:12px; font-size:1.1rem; opacity:.55; }
+    .db-card-bg  { position:absolute; right:-10px; top:50%; transform:translateY(-50%);
+                   font-size:5.5rem; opacity:.13; pointer-events:none; }
+    .db-card-val { display:block; font-size:2.4rem; font-weight:900; line-height:1; letter-spacing:-.02em; }
+    .db-card-lbl { display:block; font-size:.7rem; font-weight:600; text-transform:uppercase;
+                   letter-spacing:.05em; opacity:.85; margin-top:4px; line-height:1.3; }
+    .db-card-bar  { height:4px; background:rgba(255,255,255,.28); border-radius:99px;
+                    overflow:hidden; margin-top:12px; }
+    .db-card-fill { height:100%; background:rgba(255,255,255,.8); border-radius:99px; }
+    .db-card-ico  { position:absolute; top:12px; right:12px; font-size:1.1rem; opacity:.55; }
 
-    .db-c1 { background:linear-gradient(135deg,#6fa057,#8dba74); box-shadow:0 4px 20px rgba(111,160,87,.35); }
-    .db-c2 { background:linear-gradient(135deg,#1d4ed8,#3b82f6); box-shadow:0 4px 20px rgba(29,78,216,.30); }
-    .db-c3 { background:linear-gradient(135deg,#6d28d9,#8b5cf6); box-shadow:0 4px 20px rgba(109,40,217,.30); }
-    .db-c4 { background:linear-gradient(135deg,#0891b2,#22d3ee); box-shadow:0 4px 20px rgba(8,145,178,.30); }
-    .db-c5 { background:linear-gradient(135deg,#d4870a,#f59e0b); box-shadow:0 4px 20px rgba(212,135,10,.30); }
+    .db-c1 { background:linear-gradient(135deg,#2d6a1f,#4a8f34); box-shadow:0 4px 20px rgba(45,106,31,.35); }
+    .db-c2 { background:linear-gradient(135deg,#3d7a2a,#5fa042); box-shadow:0 4px 20px rgba(61,122,42,.30); }
+    .db-c3 { background:linear-gradient(135deg,#6fa057,#8dba74); box-shadow:0 4px 20px rgba(111,160,87,.30); }
+    .db-c4 { background:linear-gradient(135deg,#8dba74,#a2cb8b); box-shadow:0 4px 20px rgba(141,186,116,.30); }
+    .db-c5 { background:linear-gradient(135deg,#4e8c3a,#6fad55); box-shadow:0 4px 20px rgba(78,140,58,.28); }
 
-    /* ── panel gráfica ───────────────────────────── */
-    .db-chart-panel {
-        background:#fff; border:1px solid var(--border);
-        border-radius:14px; padding:20px 22px;
-        box-shadow:var(--shadow);
-    }
-    .db-chart-ttl { font-size:1rem; font-weight:700; color:var(--text);
-                    display:flex; align-items:center; gap:.45rem; margin:0 0 2px; }
+    /* Paneles gráfica */
+    .db-chart-panel { background:#fff; border:1px solid var(--border);
+                      border-radius:14px; padding:20px 22px; box-shadow:var(--shadow); }
+    .db-chart-ttl   { font-size:.95rem; font-weight:700; color:var(--text);
+                      display:flex; align-items:center; gap:.45rem; margin:0 0 2px; }
     .db-chart-ttl i { color:var(--green-deeper); }
-    .db-chart-sub { font-size:.75rem; color:var(--text-muted); margin:0 0 14px; }
-    .db-canvas-wrap { position:relative; height:280px; }
+    .db-chart-sub   { font-size:.75rem; color:var(--text-muted); margin:0 0 14px; }
+    .db-canvas-wrap { position:relative; height:260px; }
 
-    /* ── tabla resumen ───────────────────────────── */
+    /* Tabla */
     .db-table th { background:var(--green-faint); color:var(--green-deeper);
                    font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
-    .db-table td { font-size:.9rem; vertical-align:middle; }
+    .db-table td { font-size:.875rem; vertical-align:middle; }
     .db-badge    { display:inline-block; padding:2px 10px; border-radius:99px;
                    font-size:.75rem; font-weight:600; }
+    .db-num      { font-size:1.05rem; font-weight:700; color:var(--text); }
 
-    /* ── botón volver ────────────────────────────── */
+    /* Botón volver */
     .btn-back { display:flex; align-items:center; gap:.4rem; background:#fff;
                 color:var(--text-muted); border:1px solid var(--border);
                 padding:.45rem 1rem; border-radius:var(--radius);
                 font-weight:600; font-size:.875rem; transition:all .18s; cursor:pointer; }
     .btn-back:hover { background:var(--green-faint); color:var(--green-deeper); border-color:var(--green-deeper); }
+
+    .chart-spinner { display:flex; align-items:center; justify-content:center;
+                     height:260px; color:var(--text-muted); gap:.5rem; font-size:.875rem; }
 </style>
 
 <div class="db-wrap">
 
-    @* ── Cabecera ── *@
     <div class="db-header">
-        <div class="db-title">
-            <i class="bi bi-speedometer2"></i>
-            Dashboard
-        </div>
+        <div class="db-title"><i class="bi bi-speedometer2"></i> Dashboard</div>
         <button class="btn-back" @onclick='() => Nav.NavigateTo("/")'>
             <i class="bi bi-arrow-left"></i> Volver
         </button>
     </div>
 
-    @* ── CARDS Bootstrap ── *@
-    @if (cargandoCards) {
+    @* ════ CARDS ════ *@
+    @if (cargandoCards)
+    {
         <div class="d-flex align-items-center gap-2 text-muted py-3">
             <div class="spinner-border spinner-border-sm" style="color:var(--green-deeper)"></div>
             Cargando métricas...
         </div>
     }
-    else if (!string.IsNullOrEmpty(errorCards)) {
+    else if (!string.IsNullOrEmpty(errorCards))
+    {
         <div class="alert alert-warning">@errorCards</div>
     }
     else
     {
-        <div class="row g-3 mb-3">
+        <div class="row g-3 mb-2">
             <div class="col-12 col-sm-6 col-xl">
                 <div class="db-card db-c1">
-                    <span class="db-card-bg"><i class="bi bi-diagram-3"></i></span>
-                    <span class="db-card-ico"><i class="bi bi-diagram-3-fill"></i></span>
-                    <span class="db-card-val">@totalLineas</span>
-                    <span class="db-card-lbl">Líneas de Investigación</span>
-                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(totalLineas,40)%"></div></div>
+                    <span class="db-card-bg"><i class="bi bi-people"></i></span>
+                    <span class="db-card-ico"><i class="bi bi-people-fill"></i></span>
+                    <span class="db-card-val">@cTotalGrupos</span>
+                    <span class="db-card-lbl">Total Grupos de Investigación</span>
+                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(cTotalGrupos,20)%"></div></div>
                 </div>
             </div>
             <div class="col-12 col-sm-6 col-xl">
                 <div class="db-card db-c2">
-                    <span class="db-card-bg"><i class="bi bi-briefcase"></i></span>
-                    <span class="db-card-ico"><i class="bi bi-briefcase-fill"></i></span>
-                    <span class="db-card-val">@totalAreasAp</span>
-                    <span class="db-card-lbl">Áreas de Aplicación</span>
-                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(totalAreasAp,25)%"></div></div>
+                    <span class="db-card-bg"><i class="bi bi-mortarboard"></i></span>
+                    <span class="db-card-ico"><i class="bi bi-mortarboard-fill"></i></span>
+                    <span class="db-card-val">@cTotalSemilleros</span>
+                    <span class="db-card-lbl">Total Semilleros</span>
+                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(cTotalSemilleros,30)%"></div></div>
                 </div>
             </div>
             <div class="col-12 col-sm-6 col-xl">
                 <div class="db-card db-c3">
-                    <span class="db-card-bg"><i class="bi bi-book"></i></span>
-                    <span class="db-card-ico"><i class="bi bi-book-fill"></i></span>
-                    <span class="db-card-val">@totalAreasCo</span>
-                    <span class="db-card-lbl">Áreas de Conocimiento</span>
-                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(totalAreasCo,50)%"></div></div>
+                    <span class="db-card-bg"><i class="bi bi-briefcase"></i></span>
+                    <span class="db-card-ico"><i class="bi bi-briefcase-fill"></i></span>
+                    <span class="db-card-val">@cAreasApVinc</span>
+                    <span class="db-card-lbl">Áreas de Aplicación Vinculadas</span>
+                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(cAreasApVinc,25)%"></div></div>
                 </div>
             </div>
             <div class="col-12 col-sm-6 col-xl">
                 <div class="db-card db-c4">
-                    <span class="db-card-bg"><i class="bi bi-globe2"></i></span>
-                    <span class="db-card-ico"><i class="bi bi-globe-americas"></i></span>
-                    <span class="db-card-val">@totalODS</span>
-                    <span class="db-card-lbl">Objetivos ODS</span>
-                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(totalODS,17)%"></div></div>
+                    <span class="db-card-bg"><i class="bi bi-book"></i></span>
+                    <span class="db-card-ico"><i class="bi bi-book-fill"></i></span>
+                    <span class="db-card-val">@cAreasCoVinc</span>
+                    <span class="db-card-lbl">Áreas de Conocimiento Vinculadas</span>
+                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(cAreasCoVinc,50)%"></div></div>
                 </div>
             </div>
             <div class="col-12 col-sm-6 col-xl">
                 <div class="db-card db-c5">
-                    <span class="db-card-bg"><i class="bi bi-people"></i></span>
-                    <span class="db-card-ico"><i class="bi bi-people-fill"></i></span>
-                    <span class="db-card-val">@totalGrupos</span>
-                    <span class="db-card-lbl">Grupos de Investigación</span>
-                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(totalGrupos,20)%"></div></div>
+                    <span class="db-card-bg"><i class="bi bi-globe2"></i></span>
+                    <span class="db-card-ico"><i class="bi bi-globe-americas"></i></span>
+                    <span class="db-card-val">@cOdsVinc</span>
+                    <span class="db-card-lbl">ODS Vinculados</span>
+                    <div class="db-card-bar"><div class="db-card-fill" style="width:@Pct(cOdsVinc,17)%"></div></div>
                 </div>
             </div>
         </div>
@@ -141,88 +136,134 @@
 
     <hr class="db-divider" />
 
-    @* ── GRÁFICAS Chart.js ── *@
-    @if (!cargandoGraficas)
-    {
-        <div class="row g-3 mb-3">
-            <div class="col-12 col-lg-7">
-                <div class="db-chart-panel">
-                    <p class="db-chart-ttl"><i class="bi bi-bar-chart-line-fill"></i> Líneas por Grupo de Investigación</p>
-                    <p class="db-chart-sub">Cantidad de líneas asignadas a cada grupo</p>
-                    <div class="db-canvas-wrap">
-                        <canvas id="chartBarras"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-lg-5">
-                <div class="db-chart-panel">
-                    <p class="db-chart-ttl"><i class="bi bi-pie-chart-fill"></i> ODS por Categoría</p>
-                    <p class="db-chart-sub">Distribución de los objetivos de desarrollo sostenible</p>
-                    <div class="db-canvas-wrap">
-                        <canvas id="chartDona"></canvas>
-                    </div>
-                </div>
+    @* ════ FILA 1 GRÁFICAS ════ *@
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+            <div class="db-chart-panel">
+                <p class="db-chart-ttl"><i class="bi bi-bar-chart-fill"></i> Grupos por Categoría</p>
+                <p class="db-chart-sub">Cantidad de grupos en cada categoría (A, B, C…)</p>
+                @if (cargandoGraficas)
+                { <div class="chart-spinner"><div class="spinner-border spinner-border-sm" style="color:var(--green-deeper)"></div> Cargando...</div> }
+                else
+                { <div class="db-canvas-wrap"><canvas id="chartGruposCategoria"></canvas></div> }
             </div>
         </div>
-    }
-    else
-    {
-        <div class="row g-3 mb-3">
-            <div class="col-12 col-lg-7">
-                <div class="db-chart-panel d-flex align-items-center justify-content-center" style="height:340px">
-                    <div class="spinner-border spinner-border-sm me-2" style="color:var(--green-deeper)"></div>
-                    <span class="text-muted">Cargando gráfica...</span>
-                </div>
-            </div>
-            <div class="col-12 col-lg-5">
-                <div class="db-chart-panel d-flex align-items-center justify-content-center" style="height:340px">
-                    <div class="spinner-border spinner-border-sm me-2" style="color:var(--green-deeper)"></div>
-                    <span class="text-muted">Cargando gráfica...</span>
-                </div>
+        <div class="col-12 col-lg-6">
+            <div class="db-chart-panel">
+                <p class="db-chart-ttl"><i class="bi bi-pie-chart-fill"></i> Áreas de Conocimiento más Investigadas</p>
+                <p class="db-chart-sub">Distribución por área de conocimiento</p>
+                @if (cargandoGraficas)
+                { <div class="chart-spinner"><div class="spinner-border spinner-border-sm" style="color:var(--green-deeper)"></div> Cargando...</div> }
+                else
+                { <div class="db-canvas-wrap"><canvas id="chartAreasCon"></canvas></div> }
             </div>
         </div>
-    }
+    </div>
+
+    @* ════ FILA 2 GRÁFICAS ════ *@
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+            <div class="db-chart-panel">
+                <p class="db-chart-ttl"><i class="bi bi-graph-up"></i> Evolución de Fundaciones</p>
+                <p class="db-chart-sub">Grupos y semilleros creados por año</p>
+                @if (cargandoGraficas)
+                { <div class="chart-spinner"><div class="spinner-border spinner-border-sm" style="color:var(--green-deeper)"></div> Cargando...</div> }
+                else
+                { <div class="db-canvas-wrap"><canvas id="chartEvolucion"></canvas></div> }
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="db-chart-panel">
+                <p class="db-chart-ttl"><i class="bi bi-bar-chart-steps"></i> Top Grupos con más Líneas</p>
+                <p class="db-chart-sub">Grupos ordenados por cantidad de líneas asignadas</p>
+                @if (cargandoGraficas)
+                { <div class="chart-spinner"><div class="spinner-border spinner-border-sm" style="color:var(--green-deeper)"></div> Cargando...</div> }
+                else
+                { <div class="db-canvas-wrap"><canvas id="chartTopGrupos"></canvas></div> }
+            </div>
+        </div>
+    </div>
 
     <hr class="db-divider" />
 
-    @* ── TABLA RESUMEN Bootstrap ── *@
+    @* ════ TABLA: TOTAL DE REGISTROS POR TABLA ════ *@
     <div class="db-chart-panel">
-        <p class="db-chart-ttl"><i class="bi bi-table"></i> Resumen de Entidades</p>
-        <p class="db-chart-sub">Conteo total de registros por categoría</p>
+        <p class="db-chart-ttl"><i class="bi bi-table"></i> Total de Registros por Tabla</p>
+        <p class="db-chart-sub">Conteo actual de registros en cada tabla del sistema</p>
         <div class="table-responsive">
             <table class="table db-table align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Entidad</th>
-                        <th class="text-center">Total registros</th>
-                        <th class="text-center">Estado</th>
+                        <th>Tabla</th>
+                        <th>Descripción</th>
+                        <th class="text-center">Registros</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><i class="bi bi-diagram-3-fill me-2 text-success"></i>Líneas de Investigación</td>
-                        <td class="text-center fw-bold">@totalLineas</td>
-                        <td class="text-center"><span class="db-badge" style="background:#d4edca;color:#6fa057;">Activo</span></td>
+                        <td><i class="bi bi-diagram-3-fill me-2" style="color:#2d6a1f"></i><strong>linea_investigacion</strong></td>
+                        <td class="text-muted">Líneas de investigación registradas</td>
+                        <td class="text-center"><span class="db-num">@tLineas</span></td>
                     </tr>
                     <tr>
-                        <td><i class="bi bi-briefcase-fill me-2" style="color:#1d4ed8"></i>Áreas de Aplicación</td>
-                        <td class="text-center fw-bold">@totalAreasAp</td>
-                        <td class="text-center"><span class="db-badge" style="background:#dbeafe;color:#1d4ed8;">Activo</span></td>
+                        <td><i class="bi bi-people-fill me-2" style="color:#3d7a2a"></i><strong>grupo_investigacion</strong></td>
+                        <td class="text-muted">Grupos de investigación</td>
+                        <td class="text-center"><span class="db-num">@tGrupos</span></td>
                     </tr>
                     <tr>
-                        <td><i class="bi bi-book-fill me-2" style="color:#6d28d9"></i>Áreas de Conocimiento</td>
-                        <td class="text-center fw-bold">@totalAreasCo</td>
-                        <td class="text-center"><span class="db-badge" style="background:#ede9fe;color:#6d28d9;">Activo</span></td>
+                        <td><i class="bi bi-mortarboard-fill me-2" style="color:#4e8c3a"></i><strong>semillero</strong></td>
+                        <td class="text-muted">Semilleros de investigación</td>
+                        <td class="text-center"><span class="db-num">@tSemilleros</span></td>
                     </tr>
                     <tr>
-                        <td><i class="bi bi-globe-americas me-2" style="color:#0891b2"></i>Objetivos ODS</td>
-                        <td class="text-center fw-bold">@totalODS</td>
-                        <td class="text-center"><span class="db-badge" style="background:#cffafe;color:#0e7490;">Activo</span></td>
+                        <td><i class="bi bi-briefcase-fill me-2" style="color:#6fa057"></i><strong>area_aplicacion</strong></td>
+                        <td class="text-muted">Áreas de aplicación</td>
+                        <td class="text-center"><span class="db-num">@tAreasAp</span></td>
                     </tr>
                     <tr>
-                        <td><i class="bi bi-people-fill me-2" style="color:#d4870a"></i>Grupos de Investigación</td>
-                        <td class="text-center fw-bold">@totalGrupos</td>
-                        <td class="text-center"><span class="db-badge" style="background:#fff3e0;color:#d4870a;">Activo</span></td>
+                        <td><i class="bi bi-book-fill me-2" style="color:#8dba74"></i><strong>area_conocimiento</strong></td>
+                        <td class="text-muted">Áreas de conocimiento</td>
+                        <td class="text-center"><span class="db-num">@tAreasCo</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-globe-americas me-2" style="color:#4e8c3a"></i><strong>objetivo_desarrollo_sostenible</strong></td>
+                        <td class="text-muted">ODS registrados</td>
+                        <td class="text-center"><span class="db-num">@tOds</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-person-check-fill me-2" style="color:#6fa057"></i><strong>participa_grupo</strong></td>
+                        <td class="text-muted">Participaciones en grupos</td>
+                        <td class="text-center"><span class="db-num">@tPartGrupo</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-person-check me-2" style="color:#8dba74"></i><strong>participa_semillero</strong></td>
+                        <td class="text-muted">Participaciones en semilleros</td>
+                        <td class="text-center"><span class="db-num">@tPartSemillero</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-link-45deg me-2" style="color:#2d6a1f"></i><strong>grupo_linea</strong></td>
+                        <td class="text-muted">Relaciones grupo ↔ línea</td>
+                        <td class="text-center"><span class="db-num">@tGrupoLinea</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-link me-2" style="color:#3d7a2a"></i><strong>ac_linea</strong></td>
+                        <td class="text-muted">Relaciones área de conocimiento ↔ línea</td>
+                        <td class="text-center"><span class="db-num">@tAcLinea</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-link me-2" style="color:#4e8c3a"></i><strong>aa_linea</strong></td>
+                        <td class="text-muted">Relaciones área de aplicación ↔ línea</td>
+                        <td class="text-center"><span class="db-num">@tAaLinea</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-link me-2" style="color:#6fa057"></i><strong>semillero_linea</strong></td>
+                        <td class="text-muted">Relaciones semillero ↔ línea</td>
+                        <td class="text-center"><span class="db-num">@tSemilleroLinea</span></td>
+                    </tr>
+                    <tr>
+                        <td><i class="bi bi-link me-2" style="color:#8dba74"></i><strong>ods_linea</strong></td>
+                        <td class="text-muted">Relaciones ODS ↔ línea</td>
+                        <td class="text-center"><span class="db-num">@tOdsLinea</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -234,111 +275,131 @@
 @code {
     [Inject] NavigationManager Nav { get; set; } = default!;
 
-    // ── Cards ──────────────────────────────────────────────────
-    private int    totalLineas  = 0, totalAreasAp = 0, totalAreasCo = 0,
-                   totalODS     = 0, totalGrupos  = 0;
-    private bool   cargandoCards  = true;
-    private string errorCards     = "";
+    // Cards
+    private int    cTotalGrupos=0, cTotalSemilleros=0, cAreasApVinc=0, cAreasCoVinc=0, cOdsVinc=0;
+    private bool   cargandoCards = true;
+    private string errorCards    = "";
 
-    // ── Gráficas ───────────────────────────────────────────────
-    private bool         cargandoGraficas = true;
-    private bool         graficasListas   = false;   // trigger para el render
-    private List<string> gNombres  = new();
-    private List<int>    gLineas   = new();
-    private List<string> oCats     = new();
-    private List<int>    oCants    = new();
+    // Tabla totales
+    private int tLineas=0, tAreasAp=0, tAreasCo=0, tOds=0,
+                tGrupos=0, tSemilleros=0, tPartGrupo=0,
+                tPartSemillero=0, tGrupoLinea=0, tAcLinea=0,
+                tAaLinea=0, tSemilleroLinea=0, tOdsLinea=0;
 
-    // ── Ciclo de vida ──────────────────────────────────────────
+    // Gráficas
+    private List<string> g1Labels=new(); private List<int> g1Data=new();
+    private List<string> g2Labels=new(); private List<int> g2Data=new();
+    private List<string> g3Anios=new();
+    private List<int>    g3Grupos=new(); private List<int> g3Semilleros=new();
+    private List<string> g4Labels=new(); private List<int> g4Data=new();
+
+    private bool cargandoGraficas = true;
+    private bool graficasListas   = false;
+
     protected override async Task OnInitializedAsync()
     {
         await CargarCards();
+        await CargarTotalesTabla();
         await CargarGraficas();
-        graficasListas = true;   // avisa que el DOM de las gráficas debe pintarse
+        graficasListas = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Se llama cada vez que StateHasChanged() hace un re-render.
-        // Cuando graficasListas=true el canvas ya existe en el DOM.
         if (graficasListas)
         {
-            graficasListas = false;   // evitar bucle infinito
+            graficasListas = false;
             await PintarGraficas();
         }
     }
 
-    // ── Datos Cards ────────────────────────────────────────────
     private async Task CargarCards()
     {
         try
         {
-            var (ok, rows, msg) = await SpService.EjecutarSpAsync("SP_DASHBOARD_TOTALS");
+            var (ok, rows, msg) = await SpService.EjecutarSpAsync("SP_DASHBOARD_CARDS");
             if (ok && rows.Count > 0)
             {
                 var r = rows[0];
-                totalLineas  = Int(r, "total_lineas_investigacion");
-                totalAreasAp = Int(r, "total_areas_aplicacion");
-                totalAreasCo = Int(r, "total_areas_conocimiento");
-                totalODS     = Int(r, "total_ods");
-                totalGrupos  = Int(r, "total_grupos_investigacion");
+                cTotalGrupos     = Int(r, "total_grupos");
+                cTotalSemilleros = Int(r, "total_semilleros");
+                cAreasApVinc     = Int(r, "areas_aplicacion_vinculadas");
+                cAreasCoVinc     = Int(r, "areas_conocimiento_vinculadas");
+                cOdsVinc         = Int(r, "ods_vinculados");
             }
-            else errorCards = string.IsNullOrEmpty(msg) ? "Sin datos." : msg;
+            else errorCards = string.IsNullOrEmpty(msg) ? "Sin datos del SP." : msg;
         }
         catch { errorCards = "Error al conectar con la API."; }
         finally { cargandoCards = false; }
     }
 
-    // ── Datos Gráficas ─────────────────────────────────────────
+    private async Task CargarTotalesTabla()
+    {
+        try
+        {
+            var (ok, rows, _) = await SpService.EjecutarSpAsync("SP_DASHBOARD_TOTALES_TABLAS");
+            if (ok && rows.Count > 0)
+            {
+                var r = rows[0];
+                tLineas         = Int(r, "total_lineas");
+                tAreasAp        = Int(r, "total_areas_ap");
+                tAreasCo        = Int(r, "total_areas_co");
+                tOds            = Int(r, "total_ods");
+                tGrupos         = Int(r, "total_grupos");
+                tSemilleros     = Int(r, "total_semilleros");
+                tPartGrupo      = Int(r, "total_participa_grupo");
+                tPartSemillero  = Int(r, "total_participa_semillero");
+                tGrupoLinea     = Int(r, "total_grupo_linea");
+                tAcLinea        = Int(r, "total_ac_linea");
+                tAaLinea        = Int(r, "total_aa_linea");
+                tSemilleroLinea = Int(r, "total_semillero_linea");
+                tOdsLinea       = Int(r, "total_ods_linea");
+            }
+        }
+        catch { }
+    }
+
     private async Task CargarGraficas()
     {
         try
         {
-            var (ok1, rows1, _) = await SpService.EjecutarSpAsync("SP_DASHBOARD_LINEAS_POR_GRUPO");
-            if (ok1 && rows1.Count > 0)
-            {
-                gNombres = rows1.Select(f => Str(f, "nombre_grupo")).ToList();
-                gLineas  = rows1.Select(f => Int(f, "total_lineas")).ToList();
-            }
+            var (ok1,r1,_) = await SpService.EjecutarSpAsync("SP_GRAFICA_GRUPOS_CATEGORIA");
+            if (ok1 && r1.Count>0) { g1Labels=r1.Select(f=>Str(f,"categoria")).ToList(); g1Data=r1.Select(f=>Int(f,"cantidad")).ToList(); }
 
-            var (ok2, rows2, _) = await SpService.EjecutarSpAsync("SP_DASHBOARD_ODS_CATEGORIA");
-            if (ok2 && rows2.Count > 0)
-            {
-                oCats  = rows2.Select(f => Str(f, "categoria")).ToList();
-                oCants = rows2.Select(f => Int(f, "total")).ToList();
-            }
+            var (ok2,r2,_) = await SpService.EjecutarSpAsync("SP_GRAFICA_AREAS_CONOCIMIENTO");
+            if (ok2 && r2.Count>0) { g2Labels=r2.Select(f=>Str(f,"area")).ToList(); g2Data=r2.Select(f=>Int(f,"cantidad")).ToList(); }
+
+            var (ok3,r3,_) = await SpService.EjecutarSpAsync("SP_GRAFICA_EVOLUCION_FUNDACIONES");
+            if (ok3 && r3.Count>0) { g3Anios=r3.Select(f=>Str(f,"anio")).ToList(); g3Grupos=r3.Select(f=>Int(f,"cantidad_grupos")).ToList(); g3Semilleros=r3.Select(f=>Int(f,"cantidad_semilleros")).ToList(); }
+
+            var (ok4,r4,_) = await SpService.EjecutarSpAsync("SP_GRAFICA_TOP_GRUPOS_LINEAS");
+            if (ok4 && r4.Count>0) { g4Labels=r4.Select(f=>Str(f,"nombre")).ToList(); g4Data=r4.Select(f=>Int(f,"cantidad_lineas")).ToList(); }
         }
         catch { }
         finally { cargandoGraficas = false; }
     }
 
-    // ── Pintar Chart.js ────────────────────────────────────────
     private async Task PintarGraficas()
     {
-        if (gNombres.Count > 0)
-            await JS.InvokeVoidAsync("dashCharts.renderBarras", "chartBarras",
-                gNombres.ToArray(), gLineas.ToArray());
-
-        if (oCats.Count > 0)
-            await JS.InvokeVoidAsync("dashCharts.renderDona", "chartDona",
-                oCats.ToArray(), oCants.ToArray());
+        if (g1Labels.Count>0) await JS.InvokeVoidAsync("dashCharts.renderBarras",  "chartGruposCategoria", g1Labels.ToArray(), g1Data.ToArray());
+        if (g2Labels.Count>0) await JS.InvokeVoidAsync("dashCharts.renderPie",     "chartAreasCon",        g2Labels.ToArray(), g2Data.ToArray());
+        if (g3Anios.Count>0)  await JS.InvokeVoidAsync("dashCharts.renderLineas",  "chartEvolucion",       g3Anios.ToArray(),  g3Grupos.ToArray(), g3Semilleros.ToArray());
+        if (g4Labels.Count>0) await JS.InvokeVoidAsync("dashCharts.renderBarrasH", "chartTopGrupos",       g4Labels.ToArray(), g4Data.ToArray());
     }
 
     public async ValueTask DisposeAsync()
     {
-        try { await JS.InvokeVoidAsync("dashCharts.destroy", "chartBarras"); } catch { }
-        try { await JS.InvokeVoidAsync("dashCharts.destroy", "chartDona");  } catch { }
+        foreach (var id in new[]{"chartGruposCategoria","chartAreasCon","chartEvolucion","chartTopGrupos"})
+            try { await JS.InvokeVoidAsync("dashCharts.destroy", id); } catch { }
     }
 
-    // ── Helpers ────────────────────────────────────────────────
-    private int Pct(int v, int max) =>
-        max <= 0 ? 0 : Math.Min(100, (int)Math.Round((double)v / max * 100));
+    private int Pct(int v, int max) => max<=0 ? 0 : Math.Min(100,(int)Math.Round((double)v/max*100));
 
-    private int Int(Dictionary<string, object?> d, string k) =>
+    private int Int(Dictionary<string,object?> d, string k) =>
         d.TryGetValue(k, out var v) && v is not null
-            ? v switch { int i => i, long l => (int)l, double x => (int)x,
-                         string s when int.TryParse(s, out int p) => p, _ => 0 }
-            : 0;
+            ? v switch { int i=>i, long l=>(int)l, double x=>(int)x,
+                         string s when int.TryParse(s,out int p)=>p, _=>0 } : 0;
 
-    private string Str(Dictionary<string, object?> d, string k) =>
+    private string Str(Dictionary<string,object?> d, string k) =>
         d.TryGetValue(k, out var v) ? v?.ToString() ?? "" : "";
 }
