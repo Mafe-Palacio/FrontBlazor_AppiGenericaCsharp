@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FrontBlazor_AppiGenericaCsharp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+12fe814993dbf52759d0a3992b1149de96afd887")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a255a75536838648db02b0983b6b7a0f155ef04d")]
 [assembly: System.Reflection.AssemblyProductAttribute("FrontBlazor_AppiGenericaCsharp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FrontBlazor_AppiGenericaCsharp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
