@@ -161,9 +161,6 @@ INSERT INTO dbo.aa_linea (area_aplicacion, linea_investigacion) VALUES
 GO
 
 
--- Maritza tablas
-
--- no tocaba pero necesaria para la relacion 
 INSERT INTO dbo.docente (cedula, nombres, apellidos, genero, cargo, fecha_nacimiento, correo, telefono, url_cvlac, fecha_actualizacion, escalafon, perfil, cat_minciencia, conv_minciencia, nacionalidaad, linea_investigacion_principal) VALUES 
 (1001, 'Ana María', 'Gómez López', 'Femenino', 'Profesor Titular', '1980-05-12','ana.gomez@universidad.edu.co', '3001234567', 'http://cvlac.universidad.edu.co/ana',    GETDATE(), 'Doctorado', 'Investigadora en biotecnología aplicada',    'Senior', 'Conv2026', 'Colombiana', 1),
 (1002, 'Carlos Andrés', 'Martínez Ruiz', 'Masculino', 'Profesor Asociado', '1975-11-23', 'carlos.martinez@universidad.edu.co', '3019876543', 'http://cvlac.universidad.edu.co/carlos', GETDATE(), 'Maestría', 'Especialista en inteligencia artificial y robótica', 'Junior', 'Conv2026', 'Colombiano', 2),
@@ -197,10 +194,6 @@ INSERT INTO dbo.grupo_linea (grupo_investigacion, linea_investigacion) VALUES
 (9,1),(9,4),(9,6),
 (10,2),(10,3),(10,5);
 GO
-
-
--- Mauricio tablas
--- participa_semillero, semillero_linea, ods_linea
 
 INSERT INTO dbo.participa_semillero (docente, semillero, rol, fecha_inicio, fecha_fin) VALUES
 (1001,1,'Lider','2022-01-10',NULL),
@@ -269,9 +262,6 @@ ALTER TABLE dbo.universidad -- necesario por relacion
 ADD estado BIT NOT NULL CONSTRAINT universidad_estado DEFAULT 1;
 GO
 
-
--- maritza
-
 ALTER TABLE dbo.area_aplicacion
 ADD estado BIT NOT NULL CONSTRAINT area_aplicacion_estado DEFAULT 1;
 GO
@@ -291,9 +281,6 @@ GO
 ALTER TABLE dbo.docente -- necesario por relacion
 ADD estado BIT NOT NULL CONSTRAINT docente_estado DEFAULT 1;
 GO
-
-
--- mauricio
 
 ALTER TABLE dbo.area_conocimiento
 ADD estado BIT NOT NULL CONSTRAINT area_conocimiento_estado DEFAULT 1;
