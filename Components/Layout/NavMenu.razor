@@ -9,128 +9,186 @@
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
 
-        @* Link a la pagina de inicio *@
+        @* Home *@
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <i class="bi bi-house-door-fill nav-icon" aria-hidden="true"></i> Home
             </NavLink>
-        </div>        
+        </div>
 
-        
+        <div class="nav-item px-3"> 
+            <NavLink class="nav-link" href="dashboard"> 
+                <i class="bi bi-window-stack nav-icon" aria-hidden="true"></i> Dashboard 
+            </NavLink> 
+        </div>
+
+        @* ── Consultas ── *@
+        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("consultas")'>
+            <i class="bi @(IsOpen("consultas") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
+            Panel de Consultas
+        </div>
+        @if (IsOpen("consultas"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="consultas">
+                    <i class="bi bi-window-stack nav-icon"></i> Consultas
+                </NavLink>
+            </div>
+        }
+
         @* Tablas 
             - Grupo de Investigación, Semillero, Ac linea, Aa linea 
             - Línea de Investigación, Área de Aplicación, Participa Grupo, Grupo Línea 
             - ODS, Línea de Conocimiento, Participa Semillero, Semillero Línea, ODS Línea *@
 
 
+
         @* ── Tablas sin FK ── *@
-        <div class="nav-section-label">Tablas sin FK</div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="linea-investigacion">
-                <i class="bi bi-journals nav-icon" aria-hidden="true"></i> Linea de Investigación
-            </NavLink>
+        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("sinFK")'>
+            <i class="bi @(IsOpen("sinFK") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
+            Tablas sin FK
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="area-conocimiento">
-                <i class="bi bi-journal-text nav-icon" aria-hidden="true"></i> Area de Conocimiento
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="area-aplicacion">
-                <i class="bi bi-file-earmark-text nav-icon" aria-hidden="true"></i> Area de Aplicación
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="objetivo-desarrollo-sostenible">
-                <i class="bi bi-window-stack nav-icon" aria-hidden="true"></i> ODS
-            </NavLink>
-        </div>
+        @if (IsOpen("sinFK"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="linea-investigacion">
+                    <i class="bi bi-journals nav-icon"></i> Linea de Investigación
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="area-conocimiento">
+                    <i class="bi bi-journal-text nav-icon"></i> Area de Conocimiento
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="area-aplicacion">
+                    <i class="bi bi-file-earmark-text nav-icon"></i> Area de Aplicación
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="objetivo-desarrollo-sostenible">
+                    <i class="bi bi-window-stack nav-icon"></i> ODS
+                </NavLink>
+            </div>
+        }
 
-
-        @* ── Tabla Maestro - Detalle ── *@
-        <div class="nav-section-label">Tabla Maestro - Detalle</div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="grupos-semilleros">
-                <i class="bi bi-window-stack nav-icon" aria-hidden="true"></i> Grupos - Semilleros
-            </NavLink>
+        @* ── Maestro - Detalle ── *@
+        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("maestro")'>
+            <i class="bi @(IsOpen("maestro") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
+            Tabla Maestro - Detalle
         </div>
-
+        @if (IsOpen("maestro"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="grupos-semilleros">
+                    <i class="bi bi-window-stack nav-icon"></i> Grupos - Semilleros
+                </NavLink>
+            </div>
+        }
 
         @* ── Tablas con FK ── *@
-        <div class="nav-section-label">Tablas con FK</div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="grupo-investigacion">
-                <i class="bi bi-journals nav-icon" aria-hidden="true"></i> Grupo de Investigación
-            </NavLink>
+        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("conFK")'>
+            <i class="bi @(IsOpen("conFK") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
+            Tablas con FK
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="semillero">
-                <i class="bi bi-journal-text nav-icon" aria-hidden="true"></i> Semillero
-            </NavLink>
+        @if (IsOpen("conFK"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="grupo-investigacion">
+                    <i class="bi bi-journals nav-icon"></i> Grupo de Investigación
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="semillero">
+                    <i class="bi bi-journal-text nav-icon"></i> Semillero
+                </NavLink>
+            </div>
+        }
+
+        @* ── Relación Grupo ── *@
+        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("relGrupo")'>
+            <i class="bi @(IsOpen("relGrupo") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
+            Relación con Grupo
         </div>
+        @if (IsOpen("relGrupo"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="participa-grupo">
+                    <i class="bi bi-file-earmark-text nav-icon"></i> Participa Grupo
+                </NavLink>
+            </div>
+        }
 
-
-        @* ── Relación con Grupo de investigación ── *@
-        <div class="nav-section-label">Relación con Grupo de investigación</div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="participa-grupo">
-                <i class="bi bi-file-earmark-text nav-icon" aria-hidden="true"></i> Participa Grupo
-            </NavLink>
+        @* ── Relación Semillero ── *@
+        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("relSemillero")'>
+            <i class="bi @(IsOpen("relSemillero") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
+            Relación con Semillero
         </div>
+        @if (IsOpen("relSemillero"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="participa-semillero">
+                    <i class="bi bi-file-earmark-text nav-icon"></i> Participa Semillero
+                </NavLink>
+            </div>
+        }
 
-
-        @* ── Relación con Semillero ── *@
-        <div class="nav-section-label">Relación con Semillero</div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="participa-semillero">
-                <i class="bi bi-file-earmark-text nav-icon" aria-hidden="true"></i> Participa Semillero
-            </NavLink>
+        @* ── Relación Líneas ── *@
+        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("relLineas")'>
+            <i class="bi @(IsOpen("relLineas") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
+            Relación con Líneas
         </div>
-
-
-        @* ── Relaciones con Líneas de Investigación ── *@
-        <div class="nav-section-label">Relación con Líneas de Investigación</div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="grupo-linea">
-                <i class="bi bi-window-stack nav-icon" aria-hidden="true"></i> Grupo - Línea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ac-linea">
-                <i class="bi bi-window-stack nav-icon" aria-hidden="true"></i> AC - Línea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="aa-linea">
-                <i class="bi bi-window-stack nav-icon" aria-hidden="true"></i> AA - Línea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="semillero-linea">
-                <i class="bi bi-journals nav-icon" aria-hidden="true"></i> Semillero Linea
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="ods-linea">
-                <i class="bi bi-journals nav-icon" aria-hidden="true"></i> ODS Linea
-            </NavLink>
-        </div>
-
-
-        @* ── Prueba de Dashboard ── *@
-        <div class="nav-section-label">Prueba de Dashboard</div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="dashboard">
-                <i class="bi bi-window-stack nav-icon" aria-hidden="true"></i> Dashboard
-            </NavLink>
-        </div>
+        @if (IsOpen("relLineas"))
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="grupo-linea">
+                    <i class="bi bi-window-stack nav-icon"></i> Grupo - Línea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="ac-linea">
+                    <i class="bi bi-window-stack nav-icon"></i> AC - Línea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="aa-linea">
+                    <i class="bi bi-window-stack nav-icon"></i> AA - Línea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="semillero-linea">
+                    <i class="bi bi-journals nav-icon"></i> Semillero Linea
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="ods-linea">
+                    <i class="bi bi-journals nav-icon"></i> ODS Linea
+                </NavLink>
+            </div>
+        }
 
     </nav>
 </div>
+
+@code {
+    // Diccionario: clave = nombre de sección, valor = abierto/cerrado
+    private Dictionary<string, bool> _sections = new()
+    {
+        { "sinFK",       false },
+        { "maestro",     false },
+        { "conFK",       false },
+        { "relGrupo",    false },
+        { "relSemillero",false },
+        { "relLineas",   false },
+        { "dashboard",   false },
+    };
+
+    private bool IsOpen(string key) =>
+        _sections.TryGetValue(key, out var v) && v;
+
+    private void Toggle(string key)
+    {
+        if (_sections.ContainsKey(key))
+            _sections[key] = !_sections[key];
+    }
+}
