@@ -1,0 +1,152 @@
+@page "/reportes"
+@rendermode InteractiveServer
+
+<PageTitle>Panel de Consultas</PageTitle>
+
+<div class="crud-wrapper">
+
+    <div class="crud-header">
+        <h2 class="crud-title">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            Panel de Consultas
+        </h2>
+        <p class="crud-subtitle">Selecciona un reporte del menú lateral para visualizar los datos.</p>
+    </div>
+
+    <div class="reportes-grid">
+
+        <a href="/reportes/radiografia-semilleros" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-diagram-3-fill"></i></div>
+            <div class="reporte-card-body">
+                <strong>1. Radiografía Completa de Semilleros</strong>
+                <p>Grupo, líneas e investigación de cada semillero.</p>
+                <span class="tablas-chip">4 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/impacto-social" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-globe-americas"></i></div>
+            <div class="reporte-card-body">
+                <strong>2. Impacto Social de la Investigación (ODS)</strong>
+                <p>Grupos de investigación y los ODS que apoyan.</p>
+                <span class="tablas-chip">4 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/docentes-semilleros" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-person-badge-fill"></i></div>
+            <div class="reporte-card-body">
+                <strong>3. Vinculación de Docentes a Semilleros</strong>
+                <p>Qué docentes están en qué semilleros y líneas.</p>
+                <span class="tablas-chip">5 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/resumen-grupos" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-collection-fill"></i></div>
+            <div class="reporte-card-body">
+                <strong>4. Resumen de Grupos (docentes + líneas)</strong>
+                <p>Cuántos docentes y líneas tiene cada grupo.</p>
+                <span class="tablas-chip">5 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/resumen-semilleros" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-journals"></i></div>
+            <div class="reporte-card-body">
+                <strong>5. Resumen de Semilleros (líneas + docentes)</strong>
+                <p>Grupo padre, líneas y docentes de cada semillero.</p>
+                <span class="tablas-chip">5 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/areas-ods" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-link-45deg"></i></div>
+            <div class="reporte-card-body">
+                <strong>6. Áreas de Aplicación vinculadas a ODS</strong>
+                <p>Áreas de aplicación relacionadas con cada ODS.</p>
+                <span class="tablas-chip">5 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/grupos-areas" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+            <div class="reporte-card-body">
+                <strong>7. Grupos y su cobertura de Áreas de Aplicación</strong>
+                <p>Qué grupos cubren cada área de aplicación.</p>
+                <span class="tablas-chip">5 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/docentes-grupos" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="reporte-card-body">
+                <strong>8. Docentes en Grupos con sus Líneas</strong>
+                <p>Docentes en grupos y líneas que cubren.</p>
+                <span class="tablas-chip">5 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/lineas-vinculacion" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-diagram-2-fill"></i></div>
+            <div class="reporte-card-body">
+                <strong>9. Líneas de Investigación y Vinculación Científica</strong>
+                <p>Área de conocimiento y ODS de cada línea.</p>
+                <span class="tablas-chip">5 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+        <a href="/reportes/semillero-360" class="reporte-card">
+            <div class="reporte-card-icon"><i class="bi bi-bullseye"></i></div>
+            <div class="reporte-card-body">
+                <strong>10. Vista 360° de un Semillero</strong>
+                <p>Vista completa: semillero, grupo, líneas y áreas.</p>
+                <span class="tablas-chip">6 tablas</span>
+            </div>
+            <i class="bi bi-chevron-right reporte-card-arrow"></i>
+        </a>
+
+    </div>
+
+</div>
+
+<style>
+    .crud-subtitle  { font-size:.88rem; color:var(--text-muted); margin:.2rem 0 0; }
+
+    .reportes-grid  { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:1rem; margin-top:1.5rem; }
+
+    .reporte-card   {
+        display:flex; align-items:center; gap:.9rem;
+        background:#fff; border:1.5px solid var(--border);
+        border-radius:var(--radius); padding:.9rem 1rem;
+        text-decoration:none; color:var(--text);
+        transition:border-color .18s, box-shadow .18s;
+    }
+    .reporte-card:hover {
+        border-color:var(--green-deeper);
+        box-shadow:0 2px 10px var(--green-faint);
+        text-decoration:none;
+    }
+    .reporte-card-icon  {
+        width:2.6rem; height:2.6rem; flex-shrink:0;
+        background:var(--green-faint); border-radius:var(--radius);
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.25rem; color:var(--green-deeper);
+    }
+    .reporte-card-body  { flex:1; }
+    .reporte-card-body strong { font-size:.88rem; display:block; line-height:1.3; }
+    .reporte-card-body p      { font-size:.78rem; color:var(--text-muted); margin:.2rem 0 .35rem; }
+    .reporte-card-arrow { color:var(--text-muted); font-size:.85rem; flex-shrink:0; }
+
+    .tablas-chip { display:inline-block; padding:1px 7px; border-radius:99px; font-size:.72rem;
+                   font-weight:700; background:var(--green-faint); color:var(--green-deeper); }
+</style>

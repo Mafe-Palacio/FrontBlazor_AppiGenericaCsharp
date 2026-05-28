@@ -12,13 +12,13 @@ main[b-vhxxsxyzpg] {
     min-width: 0;
 }
 
-/* ── Sidebar ──────────────────────────────────── */
+/* Sidebar */
 .sidebar[b-vhxxsxyzpg] {
     background: #ffffff;
     border-right: 1px solid #e4ede0;
 }
 
-/* ── Top bar ──────────────────────────────────── */
+/* Top bar */
 .top-row[b-vhxxsxyzpg] {
     background: #ffffff;
     border-bottom: 1px solid #e4ede0;
@@ -47,13 +47,13 @@ main[b-vhxxsxyzpg] {
     text-overflow: ellipsis;
 }
 
-/* ── Responsive mobile ────────────────────────── */
+/* Responsive mobile */
 @media (max-width: 640.98px) {
     .top-row[b-vhxxsxyzpg] { justify-content: space-between; }
     .top-row[b-vhxxsxyzpg]  a, .top-row[b-vhxxsxyzpg]  .btn-link { margin-left: 0; }
 }
 
-/* ── Desktop ──────────────────────────────────── */
+/* Desktop */
 @media (min-width: 641px) {
     .page[b-vhxxsxyzpg] { flex-direction: row; }
 
@@ -82,7 +82,7 @@ main[b-vhxxsxyzpg] {
     }
 }
 
-/* ── Error UI ─────────────────────────────────── */
+/* Error UI */
 #blazor-error-ui[b-vhxxsxyzpg] {
     color-scheme: light only;
     background: lightyellow;

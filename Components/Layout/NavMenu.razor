@@ -22,19 +22,6 @@
             </NavLink> 
         </div>
 
-        @* ── Consultas ── *@
-        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("consultas")'>
-            <i class="bi @(IsOpen("consultas") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
-            Panel de Consultas
-        </div>
-        @if (IsOpen("consultas"))
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="consultas">
-                    <i class="bi bi-window-stack nav-icon"></i> Consultas
-                </NavLink>
-            </div>
-        }
 
         @* Tablas 
             - Grupo de Investigación, Semillero, Ac linea, Aa linea 
@@ -167,6 +154,69 @@
             </div>
         }
 
+        @* ── Consultas ── *@
+        <div class="nav-section-label nav-collapsible" @onclick='() => Toggle("consultas")'>
+            <i class="bi @(IsOpen("consultas") ? "bi-chevron-down" : "bi-chevron-right") me-1"></i>
+            Panel de Consultas
+        </div>
+        @if (IsOpen("consultas")) {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes" Match="NavLinkMatch.All">
+                    <i class="bi bi-bar-chart-line-fill nav-icon"></i> Panel de Consultas
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/radiografia-semilleros">
+                    <i class="bi bi-diagram-3-fill nav-icon"></i> 1. Radiografía Semilleros
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/impacto-social">
+                    <i class="bi bi-globe-americas nav-icon"></i> 2. Impacto Social (ODS)
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/docentes-semilleros">
+                    <i class="bi bi-person-badge-fill nav-icon"></i> 3. Docentes - Semilleros
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/resumen-grupos">
+                    <i class="bi bi-collection-fill nav-icon"></i> 4. Resumen Grupos
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/resumen-semilleros">
+                    <i class="bi bi-journals nav-icon"></i> 5. Resumen Semilleros
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/areas-ods">
+                    <i class="bi bi-link-45deg nav-icon"></i> 6. Áreas - ODS
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/grupos-areas">
+                    <i class="bi bi-grid-3x3-gap-fill nav-icon"></i> 7. Grupos - Áreas
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/docentes-grupos">
+                    <i class="bi bi-people-fill nav-icon"></i> 8. Docentes - Grupos
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/lineas-vinculacion">
+                    <i class="bi bi-diagram-2-fill nav-icon"></i> 9. Líneas Vinculación
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="reportes/semillero-completo">
+                    <i class="bi bi-bullseye nav-icon"></i> 10. Semillero Completo
+                </NavLink>
+            </div>
+        }
+
     </nav>
 </div>
 
@@ -181,6 +231,7 @@
         { "relSemillero",false },
         { "relLineas",   false },
         { "dashboard",   false },
+        { "consultas",   false },
     };
 
     private bool IsOpen(string key) =>

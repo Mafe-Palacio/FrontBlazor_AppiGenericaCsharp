@@ -1,0 +1,119 @@
+@page "/reportes/resumen-semilleros"
+@rendermode InteractiveServer
+@inject FrontBlazor_AppiGenericaCsharp.Services.SpService Sp
+
+<PageTitle>Resumen de Semilleros (líneas + docentes)</PageTitle>
+
+<div class="crud-wrapper">
+
+    <div class="crud-header-reporte">
+        <h2 class="crud-title">
+            <i class="bi bi-journals"></i>
+            Resumen de Semilleros (líneas + docentes)
+        </h2>
+        <p class="crud-subtitle">
+            Estadísticas por semillero: su grupo padre, cuántas líneas y docentes tiene.
+        </p>
+        <div class="tablas-badge-container">
+            <span class="tablas-badge">
+                <i class="bi bi-table"></i> 5 tablas: semillero · grupo_investigacion · semillero_linea · linea_investigacion · participa_semillero
+            </span>
+        </div>
+    </div>
+
+
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert-custom @(exito ? "alert-ok" : "alert-err")">
+        <i class="bi @(exito ? "bi-check-circle" : "bi-exclamation-circle")"></i>
+        @mensaje
+        <button class="alert-close" @onclick="() => mensaje = string.Empty"><i class="bi bi-x"></i></button>
+    </div>
+}
+
+<div class="search-bar">
+    <div class="search-field search-field--wide">
+        <i class="bi bi-search search-icon"></i>
+        <input class="search-input" placeholder="Filtrar por semillero o grupo padre..." @bind="filtro" @bind:event="oninput" />
+    </div>
+    @if (!string.IsNullOrWhiteSpace(filtro))
+    {
+        <button class="btn-clear" @onclick="() => filtro = string.Empty">
+            <i class="bi bi-x-circle"></i> Limpiar
+        </button>
+    }
+</div>
+
+@if (cargando)
+{
+    <div class="loading-wrap"><div class="spinner"></div><span>Cargando datos...</span></div>
+}
+else if (DatosFiltrados.Any())
+{
+    <div class="reporte-info-bar"><i class="bi bi-table"></i> @DatosFiltrados.Count() semilleros</div>
+    <div class="table-wrap">
+        <table class="crud-table">
+            <thead>
+                <tr>
+                    <th class="col-id">ID</th>
+                    <th>Semillero</th>
+                    <th>Grupo Padre</th>
+                    <th class="col-num">Total Líneas</th>
+                    <th class="col-num">Total Docentes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in DatosFiltrados)
+                {
+                    <tr>
+                        <td class="col-id"><span class="id-badge">@r["id"]</span></td>
+                        <td class="td-nombre">@r["semillero"]</td>
+                        <td class="td-desc">@r["grupo_padre"]</td>
+                        <td class="col-num"><span class="num-badge">@r["total_lineas"]</span></td>
+                        <td class="col-num"><span class="num-badge">@r["total_docentes"]</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="empty-state">
+        <i class="bi bi-inbox empty-icon"></i>
+        <p>@(string.IsNullOrWhiteSpace(filtro) ? "No hay datos disponibles." : "Sin resultados para el filtro aplicado.")</p>
+    </div>
+}
+
+
+@code {
+    private List<Dictionary<string, object?>> datos = new();
+    private bool   cargando = true;
+    private string mensaje  = string.Empty;
+    private bool   exito    = false;
+    private string filtro   = string.Empty;
+
+    private IEnumerable<Dictionary<string, object?>> DatosFiltrados =>
+        string.IsNullOrWhiteSpace(filtro)
+            ? datos
+            : datos.Where(r =>
+                r["semillero"]?.ToString()?.Contains(filtro, StringComparison.OrdinalIgnoreCase) == true ||
+                r["grupo_padre"]?.ToString()?.Contains(filtro, StringComparison.OrdinalIgnoreCase) == true);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var (ok, resultado, msg) = await Sp.EjecutarSpAsync("SP_REPORTE_RESUMEN_SEMILLEROS");
+        datos    = ok ? resultado : new();
+        exito    = ok;
+        mensaje  = ok ? string.Empty : $"Error al cargar: {msg}";
+        cargando = false;
+    }
+}
+
+</div>
+
+<style>
+    .crud-subtitle { font-size:.88rem; color:var(--text-muted); margin:.2rem 0 0; }
+    .tablas-badge  { display:block; margin-top:.4rem; font-size:.78rem; color:var(--green-deeper); font-weight:600; }
+    .tablas-badge i { margin-right:.25rem; }
+</style>
