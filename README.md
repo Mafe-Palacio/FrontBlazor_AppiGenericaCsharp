@@ -1,144 +1,176 @@
-# 🔬 CRUD Investigación — Frontend Blazor
+# Frontend — Gestión de Investigación
 
-Sistema web de gestión de investigación académica desarrollado en **Blazor Server (.NET 9)**, conectado a una **API genérica en C#** que ejecuta stored procedures sobre **SQL Server**. Incluye autenticación JWT, control de acceso por roles y rutas, y una interfaz de diseño propio con sistema de tokens CSS en verde.
+Aplicación web desarrollada con **Blazor Server (.NET 9)** para la gestión de información de investigación académica. Consume la [API Genérica CRUD](http://apigenericacsharp-mafe.runasp.net/swagger/index.html) y permite administrar grupos de investigación, semilleros, líneas, docentes, ODS y más.
+
+## 🌐 Aplicación publicada
+
+> **URL:** [http://frontblazor-mafe.runasp.net/login](http://frontblazor-mafe.runasp.net/login)
+
+![Pantalla de login](login-preview.png)
 
 ---
 
-## 🚀 Tecnologías
+## 👤 Usuarios de prueba
 
-| Capa | Tecnología |
+| Rol | Correo | Contraseña |
+|---|---|---|
+| 🔑 Administrador | `administrador@gmail.com` | `12345` |
+| 👁️ Invitado | `invitado@gmail.com` | `12345` |
+
+---
+
+## 🔒 Control de acceso por roles
+
+### 👁️ Invitado — acceso de solo lectura
+
+| Sección | Páginas accesibles |
 |---|---|
-| Frontend | Blazor Server — .NET 9 |
-| Backend | ASP.NET Core Web API — C# |
-| Base de datos | SQL Server (stored procedures) |
-| Autenticación | JWT + BCrypt |
-| Estilos | CSS custom (design system propio, sin frameworks de UI) |
-| Íconos | Bootstrap Icons |
+| **Home** | Inicio |
+| **Tablas sin FK** | Línea de Investigación, Área de Conocimiento, Área de Aplicación, ODS |
+| **Tabla Maestro-Detalle** | Grupos con Semilleros |
+| **Panel de Consultas** | Los 10 reportes multitabla |
+
+### 🔑 Administrador — acceso completo
+
+Todo lo del Invitado más:
+
+| Sección | Páginas adicionales |
+|---|---|
+| **Tablas con FK** | Grupo de Investigación, Semillero |
+| **Relación con Grupo** | Participa Grupo |
+| **Relación con Semillero** | Participa Semillero |
+| **Relación con Líneas** | Grupo-Línea, AC-Línea, AA-Línea, Semillero-Línea, ODS-Línea |
+| **Dashboard** | Gráficas y estadísticas generales |
 
 ---
 
-## ✨ Funcionalidades
+## 📋 Módulos del sistema
 
-### 🔐 Autenticación y seguridad
-- Login con JWT — token almacenado en sesión cifrada
-- Recuperación de contraseña con código temporal por correo (SMTP)
-- Cambio de contraseña voluntario y forzado (tras recuperación)
-- Registro de nuevos usuarios con contraseña hasheada con BCrypt
-- Control de acceso por **roles** y **rutas** — redirige a `/sin-acceso` si no tiene permiso
-- Cierre de sesión seguro
+### Tablas sin FK
+Entidades base sin dependencias externas — CRUD completo.
+- **Línea de Investigación** — nombre y descripción
+- **Área de Conocimiento** — gran área, área y disciplina
+- **Área de Aplicación** — nombre
+- **ODS** (Objetivos de Desarrollo Sostenible) — nombre y categoría
 
-### 📋 Módulos CRUD
-Cada módulo incluye: listar, buscar, crear, editar y eliminar (borrado lógico) vía stored procedures.
+### Tablas con FK
+Entidades con dependencias — CRUD completo.
+- **Grupo de Investigación** — nombre, categoría, ámbito, fecha de fundación, URL GrupLAC
+- **Semillero** — nombre, fecha de fundación, grupo padre
 
-| Módulo | Ruta |
-|---|---|| Línea de Investigación | `/linea-investigacion` |
-| Área de Conocimiento | `/area-conocimiento` |
-| Área de Aplicación | `/area-aplicacion` |
-| Objetivo de Desarrollo Sostenible | `/objetivo-desarrollo-sostenible` |
-| Grupo de Investigación | `/grupo-investigacion` |
-| Semillero | `/semillero` |
-| Participa Grupo | `/participa-grupo` |
-| Participa Semillero | `/participa-semillero` |
-| Grupo — Línea | `/grupo-linea` |
-| AC — Línea | `/ac-linea` |
-| AA — Línea | `/aa-linea` |
-| Semillero — Línea | `/semillero-linea` |
-| ODS — Línea | `/ods-linea` |
+### Tabla Maestro-Detalle
+- **Grupos con Semilleros** — visualización jerárquica de grupos y sus semilleros asociados
 
-### 🗂️ Maestro-Detalle
-- **Grupos con Semilleros** (`/grupos-semilleros`): tabla maestra de grupos con sub-tabla de semilleros anidada. Permite crear, editar y eliminar tanto el grupo como sus semilleros desde una sola vista, con botón de agregar semillero por grupo.
+### Tablas de relación N:M
+- **Participa Grupo** — docentes vinculados a grupos con rol y fechas
+- **Participa Semillero** — docentes vinculados a semilleros con rol y fechas
+- **Grupo-Línea** — grupos asociados a líneas de investigación
+- **AC-Línea** — áreas de conocimiento asociadas a líneas
+- **AA-Línea** — áreas de aplicación asociadas a líneas
+- **Semillero-Línea** — semilleros asociados a líneas
+- **ODS-Línea** — ODS asociados a líneas de investigación
+
+### 📊 Dashboard *(solo Administrador)*
+4 gráficas generadas con **ApexCharts**:
+- Grupos por categoría (barras)
+- Áreas de conocimiento más investigadas (torta)
+- Evolución de fundaciones por año (líneas)
+- Top grupos con más líneas (barras horizontales)
+
+### 📋 Panel de Consultas *(ambos roles)*
+10 reportes multitabla (mínimo 4 tablas por consulta):
+
+| # | Reporte | Tablas |
+|---|---|---|
+| 1 | Radiografía Completa de Semilleros | 4 |
+| 2 | Impacto Social de la Investigación (ODS) | 4 |
+| 3 | Vinculación de Docentes a Semilleros | 5 |
+| 4 | Resumen de Grupos (docentes + líneas) | 5 |
+| 5 | Resumen de Semilleros (líneas + docentes) | 5 |
+| 6 | Áreas de Aplicación vinculadas a ODS | 5 |
+| 7 | Grupos y cobertura de Áreas de Aplicación | 5 |
+| 8 | Docentes en Grupos con sus Líneas | 5 |
+| 9 | Líneas de Investigación y Vinculación Científica | 5 |
+| 10 | Vista 360° de un Semillero | 6 |
 
 ---
 
-## 🏗️ Arquitectura
+## 🛠️ Tecnologías
+
+| Tecnología | Versión | Uso |
+|---|---|---|
+| .NET / Blazor Server | 9.0 | Framework principal |
+| Blazor-ApexCharts | 6.1.0 | Gráficas del Dashboard |
+| Bootstrap Icons | — | Iconografía del sistema |
+| CSS personalizado (`crud.css`) | — | Sistema de diseño en verde |
+
+---
+
+## 🏗️ Estructura del proyecto
 
 ```
 FrontBlazor_AppiGenericaCsharp/
 ├── Components/
 │   ├── Layout/
-│   │   ├── MainLayout.razor       # Layout principal + control de acceso
-│   │   ├── NavMenu.razor          # Menú lateral con secciones
-│   │   └── EmptyLayout.razor      # Layout sin menú (login, registro)
+│   │   ├── MainLayout.razor       # Layout principal con NavMenu
+│   │   ├── EmptyLayout.razor      # Layout vacío para Login
+│   │   └── NavMenu.razor          # Menú lateral colapsable por secciones
 │   └── Pages/
 │       ├── Login.razor
-│       ├── CrearUsuario.razor
-│       ├── CambiarContrasena.razor
-│       ├── RecuperarContrasena.razor
-│       ├── SinAcceso.razor
-│       ├── MaestroDetalle.razor   # Grupos + Semilleros
-│       └── [un .razor por módulo CRUD]
+│       ├── Home.razor
+│       ├── Dashboard/
+│       │   └── Dashboard.razor
+│       ├── Reportes/
+│       │   ├── Reporte1RadiografiaSemilleros.razor
+│       │   ├── Reporte2ImpactoSocial.razor
+│       │   └── ... (10 reportes)
+│       ├── GrupoInvestigacion.razor
+│       ├── Semillero.razor
+│       └── ... (demás páginas CRUD)
 ├── Services/
-│   ├── SpService.cs               # Ejecuta SPs via POST /api/procedimientos/ejecutarsp
-│   ├── AuthService.cs             # Login, sesión, roles, rutas
-│   └── ApiService.cs              # Llamadas REST genéricas (registro, encriptación)
+│   ├── ApiService.cs              # Cliente HTTP para la API
+│   └── SpService.cs               # Servicio de Stored Procedures
 └── wwwroot/
-    ├── crud.css                   # Design system: variables, tabla, formulario, login
-    └── app.css
+    └── css/
+        └── crud.css               # Sistema de diseño global
 ```
 
 ---
 
-## ⚙️ Configuración
+## ⚙️ Configuración (`appsettings.json`)
 
-### `appsettings.json` (Frontend)
 ```json
 {
-  "ApiBaseUrl": "http://localhost:5035",
-  "Smtp": {
-    "Host": "smtp.gmail.com",
-    "Port": 587,
-    "User": "tu-correo@gmail.com",
-    "Pass": "tu-app-password",
-    "From": "tu-correo@gmail.com"
-  }
-}
-```
-
-### `appsettings.json` (API)
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=...;Database=...;..."
-  },
-  "Jwt": {
-    "Key": "MinimumThirtyTwoCharacterSecretKey!!",
-    "DuracionMinutos": 60
+  "ApiSettings": {
+    "BaseUrl": "http://apigenericacsharp-mafe.runasp.net/"
   }
 }
 ```
 
 ---
 
-## 🗄️ Base de datos — tablas de seguridad
+## 🚀 Ejecutar localmente
 
-```sql
-CREATE TABLE usuario   (email VARCHAR(200) PRIMARY KEY, contrasena VARCHAR(200) NOT NULL);
-CREATE TABLE rol       (id INT IDENTITY PRIMARY KEY, nombre VARCHAR(100) NOT NULL);
-CREATE TABLE rol_usuario (id INT IDENTITY PRIMARY KEY, fkemail VARCHAR(200) REFERENCES usuario(email), fkidrol INT REFERENCES rol(id));
-CREATE TABLE ruta      (id INT IDENTITY PRIMARY KEY, ruta VARCHAR(200) NOT NULL, descripcion TEXT DEFAULT '');
-CREATE TABLE rutarol   (id INT IDENTITY PRIMARY KEY, fkidrol INT REFERENCES rol(id), fkidruta INT REFERENCES ruta(id));
+```bash
+# Clonar el repositorio
+git clone https://github.com/tu-usuario/FrontBlazor_AppiGenericaCsharp.git
+cd FrontBlazor_AppiGenericaCsharp
+
+# Restaurar dependencias
+dotnet restore
+
+# Ejecutar
+dotnet run
+
+# Aplicación disponible en:
+# https://localhost:{puerto}
 ```
 
-> ⚠️ Las contraseñas deben insertarse **a través de la API** usando `?camposEncriptar=contrasena` para que BCrypt las hashee correctamente. No insertar en texto plano.
+> Requiere que la API esté corriendo. Puede apuntar a la API publicada o a una instancia local.
 
 ---
 
-## 🧩 Patrón de comunicación con la API
+## 👩‍💻 Autora
 
-Todas las páginas CRUD utilizan `SpService` que hace `POST /api/procedimientos/ejecutarsp`:
-
-```csharp
-var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS", new()
-{
-    ["p_id"] = 1
-});
-```
-
-La API devuelve `{ "exito": true, "resultados": [...], "mensaje": "..." }` y el servicio lo deserializa a `List<Dictionary<string, object?>>`.
-
----
-
-## 👩‍💻 Desarrollado por
-
-**Maria Fernanda Palacio**  
-Aplicación y Servicios Web (ITM) — 2026
+Desarrollado por **María Fernanda Palacio** — Ingeniería de Software, ITM  
+Proyecto académico — 2026
