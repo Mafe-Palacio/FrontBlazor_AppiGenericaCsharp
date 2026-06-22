@@ -35,27 +35,19 @@
     @* ───────── LISTA ───────── *@
     @if (!mostrarFormulario && !mostrarFormularioSemillero){
 
+        @* ───────── BARRA BÚSQUEDA ───────── *@
         <div class="search-bar">
-            <div class="search-field">
-                <i class="bi bi-hash search-icon"></i>
-                <input type="number" class="search-input" placeholder="ID Grupo" @bind="buscarIdGrupo" />
-            </div>
             <div class="search-field search-field--wide">
                 <i class="bi bi-search search-icon"></i>
-                <input class="search-input" placeholder="Nombre del grupo" @bind="buscarNombreGrupo" />
+                <input class="search-input" placeholder="Filtrar por ID/nombre del Grupo de investigación o del Semillero..."
+                       value="@filtro" @oninput="FiltrarLocal" />
             </div>
-            <div class="search-field">
-                <i class="bi bi-hash search-icon"></i>
-                <input type="number" class="search-input" placeholder="ID Semillero" @bind="buscarIdSemillero" />
-            </div>
-            <div class="search-field search-field--wide">
-                <i class="bi bi-search search-icon"></i>
-                <input class="search-input" placeholder="Nombre semillero" @bind="buscarNombreSemillero" />
-            </div>
-            <button class="btn-search" @onclick="Buscar">Buscar</button>
-            <button class="btn-clear" @onclick="LimpiarBusqueda">
-                <i class="bi bi-x-circle"></i> Limpiar
-            </button>
+            @if (!string.IsNullOrWhiteSpace(filtro))
+            {
+                <button class="btn-clear" @onclick="LimpiarFiltro">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+            }
         </div>
 
         @if (cargando){
@@ -63,12 +55,11 @@
                 <div class="spinner"></div>
                 <span>Cargando...</span>
             </div>
-        }else if (grupos.Any()){
+        }else if (gruposFiltrados.Any()){
 
             <div class="table-wrap">
                 <table class="crud-table">
 
-                    @* ── Encabezado principal de la tabla ── *@
                     <thead>
                         <tr>
                             <th class="col-id">ID</th>
@@ -83,19 +74,13 @@
                         </tr>
                     </thead>
 
-                    @* ── Un <tbody> por cada grupo (maestro + detalle) ── *@
-                    @foreach (var g in grupos){
-                        
-                            var semillerosGrupo = semilleros
-                                .Where(s => s["grupo_investigacion"]?.ToString() == g["id"]?.ToString())
-                                .ToList();
-
-                            var tieneCategoria = !string.IsNullOrEmpty(g["categoria"]?.ToString());
-                        
+                    @foreach (var g in gruposFiltrados){
+                        var semillerosGrupo = semilleros
+                            .Where(s => s["grupo_investigacion"]?.ToString() == g["id"]?.ToString())
+                            .ToList();
+                        var tieneCategoria = !string.IsNullOrEmpty(g["categoria"]?.ToString());
 
                         <tbody class="md-grupo-body">
-
-                            @* ── Fila 1: datos del grupo ── *@
                             <tr class="md-grupo-row">
                                 <td class="col-id">
                                     <span class="id-badge">@g["id"]</span>
@@ -117,7 +102,7 @@
                                 </td>
                                 <td class="td-desc">@g["ambito"]</td>
                                 <td>
-                                    @(campoInterno ? "Sí" : "No")
+                                    @(g["interno"]?.ToString() == "1" || g["interno"]?.ToString() == "True" ? "Sí" : "No")
                                 </td>
                                 <td class="col-actions">
                                     <div class="action-group">
@@ -137,12 +122,9 @@
                                 </td>
                             </tr>
 
-                            @* ── Fila 2: detalle de semilleros ── *@
                             <tr class="md-detail-row">
                                 <td colspan="9" class="md-detail-cell">
                                     <div class="md-detail-wrap">
-
-                                        @* Sub-tabla o mensaje vacío *@
                                         @if (semillerosGrupo.Any()){
                                             <table class="md-sub-table">
                                                 <thead>
@@ -181,11 +163,9 @@
                                                 Sin semilleros registrados para este grupo.
                                             </div>
                                         }
-
                                     </div>
                                 </td>
                             </tr>
-
                         </tbody>
                     }
 
@@ -253,7 +233,7 @@
         </div>
     }
 
-    @* ───────── FORMULARIO ───────── *@
+    @* ───────── FORMULARIO GRUPO ───────── *@
     @if (mostrarFormulario){
         <div class="form-card">
             <div class="form-card-header">
@@ -262,7 +242,6 @@
             </div>
             <div class="form-card-body">
 
-                @* ── SECCIÓN MAESTRO ── *@
                 <h6 class="crud-subtitle">Datos del Grupo</h6>
 
                 <div class="form-row">
@@ -335,12 +314,10 @@
                     </div>
                 </div>
 
-                @* ── SECCIÓN DETALLE: semilleros (solo al crear) ── *@
                 @if (!editando){
                     <h6 class="text-primary border-bottom pb-1 mb-3 mt-3 d-flex">
                         <span class="crud-subtitle">Semilleros</span>
-                        <button class="btn-add-semillero-grupo"
-                                @onclick="AgregarSemillero">
+                        <button class="btn-add-semillero-grupo" @onclick="AgregarSemillero">
                             <i class="bi bi-plus"></i> Agregar Semillero
                         </button>
                     </h6>
@@ -381,8 +358,7 @@
                                                        @onchange="e => { if (DateTime.TryParse(e.Value?.ToString(), out var d)) semillerosFormulario[idx].FechaFundacion = d; }" />
                                             </td>
                                             <td class="text-center">
-                                                <button class="btn-action btn-delete"
-                                                        @onclick="() => QuitarSemillero(idx)">
+                                                <button class="btn-action btn-delete" @onclick="() => QuitarSemillero(idx)">
                                                     <i class="bi bi-x-lg"></i>
                                                 </button>
                                             </td>
@@ -412,44 +388,39 @@
 
 @code {
     // ── listas ──
-    private List<Dictionary<string, object?>> grupos = new();
-    private List<Dictionary<string, object?>> semilleros = new();
-    private List<Dictionary<string, object?>> universidades = new();
-    private List<SemilleroItem> semillerosFormulario = new();
+    private List<Dictionary<string, object?>> grupos            = new();
+    private List<Dictionary<string, object?>> gruposFiltrados   = new();
+    private List<Dictionary<string, object?>> semilleros        = new();
+    private List<Dictionary<string, object?>> universidades     = new();
+    private List<SemilleroItem>               semillerosFormulario = new();
 
-    // ── estado ──
-    private bool cargando = true;
-    private bool mostrarFormulario = false;
-    private bool editando = false;
-    private string mensaje = string.Empty;
-    private bool exito = false;
+    // ── estado general ──
+    private bool   cargando          = true;
+    private bool   mostrarFormulario = false;
+    private bool   editando          = false;
+    private string mensaje           = string.Empty;
+    private bool   exito             = false;
+    private string filtro            = "";
 
-    // ── estado formulario SEMILLERO (separado del de grupo) ──
-    private bool mostrarFormularioSemillero = false;
-    private bool editandoSemillero = false;
-    private int campoIdSemillero = 0;
-    private string campoNombreSemillero_Form  = "";
-    private int campoGrupoSemillero = 0;
-    private DateTime campoFechaSemillero = DateTime.Today;
+    // ── estado formulario semillero ──
+    private bool     mostrarFormularioSemillero = false;
+    private bool     editandoSemillero          = false;
+    private int      campoIdSemillero           = 0;
+    private string   campoNombreSemillero_Form  = "";
+    private int      campoGrupoSemillero        = 0;
+    private DateTime campoFechaSemillero        = DateTime.Today;
 
-    // ── campos maestro ──
-    private int campoIdGrupo = 0;
-    private string campoNombreGrupo = "";
-    private string campoUrlGruplac = "";
-    private string campoCategoria = "";
-    private string campoConvocatoria = "";
-    private DateTime campoFechaFund = DateTime.Today;
-    private int campoUniversidad = 0;
-    private bool campoInterno = true;
-    private string campoAmbito = "Nacional";
+    // ── campos grupo ──
+    private int      campoIdGrupo      = 0;
+    private string   campoNombreGrupo  = "";
+    private string   campoUrlGruplac   = "";
+    private string   campoCategoria    = "";
+    private string   campoConvocatoria = "";
+    private DateTime campoFechaFund    = DateTime.Today;
+    private int      campoUniversidad  = 0;
+    private bool     campoInterno      = true;
+    private string   campoAmbito       = "Nacional";
 
-    // ── búsqueda ──
-    private int?   buscarIdGrupo         = null;
-    private string buscarNombreGrupo     = "";
-    private int?   buscarIdSemillero     = null;
-    private string buscarNombreSemillero = "";
-
-    // ── modelo fila semillero ──
     private class SemilleroItem {
         public int      Id             { get; set; } = 0;
         public string   Nombre         { get; set; } = "";
@@ -468,15 +439,41 @@
 
     private async Task CargarRegistros(){
         cargando = true;
-
         var (okG, datosG, msgG) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_CON_SEMILLEROS");
         grupos = okG ? datosG : new();
+        gruposFiltrados = grupos;
 
         var (okS, datosS, _) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
         semilleros = okS ? datosS : new();
 
         if (!okG){ exito = false; mensaje = msgG; }
         cargando = false;
+    }
+
+    private void FiltrarLocal(ChangeEventArgs e){
+        filtro = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(filtro)){
+            gruposFiltrados = grupos;
+            return;
+        }
+
+        // IDs de grupos que tienen semilleros que coinciden con el filtro
+        var idsGruposConSemilleroMatch = semilleros
+            .Where(s => (s["nombre"]?.ToString() ?? "").Contains(filtro, StringComparison.OrdinalIgnoreCase)
+                     || (s["id"]?.ToString() ?? "").Contains(filtro))
+            .Select(s => s["grupo_investigacion"]?.ToString())
+            .ToHashSet();
+
+        gruposFiltrados = grupos
+            .Where(g => (g["nombre"]?.ToString() ?? "").Contains(filtro, StringComparison.OrdinalIgnoreCase)
+                     || (g["id"]?.ToString() ?? "").Contains(filtro)
+                     || idsGruposConSemilleroMatch.Contains(g["id"]?.ToString()))
+            .ToList();
+    }
+
+    private void LimpiarFiltro(){
+        filtro = "";
+        gruposFiltrados = grupos;
     }
 
     private void NuevoRegistro(){
@@ -532,38 +529,21 @@
         mensaje = "";
     }
 
-    private void AgregarSemillero() =>
-        semillerosFormulario.Add(new SemilleroItem());
-
-    private void QuitarSemillero(int idx) =>
-        semillerosFormulario.RemoveAt(idx);
+    private void AgregarSemillero() => semillerosFormulario.Add(new SemilleroItem());
+    private void QuitarSemillero(int idx) => semillerosFormulario.RemoveAt(idx);
 
     private bool ValidarFormulario(){
-        if (campoIdGrupo <= 0){
-            mensaje = "El ID del grupo debe ser un número positivo."; return false;
-        }
-        if (string.IsNullOrWhiteSpace(campoNombreGrupo)){
-            mensaje = "El nombre del grupo es obligatorio."; return false;
-        }
-        if (campoFechaFund == default){
-            mensaje = "La fecha de fundación es obligatoria."; return false;
-        }
-        if (string.IsNullOrWhiteSpace(campoAmbito)){
-            mensaje = "El ámbito es obligatorio."; return false;
-        }
+        if (campoIdGrupo <= 0){ mensaje = "El ID del grupo debe ser un número positivo."; return false; }
+        if (string.IsNullOrWhiteSpace(campoNombreGrupo)){ mensaje = "El nombre del grupo es obligatorio."; return false; }
+        if (campoFechaFund == default){ mensaje = "La fecha de fundación es obligatoria."; return false; }
+        if (string.IsNullOrWhiteSpace(campoAmbito)){ mensaje = "El ámbito es obligatorio."; return false; }
         for (int i = 0; i < semillerosFormulario.Count; i++){
             var s = semillerosFormulario[i];
-            if (s.Id <= 0){
-                mensaje = $"El ID del semillero #{i + 1} debe ser mayor a 0."; return false;
-            }
-            if (string.IsNullOrWhiteSpace(s.Nombre)){
-                mensaje = $"El nombre del semillero #{i + 1} es obligatorio."; return false;
-            }
+            if (s.Id <= 0){ mensaje = $"El ID del semillero #{i + 1} debe ser mayor a 0."; return false; }
+            if (string.IsNullOrWhiteSpace(s.Nombre)){ mensaje = $"El nombre del semillero #{i + 1} es obligatorio."; return false; }
         }
         var ids = semillerosFormulario.Select(s => s.Id).ToList();
-        if (ids.Count != ids.Distinct().Count()){
-            mensaje = "Hay semilleros con IDs duplicados en el formulario."; return false;
-        }
+        if (ids.Count != ids.Distinct().Count()){ mensaje = "Hay semilleros con IDs duplicados."; return false; }
         return true;
     }
 
@@ -608,16 +588,11 @@
                 ["p_semilleros"]   = semillerosJson
             };
             (ok, _, msg) = await Sp.EjecutarSpAsync("SP_INGRESAR_GRUPO_CON_SEMILLEROS", parametros);
-            mensaje = ok
-                ? $"Grupo creado con {semillerosFormulario.Count} semillero(s)."
-                : $"Error: {msg}";
+            mensaje = ok ? $"Grupo creado con {semillerosFormulario.Count} semillero(s)." : $"Error: {msg}";
         }
 
         exito = ok;
-        if (ok){
-            mostrarFormulario = false;
-            await CargarRegistros();
-        }
+        if (ok){ mostrarFormulario = false; await CargarRegistros(); }
     }
 
     private async Task GuardarSemillero(){
@@ -633,39 +608,25 @@
 
         var spNombre = editandoSemillero ? "SP_ACTUALIZAR_SEMILLERO" : "SP_INGRESAR_SEMILLERO";
         var (ok, _, msg) = await Sp.EjecutarSpAsync(spNombre, parametros);
-
         exito   = ok;
         mensaje = ok ? (editandoSemillero ? "Semillero actualizado." : "Semillero creado.") : $"Error: {msg}";
-        if (ok){
-            mostrarFormularioSemillero = false;
-            await CargarRegistros();
-        }
+        if (ok){ mostrarFormularioSemillero = false; await CargarRegistros(); }
     }
 
-    private void CancelarSemillero(){
-        mostrarFormularioSemillero = false;
-        mensaje = "";
-    }
+    private void CancelarSemillero(){ mostrarFormularioSemillero = false; mensaje = ""; }
+    private void Cancelar(){ mostrarFormulario = false; mensaje = ""; }
 
     private async Task EliminarRegistro(Dictionary<string, object?> g){
         int id = Convert.ToInt32(g["id"]);
         string nombre = g["nombre"]?.ToString() ?? "";
-
-        var semCount = semilleros
-            .Count(s => s["grupo_investigacion"]?.ToString() == id.ToString());
-
+        var semCount = semilleros.Count(s => s["grupo_investigacion"]?.ToString() == id.ToString());
         string confirmMsg = semCount > 0
-            ? $"¿Eliminar el grupo '{nombre}' y sus {semCount} semillero(s)?."
+            ? $"¿Eliminar el grupo '{nombre}' y sus {semCount} semillero(s)?"
             : $"¿Eliminar el grupo '{nombre}'?";
+        if (!await JS.InvokeAsync<bool>("confirm", confirmMsg)) return;
 
-        if (!await JS.InvokeAsync<bool>("confirm", confirmMsg))
-            return;
-
-        var (ok, _, msg) = await Sp.EjecutarSpAsync(
-            "SP_ELIMINAR_GRUPO_CON_SEMILLEROS",
-            new() { ["p_id_grupo"] = id });
-
-        exito   = ok;
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_GRUPO_CON_SEMILLEROS", new() { ["p_id_grupo"] = id });
+        exito = ok;
         mensaje = ok ? "Grupo y sus semilleros eliminados." : $"Error: {msg}";
         if (ok) await CargarRegistros();
     }
@@ -673,64 +634,11 @@
     private async Task EliminarSemillero(Dictionary<string, object?> s){
         int id = Convert.ToInt32(s["id"]);
         string nombre = s["nombre"]?.ToString() ?? "";
-        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar el semillero '{nombre}'?"))
-            return;
+        if (!await JS.InvokeAsync<bool>("confirm", $"¿Eliminar el semillero '{nombre}'?")) return;
 
-        var (ok, _, msg) = await Sp.EjecutarSpAsync(
-            "SP_ELIMINAR_SEMILLERO",
-            new() { ["p_id"] = id });
-
-        exito   = ok;
+        var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_SEMILLERO", new() { ["p_id"] = id });
+        exito = ok;
         mensaje = ok ? "Semillero eliminado." : $"Error: {msg}";
         if (ok) await CargarRegistros();
-    }
-
-    private void Cancelar(){
-        mostrarFormulario = false;
-        mensaje = "";
-    }
-
-    private async Task Buscar(){
-        if (buscarIdGrupo == null &&
-            string.IsNullOrWhiteSpace(buscarNombreGrupo) &&
-            buscarIdSemillero == null &&
-            string.IsNullOrWhiteSpace(buscarNombreSemillero)){
-            mensaje = "Ingrese al menos un criterio de búsqueda.";
-            exito = false;
-            return;
-        }
-
-        try{
-            cargando = true;
-            var parametros = new Dictionary<string, object?>{
-                ["p_id_grupo"]         = buscarIdGrupo,
-                ["p_nombre_grupo"]     = string.IsNullOrWhiteSpace(buscarNombreGrupo)     ? null : buscarNombreGrupo,
-                ["p_id_semillero"]     = buscarIdSemillero,
-                ["p_nombre_semillero"] = string.IsNullOrWhiteSpace(buscarNombreSemillero) ? null : buscarNombreSemillero
-            };
-
-            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_BUSCAR_GRUPOS_CON_SEMILLEROS", parametros);
-            grupos = ok ? datos : new();
-
-            var (okS, datosS, _) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
-            semilleros = okS ? datosS : new();
-
-            if (!ok){ exito = false; mensaje = msg; }
-            else if (grupos.Count == 0){ mensaje = "No se encontraron coincidencias."; exito = false; }
-            else { mensaje = $"Se encontraron {grupos.Count} grupo(s)."; exito = true; }
-        }catch (Exception ex){
-            exito = false; mensaje = $"Error al buscar: {ex.Message}";
-        }finally{
-            cargando = false;
-        }
-    }
-
-    private async Task LimpiarBusqueda(){
-        buscarIdGrupo         = null;
-        buscarNombreGrupo     = "";
-        buscarIdSemillero     = null;
-        buscarNombreSemillero = "";
-        mensaje = "";
-        await CargarRegistros();
     }
 }

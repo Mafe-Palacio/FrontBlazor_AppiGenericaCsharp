@@ -12,62 +12,112 @@
     </p>
 
     @* ── Tablas sin FK ── *@
-    <div style="margin-bottom: 1.5rem;">
-        <p class="seccion-label">Tablas sin FK</p>
-        <ul class="tabla-lista">
-            <li>Línea de Investigación</li>
-            <li>Área de Conocimiento</li>
-            <li>Área de Aplicación</li>
-            <li>Objetivo de Desarrollo Sostenible (ODS)</li>
-        </ul>
+    <p class="seccion-label">Tablas sin FK</p>
+    <div class="home-grid" style="margin-bottom: 1.5rem;">
+        <div class="home-card">
+            <i class="bi bi-table home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Línea de Investigación</div>
+                <div class="home-card-sub">Tabla base sin dependencias</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-lightbulb home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Área de Conocimiento</div>
+                <div class="home-card-sub">Tabla base sin dependencias</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-geo-alt home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Área de Aplicación</div>
+                <div class="home-card-sub">Tabla base sin dependencias</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-globe2 home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Objetivo de Desarrollo Sostenible</div>
+                <div class="home-card-sub">ODS — Tabla base sin dependencias</div>
+            </div>
+        </div>
     </div>
 
     @* ── Tablas con FK ── *@
-    <div style="margin-bottom: 1.5rem;">
-        <p class="seccion-label">Tablas con FK</p>
-        <ul class="tabla-lista">
-            <li>Grupo de Investigación</li>
-            <li>Semillero</li>
-        </ul>
+    <p class="seccion-label">Tablas con FK</p>
+    <div class="home-grid" style="margin-bottom: 1.5rem;">
+        <div class="home-card">
+            <i class="bi bi-journals home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Grupo de Investigación</div>
+                <div class="home-card-sub">Con semilleros anidados</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-people home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Semillero</div>
+                <div class="home-card-sub">Pertenece a un grupo</div>
+            </div>
+        </div>
     </div>
 
-    @* ── Relación con Grupo de investigación ── *@
-    <div style="margin-bottom: 2rem;">
-        <p class="seccion-label">Relación con Grupo de investigación</p>
-        <ul class="tabla-lista">
-            <li>Participa Grupo <br>
-                Docente ↔ Grupo de Investigación</li>
-        </ul>
-    </div>
-
-    @* ── Relación con Semillero ── *@
-    <div style="margin-bottom: 2rem;">
-        <p class="seccion-label">Relación con Semillero</p>
-        <ul class="tabla-lista">
-            <li>Participa Semillero <br>
-                Docente ↔ Semillero</li>
-        </ul>
-    </div>
-
-    @* ── Relaciones con Líneas de Investigación ── *@
-    <div style="margin-bottom: 2rem;">
-        <p class="seccion-label">Relaciones con líneas de investigación</p>
-        <ul class="tabla-lista">
-            <li>Grupo Línea<br>
-                Grupo ↔ Línea de Investigación</li>
-            <li>AC Línea<br>
-                Área de Conocimiento ↔ Línea de Investigación</li>
-            <li>AA Línea<br>
-                Área de Aplicación ↔ Línea de Investigación</li>
-            <li>Semillero Línea<br>
-                Semillero ↔ Línea de Investigación</li>
-            <li>ODS Línea<br>
-                ODS ↔ Línea de Investigación</li>
-        </ul>
+    @* ── Relaciones ── *@
+    <p class="seccion-label">Relaciones</p>
+    <div class="home-grid" style="margin-bottom: 1.5rem;">
+        <div class="home-card">
+            <i class="bi bi-person-badge home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Participa Grupo</div>
+                <div class="home-card-sub">Docente ↔ Grupo de Investigación</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-person-check home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Participa Semillero</div>
+                <div class="home-card-sub">Docente ↔ Semillero</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-diagram-2 home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Grupo Línea</div>
+                <div class="home-card-sub">Grupo ↔ Línea de Investigación</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-diagram-3 home-card-icon"></i>
+            <div>
+                <div class="home-card-title">AC Línea</div>
+                <div class="home-card-sub">Área de Conocimiento ↔ Línea de Investigación</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-pin-map home-card-icon"></i>
+            <div>
+                <div class="home-card-title">AA Línea</div>
+                <div class="home-card-sub">Área de Aplicación ↔ Línea de Investigación</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-signpost-split home-card-icon"></i>
+            <div>
+                <div class="home-card-title">Semillero Línea</div>
+                <div class="home-card-sub">Semillero ↔ Línea de Investigación</div>
+            </div>
+        </div>
+        <div class="home-card">
+            <i class="bi bi-patch-check home-card-icon"></i>
+            <div>
+                <div class="home-card-title">ODS Línea</div>
+                <div class="home-card-sub">ODS ↔ Línea de Investigación</div>
+            </div>
+        </div>
     </div>
 
     @* ── Conexión ── *@
-    <br>
     <p class="seccion-label">Conexión con Base de Datos</p>
     @if (diagnostico != null){
         <div class="db-info">
@@ -76,7 +126,7 @@
                     <tr>
                         <td style="width: 130px; vertical-align: middle; font-size: 0.85rem; font-weight: 700; padding-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span class="db-dot"></span> 
+                                <span class="db-dot"></span>
                                 <span>Conexión</span>
                             </div>
                         </td>
@@ -84,33 +134,26 @@
                             <strong style="color: #22c55e; font-size: 0.85rem;">Activa</strong>
                         </td>
                     </tr>
-
                     <tr>
                         <td>Base de Datos</td>
                         <td><strong style="color: #334155;">@diagnostico.GetValueOrDefault("baseDatos", "—")</strong></td>
                     </tr>
-
                     <tr>
                         <td>Proveedor</td>
                         <td>@diagnostico.GetValueOrDefault("proveedor", "—")</td>
                     </tr>
-
                     @if (diagnostico.ContainsKey("version")){
                         <tr>
                             <td>Versión</td>
                             <td>@(diagnostico["version"].Length > 60 ? diagnostico["version"][..60] + "..." : diagnostico["version"])</td>
                         </tr>
                     }
-
                     @if (diagnostico.ContainsKey("direccionIP")){
                         <tr>
                             <td>Servidor</td>
-                            <td>
-                                @diagnostico["direccionIP"]@(diagnostico.ContainsKey("puerto") ? ":" + diagnostico["puerto"] : "")
-                            </td>
+                            <td>@diagnostico["direccionIP"]@(diagnostico.ContainsKey("puerto") ? ":" + diagnostico["puerto"] : "")</td>
                         </tr>
                     }
-
                     @if (diagnostico.ContainsKey("usuarioConectado")){
                         <tr>
                             <td>Usuario</td>
@@ -121,11 +164,10 @@
             </table>
         </div>
         <br><br>
-
     }else if (cargado){
         <div class="db-info">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="db-dot" style="background: #ef4444;"></span> 
+                <span class="db-dot" style="background: #ef4444;"></span>
                 <span>Conexión</span>
             </div>
             <strong style="color: #ef4444; font-size: 0.85rem;">No se pudo establecer conexión con la base de datos.</strong>
@@ -144,22 +186,51 @@
         color: #94a3b8;
         margin-bottom: 8px;
     }
+
+    .home-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .home-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .home-card-icon {
+        font-size: 1.4rem;
+        color: #4ade80;
+        background: #f0fdf4;
+        border-radius: 8px;
+        padding: 8px;
+        flex-shrink: 0;
+    }
+
+    .home-card-title {
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .home-card-sub {
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
     .tabla-lista {
         list-style: none;
         padding: 0;
         margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
     }
-    .tabla-lista li {
-        font-size: 0.9rem;
-        color: #334155;
-        padding: 7px 12px;
-        background: #E8F5BD;
-        border: 1px solid #A2CB8B;
-        border-radius: 8px;
-    }
+
     .db-info {
         display: flex;
         align-items: center;
@@ -169,6 +240,7 @@
         border: 1px solid #e2e8f0;
         border-radius: 8px;
     }
+
     .db-dot {
         width: 8px; height: 8px;
         border-radius: 50%;
@@ -176,10 +248,6 @@
         flex-shrink: 0;
     }
 </style>
-
-
-
-
 
 @code {
     private Dictionary<string, string>? diagnostico;

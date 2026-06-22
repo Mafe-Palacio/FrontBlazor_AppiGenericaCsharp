@@ -39,20 +39,19 @@
     @* -- LISTAR -- *@
     @if (!mostrarFormulario){
 
-        @* Barra de búsqueda *@
+        @* ───────── BARRA BÚSQUEDA ───────── *@
         <div class="search-bar">
-            <div class="search-field">
-                <i class="bi bi-hash search-icon"></i>
-                <input type="number" class="search-input" placeholder="Buscar por ID" @bind="buscarId" />
-            </div>
             <div class="search-field search-field--wide">
                 <i class="bi bi-search search-icon"></i>
-                <input class="search-input" placeholder="Buscar por nombre" @bind="buscarNombre" />
+                <input class="search-input" placeholder="Filtrar por ID o nombre..."
+                       value="@filtro" @oninput="FiltrarLocal" />
             </div>
-            <button class="btn-search" @onclick="Buscar">Buscar</button>
-            <button class="btn-clear" @onclick="LimpiarBusqueda">
-                <i class="bi bi-x-circle"></i> Limpiar
-            </button>
+            @if (!string.IsNullOrWhiteSpace(filtro))
+            {
+                <button class="btn-clear" @onclick="LimpiarFiltro">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+            }
         </div>
 
         @* Tabla *@
@@ -61,7 +60,7 @@
                 <div class="spinner"></div>
                 <span>Cargando...</span>
             </div>
-        }else if (registros.Any()){
+        }else if (registrosFiltrados.Any()){
             <div class="table-wrap">
                 <table class="crud-table">
                     <thead>
@@ -72,7 +71,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var r in registros){
+                        @foreach (var r in registrosFiltrados){
                             <tr>
                                 <td class="col-id">
                                     <span class="id-badge">@r["id"]</span>
@@ -136,46 +135,28 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> registrosFiltrados = new();
     private bool cargando = true;
     private bool mostrarFormulario = false;
     private bool editando = false;
     private string mensaje = string.Empty;
     private bool exito = false;
 
-
     private int campoId = 0;
     private string campoNombre = "";
 
-
-    private int? buscarId = null;
-    private string buscarNombre = "";
-
-
-    private bool ValidarFormulario(){
-        if (campoId == 0 || campoId <= 0){
-            mensaje = "El campo ID es obligatorio y debe ser un número positivo.";
-            return false;
-        }
-       
-        if (string.IsNullOrWhiteSpace(campoNombre)){
-            mensaje = "El campo nombre es obligatorio.";
-            return false;
-        }
-
-
-        return true;
-    }
+    private string filtro = "";
 
 
     protected override async Task OnInitializedAsync(){
         await CargarRegistros();
     }
 
-
     private async Task CargarRegistros(){
         cargando = true;
         var (ok, dato, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_AREAS_APLICACION");
         registros = ok ? dato : new();
+        registrosFiltrados = registros;
         if (!ok){
             exito = false;
             mensaje = msg;
@@ -184,6 +165,34 @@
             exito = true;
         }
         cargando = false;
+    }
+
+    private void FiltrarLocal(ChangeEventArgs e){
+        filtro = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(filtro))
+            registrosFiltrados = registros;
+        else
+            registrosFiltrados = registros
+                .Where(r => (r["nombre"]?.ToString() ?? "").Contains(filtro, StringComparison.OrdinalIgnoreCase)
+                        || (r["id"]?.ToString() ?? "").Contains(filtro))
+                .ToList();
+    }
+
+    private void LimpiarFiltro(){
+        filtro = "";
+        registrosFiltrados = registros;
+    }
+
+    private bool ValidarFormulario(){
+        if (campoId <= 0){
+            mensaje = "El campo ID es obligatorio y debe ser un número positivo.";
+            return false;
+        }
+        if (string.IsNullOrWhiteSpace(campoNombre)){
+            mensaje = "El campo nombre es obligatorio.";
+            return false;
+        }
+        return true;
     }
 
 
@@ -210,12 +219,11 @@
             exito = false;
             return;
         }
-       
+
         var datos = new Dictionary<string, object?>{
             ["p_id"] = campoId,
             ["p_nombre"] = campoNombre
         };
-
 
         string sp = editando ? "SP_ACTUALIZAR_AREA_APLICACION" : "SP_INGRESAR_AREA_APLICACION";
         var (ok, _, msg) = await Sp.EjecutarSpAsync(sp, datos);
@@ -232,18 +240,14 @@
 
     private async Task EliminarRegistro(Dictionary<string, object?> reg){
         int id = Convert.ToInt32(reg["id"]);
-        String nombre = reg["nombre"]?.ToString() ?? "";
-
+        string nombre = reg["nombre"]?.ToString() ?? "";
 
         if (!await JS.InvokeAsync<bool>("confirm", $"¿Confirma que desea eliminar el area de aplicación '{nombre}'?"))
             return;
 
-
         var (ok, _, msg) = await Sp.EjecutarSpAsync("SP_ELIMINAR_AREA_APLICACION", new() { ["p_id"] = id });
-       
         exito = ok;
         mensaje = ok ? "Area eliminada exitosamente." : $"Error: {msg}";
-
 
         if (exito)
             await CargarRegistros();
@@ -254,57 +258,4 @@
         mostrarFormulario = false;
         mensaje = "";
     }
-
-
-    private async Task Buscar(){
-        if (buscarId == null && string.IsNullOrWhiteSpace(buscarNombre)){
-            mensaje = "Ingrese un ID o nombre para buscar.";
-            exito = false;
-            return;
-        }
-
-
-        try{
-            cargando = true;
-
-
-            var parametros = new Dictionary<string, object?>{
-                ["p_id"] = buscarId,
-                ["p_nombre"] = buscarNombre
-            };
-
-
-            var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_OBTENER_AREA_APLICACION_POR_ID_NOMBRE", parametros);
-
-
-            registros = ok ? datos : new();
-
-
-            if (!ok){
-                exito = false;
-                mensaje = $"Error: {msg}";
-            }else if (registros.Count == 0){
-                mensaje = "No se encontraron registros que coincidan con la búsqueda.";
-                exito = false;
-            }else{
-                mensaje = $"Se encontraron {registros.Count} coincidencias.";
-                exito = true;
-            }
-        }catch (Exception ex){
-            mensaje = $"Error al buscar: {ex.Message}";
-            exito = false;
-        }finally{
-            cargando = false;
-        }
-    }
-
-
-    private async Task LimpiarBusqueda(){
-        buscarId = null;
-        buscarNombre = "";
-        mensaje = "";
-        await CargarRegistros();
-    }
-   
 }
-

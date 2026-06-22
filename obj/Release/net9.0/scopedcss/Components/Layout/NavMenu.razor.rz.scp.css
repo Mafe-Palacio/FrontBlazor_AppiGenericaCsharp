@@ -24,14 +24,13 @@
 }
 .navbar-toggler:checked[b-kahvpmrcd4] { background-color: #f0f7ed; }
 
-/* títulos desplegables) */
 .nav-section-label[b-kahvpmrcd4] {
-    font-family: inherit;           /* usa Inter igual que todo */
-    font-size: 0.78rem;             /* era 0.65rem — ahora más legible */
+    font-family: inherit;
+    font-size: 0.78rem;
     font-weight: 700;
-    letter-spacing: 0.04em;        /* era 0.12em — menos espaciado agresivo */
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: #4a6741;                 /* era #aabaa4 — mucho más oscuro */
+    color: #4a6741;
     padding: 1rem 16px 5px;
     user-select: none;
     display: flex;
@@ -60,7 +59,6 @@
     flex-shrink: 0;
 }
 
-/* Íconos Bootstrap */
 .bi[b-kahvpmrcd4] {
     display: inline-block;
     position: relative;
@@ -111,7 +109,12 @@
     color: #ffffff !important; opacity: 1;
 }
 
-/* Scroll */
+/* ── Scroll del nav ──
+   En móvil: oculto hasta que el toggler esté checked.
+   IMPORTANTE: NO tiene onclick para cerrar — así los botones
+   de sección no cierran el menú al hacer clic. El menú solo
+   se cierra haciendo clic en el ícono hamburguesa de nuevo,
+   o al navegar a una página (NavLink lo hace solo). */
 .nav-scrollable[b-kahvpmrcd4] { display: none; padding-bottom: 1rem; }
 .navbar-toggler:checked ~ .nav-scrollable[b-kahvpmrcd4] { display: block; }
 

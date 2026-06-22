@@ -12,45 +12,49 @@ main[b-vhxxsxyzpg] {
     min-width: 0;
 }
 
-/* Sidebar */
 .sidebar[b-vhxxsxyzpg] {
     background: #ffffff;
     border-right: 1px solid #e4ede0;
 }
 
-/* Top bar */
+/* ── Top bar ── */
 .top-row[b-vhxxsxyzpg] {
     background: #ffffff;
     border-bottom: 1px solid #e4ede0;
-    justify-content: flex-end;
-    height: 3.5rem;
+    height: auto;
+    min-height: 3.5rem;
+    padding: 0.5rem 1rem;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.4rem;
     font-size: 0.9rem;
     font-weight: 600;
     color: #1e2a1a;
-    letter-spacing: 0;
 }
 
-.top-row[b-vhxxsxyzpg]  a,
-.top-row[b-vhxxsxyzpg]  .btn-link {
+/* Texto "Frontend Blazor..." — se oculta en móvil pequeño */
+.top-row > span:first-child[b-vhxxsxyzpg] {
+    font-size: 0.8rem;
+    color: #6b7c65;
     white-space: nowrap;
-    margin-left: 1.5rem;
-    text-decoration: none;
-}
-
-.top-row[b-vhxxsxyzpg]  a:hover,
-.top-row[b-vhxxsxyzpg]  .btn-link:hover { text-decoration: underline; }
-
-.top-row[b-vhxxsxyzpg]  a:first-child {
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 160px;
 }
 
-/* Responsive mobile */
-@media (max-width: 640.98px) {
-    .top-row[b-vhxxsxyzpg] { justify-content: space-between; }
-    .top-row[b-vhxxsxyzpg]  a, .top-row[b-vhxxsxyzpg]  .btn-link { margin-left: 0; }
+/* Grupo de botones de usuario */
+.top-row .d-flex[b-vhxxsxyzpg] {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+/* En móvil muy pequeño: ocultar el label "Contraseña" y "Salir", dejar solo el ícono */
+@media (max-width: 480px) {
+    .top-row > span:first-child[b-vhxxsxyzpg] { display: none; }
+    .btn-user-action span[b-vhxxsxyzpg] { display: none; }
+    .user-name-tag[b-vhxxsxyzpg] { font-size: 0.78rem; }
 }
 
 /* Desktop */
@@ -68,21 +72,19 @@ main[b-vhxxsxyzpg] {
         position: sticky;
         top: 0;
         z-index: 1;
+        flex-wrap: nowrap;
+        height: 3.5rem;
+        padding: 0 1.5rem;
     }
 
-    .top-row.auth[b-vhxxsxyzpg]  a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
+    .top-row > span:first-child[b-vhxxsxyzpg] {
+        display: block;
+        max-width: none;
     }
 
-    .top-row[b-vhxxsxyzpg], article[b-vhxxsxyzpg] {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
-    }
+    .btn-user-action span[b-vhxxsxyzpg] { display: inline; }
 }
 
-/* Error UI */
 #blazor-error-ui[b-vhxxsxyzpg] {
     color-scheme: light only;
     background: lightyellow;

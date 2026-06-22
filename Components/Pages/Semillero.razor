@@ -33,21 +33,20 @@
 
     @* ───────── LISTA ───────── *@
     @if (!mostrarFormulario){
-        
-        @* Barra de búsqueda *@
+
+        @* ───────── BARRA BÚSQUEDA ───────── *@
         <div class="search-bar">
-            <div class="search-field">
-                <i class="bi bi-hash search-icon"></i>
-                <input class="search-input" type="number" placeholder="Buscar por ID" @bind="buscarId" />
-            </div>
             <div class="search-field search-field--wide">
                 <i class="bi bi-search search-icon"></i>
-                <input class="search-input" placeholder="Buscar por nombre" @bind="buscarNombre" />
+                <input class="search-input" placeholder="Filtrar por ID, nombre o grupo..."
+                       value="@filtro" @oninput="FiltrarLocal" />
             </div>
-            <button class="btn-search" @onclick="Buscar">Buscar</button>
-            <button class="btn-clear" @onclick="LimpiarBusqueda">
-                <i class="bi bi-x-circle"></i> Limpiar
-            </button>
+            @if (!string.IsNullOrWhiteSpace(filtro))
+            {
+                <button class="btn-clear" @onclick="LimpiarFiltro">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+            }
         </div>
 
         @* Tabla *@
@@ -56,7 +55,7 @@
                 <div class="spinner"></div>
                 <span>Cargando...</span>
             </div>
-        }else if (registros.Any()){
+        }else if (registrosFiltrados.Any()){
             <div class="table-wrap">
                 <table class="crud-table">
                     <thead>
@@ -69,7 +68,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var r in registros)
+                        @foreach (var r in registrosFiltrados)
                         {
                             <tr>
                                 <td class="col-id">
@@ -148,12 +147,14 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> registrosFiltrados = new();
     private List<Dictionary<string, object?>> grupos    = new();
     private bool   cargando          = true;
     private bool   mostrarFormulario = false;
     private bool   editando          = false;
     private string mensaje           = string.Empty;
     private bool   exito             = false;
+    private string filtro = "";
 
     private int      campoId     = 0;
     private string   campoNombre = "";
@@ -187,6 +188,7 @@
         cargando = true;
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_SEMILLEROS");
         registros = ok ? datos : new();
+        registrosFiltrados = registros;
         if (!ok) { exito = false; mensaje = msg; }
         cargando = false;
     }
@@ -194,6 +196,23 @@
     private async Task CargarGrupos(){
         var (ok, datos, _) = await Sp.EjecutarSpAsync("SP_LISTAR_GRUPOS_INVESTIGACION");
         grupos = ok ? datos : new();
+    }
+
+    private void FiltrarLocal(ChangeEventArgs e){
+        filtro = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(filtro))
+            registrosFiltrados = registros;
+        else
+            registrosFiltrados = registros
+                .Where(r => (r["nombre"]?.ToString() ?? "").Contains(filtro, StringComparison.OrdinalIgnoreCase)
+                        || (r["id"]?.ToString() ?? "").Contains(filtro)
+                        || (r["nombre_grupo"]?.ToString() ?? "").Contains(filtro, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+    }
+
+    private void LimpiarFiltro(){
+        filtro = "";
+        registrosFiltrados = registros;
     }
 
     private async Task NuevoRegistro(){

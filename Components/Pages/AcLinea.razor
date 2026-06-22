@@ -37,20 +37,19 @@
     @* ───── LISTA ───── *@
     @if (!mostrarFormulario){
 
-        @* Barra de búsqueda *@
+        @* ───────── BARRA BÚSQUEDA ───────── *@
         <div class="search-bar">
-            <div class="search-field">
-                <i class="bi bi-hash search-icon"></i>
-                <input type="number" class="search-input" placeholder="ID - Línea de Investigación" @bind="buscarId_linea" />
+            <div class="search-field search-field--wide">
+                <i class="bi bi-search search-icon"></i>
+                <input class="search-input" placeholder="Filtrar por ID de Area de Conocimiento o de Linea de Investigación..."
+                       value="@filtro" @oninput="FiltrarLocal" />
             </div>
-            <div class="search-field">
-                <i class="bi bi-hash search-icon"></i>
-                <input type="number" class="search-input" placeholder="ID - Área de Conocimiento" @bind="buscarId_area" />
-            </div>
-            <button class="btn-search" @onclick="Buscar">Buscar</button>
-            <button class="btn-clear" @onclick="LimpiarBusqueda">
-                <i class="bi bi-x-circle"></i> Limpiar
-            </button>
+            @if (!string.IsNullOrWhiteSpace(filtro))
+            {
+                <button class="btn-clear" @onclick="LimpiarFiltro">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
+            }
         </div>
 
         @* Tabla *@
@@ -59,7 +58,7 @@
                 <div class="spinner"></div>
                 <span>Cargando...</span>
             </div>
-        }else if (registros.Any()){
+        }else if (registrosFiltrados.Any()){
             <div class="table-wrap">
                 <table class="crud-table">
                     <thead>
@@ -72,7 +71,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var r in registros){
+                        @foreach (var r in registrosFiltrados){
                             <tr>
                                 <td class="col-id"><span class="id-badge">@r["linea_investigacion"]</span></td>
                                 <td class="td-nombre">@r["nombre_linea"]</td>
@@ -145,12 +144,14 @@
 
 @code {
     private List<Dictionary<string, object?>> registros = new();
+    private List<Dictionary<string, object?>> registrosFiltrados = new();
     private List<Dictionary<string, object?>> lineas    = new();
     private List<Dictionary<string, object?>> areas     = new();
     private bool   cargando = true;
     private bool   mostrarFormulario = false;
     private string mensaje = string.Empty;
     private bool   exito = false;
+    private string filtro = "";
 
     private int campoIdLinea = 0;
     private int campoIdArea  = 0;
@@ -181,9 +182,28 @@
         cargando = true;
         var (ok, datos, msg) = await Sp.EjecutarSpAsync("SP_LISTAR_AC_LINEA");
         registros = ok ? datos : new();
+        registrosFiltrados = registros;
         if (!ok){ exito = false; mensaje = msg; }
         else if (registros.Count == 0){ mensaje = "No hay relaciones registradas."; exito = false; }
         cargando = false;
+    }
+
+    private void FiltrarLocal(ChangeEventArgs e){
+        filtro = e.Value?.ToString() ?? "";
+        if (string.IsNullOrWhiteSpace(filtro))
+            registrosFiltrados = registros;
+        else
+            registrosFiltrados = registros
+                .Where(r => (r["linea_investigacion"]?.ToString() ?? "").Contains(filtro)
+                        || (r["nombre_linea"]?.ToString() ?? "").Contains(filtro, StringComparison.OrdinalIgnoreCase)
+                        || (r["area_conocimiento"]?.ToString() ?? "").Contains(filtro)
+                        || (r["nombre_area"]?.ToString() ?? "").Contains(filtro, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+    }
+
+    private void LimpiarFiltro(){
+        filtro = "";
+        registrosFiltrados = registros;
     }
 
     private void NuevoRegistro(){
